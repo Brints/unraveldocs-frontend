@@ -1,1 +1,4 @@
-<app-header></app-header>
+<section class='bg' [ngStyle]="{'filter': 'blur(' + blur + 'px)'}"></section>
+<div class="center-container">
+  <span class="loading-text" *ngIf="percent < 100" [ngStyle]="{'opacity': loadingOpacity}">{{ percent }}%</span>
+</div>

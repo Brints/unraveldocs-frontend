@@ -36,19 +36,3 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
-html {
-  font-size: 16px;
-  font-family: sans-serif;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  background-color: var(--gray-900);
-  color: var(--gray-400);
-  font-size: 1rem;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
