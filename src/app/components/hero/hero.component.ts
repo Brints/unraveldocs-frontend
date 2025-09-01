@@ -169,3 +169,4 @@ export class HeroComponent {
     setInterval(cycle, 6000);
   }
 }
+

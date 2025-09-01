@@ -217,10 +217,14 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.authService.logout();
+    this.authService.logout().then(r => {
+      // Optionally handle post-logout actions here
+    });
     this.userMenuOpen = false;
     this.closeMobileMenu();
-    this.router.navigate(['/']);
+    this.router.navigate(['/']).then(r => {
+      // Optionally handle post-navigation actions here
+    });
   }
 
   getPlanBadgeClasses(plan: string): string {

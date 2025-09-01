@@ -112,3 +112,4 @@ export class HowItWorksComponent {
     console.log('Processing files:', files);
   }
 }
+

@@ -146,6 +146,7 @@ export class FormInputComponent implements ControlValueAccessor {
 
   onFocus(): void {
     // Optional: Handle focus events
+    this.onTouched();
   }
 
   togglePasswordVisibility(): void {

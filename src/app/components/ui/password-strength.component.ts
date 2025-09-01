@@ -143,3 +143,4 @@ export class PasswordStrengthComponent implements OnChanges {
     return this.passwordRules.filter(rule => rule.met).length;
   }
 }
+

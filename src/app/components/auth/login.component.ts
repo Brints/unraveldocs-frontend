@@ -255,3 +255,4 @@ export class LoginComponent {
     console.log('Login with GitHub');
   }
 }
+

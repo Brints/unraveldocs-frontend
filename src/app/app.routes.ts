@@ -11,3 +11,4 @@ export const routes: Routes = [
   { path: 'dashboard', redirectTo: '/home' }, // Temporary redirect until dashboard is created
   { path: '**', redirectTo: '/home' }
 ];
+

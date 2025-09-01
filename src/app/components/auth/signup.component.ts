@@ -381,3 +381,4 @@ export class SignupComponent {
     console.log('Signup with GitHub');
   }
 }
+

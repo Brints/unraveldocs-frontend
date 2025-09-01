@@ -105,3 +105,4 @@ export class TestimonialsComponent {
     }
   ];
 }
+

@@ -347,3 +347,4 @@ export class PasswordGeneratorComponent {
     this.closeModal();
   }
 }
+

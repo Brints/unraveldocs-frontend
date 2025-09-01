@@ -144,3 +144,4 @@ export class PricingComponent {
     console.log('Selected plan:', plan.name);
   }
 }
+
