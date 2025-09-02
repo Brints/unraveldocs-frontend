@@ -1,9 +1,8 @@
-@import "tailwindcss/preflight";
-
-/* Custom styles for UnravelDocs */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Custom styles for UnravelDocs */
 
 @layer base {
   html {
@@ -121,64 +120,6 @@
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
-}
-
-/* Footer Component */
-.social-link {
-  @apply w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center
-  text-gray-400 hover:text-white hover:bg-blue-600 transition-all duration-300
-  hover:-translate-y-1;
-}
-
-
-/* Header Component */
-.nav-link {
-  @apply text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer;
-}
-
-.nav-link:hover::after {
-  content: '';
-  @apply absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 transform scale-x-100;
-  animation: scaleIn 0.3s ease;
-}
-
-.mobile-nav-link {
-  @apply block py-3 px-4 text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-lg font-medium transition-all;
-}
-
-.mobile-menu-line {
-  @apply w-6 h-0.5 bg-gray-700 transition-all duration-300;
-}
-
-.open .mobile-menu-line:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
-}
-
-.open .mobile-menu-line:nth-child(2) {
-  opacity: 0;
-}
-
-.open .mobile-menu-line:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
-}
-
-@keyframes scaleIn {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
-.user-dropdown {
-  @apply absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200
-  opacity-0 invisible transform scale-95 transition-all duration-200 origin-top-right;
-}
-
-.user-dropdown.show {
-  @apply opacity-100 visible transform scale-100;
-}
-
-.dropdown-item {
-  @apply flex items-center space-x-3 px-4 py-3 text-sm text-gray-700
-  hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg;
 }
 
 /* How it Works Component */
