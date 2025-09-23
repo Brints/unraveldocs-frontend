@@ -1,11 +1,12 @@
 import { Component, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-export interface PasswordStrength {
-  score: number; // 0-4
-  feedback: string[];
-  color: string;
-  label: string;
+export interface PasswordStrengthCriteria {
+  minLength: boolean;
+  hasLowercase: boolean;
+  hasUppercase: boolean;
+  hasNumber: boolean;
+  hasSpecialChar: boolean;
 }
 
 @Component({
@@ -13,236 +14,171 @@ export interface PasswordStrength {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngIf="password()" class="password-strength-container">
-      <div class="strength-header">
-        <span class="strength-label">Password Strength:</span>
-        <span class="strength-score" [style.color]="strength().color">
-          {{ strength().label }}
+    <div class="password-strength-indicator">
+      <!-- Strength bars -->
+      <div class="flex space-x-1 mb-2">
+        @for (level of strengthLevels; track level) {
+          <div
+            class="h-2 flex-1 rounded transition-colors duration-200"
+            [class]="getStrengthBarClass(level)"
+          ></div>
+        }
+      </div>
+
+      <!-- Strength text -->
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm font-medium" [class]="getStrengthTextClass()">
+          {{ getStrengthText() }}
+        </span>
+        <span class="text-xs text-gray-500">
+          {{ score() }}/{{ maxScore }}
         </span>
       </div>
 
-      <div class="strength-bar">
-        <div
-          class="strength-fill"
-          [style.width.%]="(strength().score / 4) * 100"
-          [style.background-color]="strength().color">
-        </div>
-      </div>
+      <!-- Criteria checklist -->
+      @if (showCriteria && password()) {
+        <div class="space-y-1">
+          <div class="flex items-center space-x-2">
+            <svg
+              class="w-4 h-4"
+              [class]="criteria().minLength ? 'text-green-500' : 'text-gray-400'"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs" [class]="criteria().minLength ? 'text-green-700' : 'text-gray-600'">
+              At least {{ minLength }} characters
+            </span>
+          </div>
 
-      <div *ngIf="showFeedback && strength().feedback.length > 0" class="feedback">
-        <ul class="feedback-list">
-          <li *ngFor="let item of strength().feedback" class="feedback-item">
-            {{ item }}
-          </li>
-        </ul>
-      </div>
+          <div class="flex items-center space-x-2">
+            <svg
+              class="w-4 h-4"
+              [class]="criteria().hasLowercase ? 'text-green-500' : 'text-gray-400'"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs" [class]="criteria().hasLowercase ? 'text-green-700' : 'text-gray-600'">
+              One lowercase letter
+            </span>
+          </div>
 
-      <div class="requirements" *ngIf="showRequirements">
-        <div class="requirement" [class.met]="hasUppercase()">
-          <span class="requirement-icon">{{ hasUppercase() ? '✓' : '○' }}</span>
-          Uppercase letter
+          <div class="flex items-center space-x-2">
+            <svg
+              class="w-4 h-4"
+              [class]="criteria().hasUppercase ? 'text-green-500' : 'text-gray-400'"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs" [class]="criteria().hasUppercase ? 'text-green-700' : 'text-gray-600'">
+              One uppercase letter
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <svg
+              class="w-4 h-4"
+              [class]="criteria().hasNumber ? 'text-green-500' : 'text-gray-400'"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs" [class]="criteria().hasNumber ? 'text-green-700' : 'text-gray-600'">
+              One number
+            </span>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <svg
+              class="w-4 h-4"
+              [class]="criteria().hasSpecialChar ? 'text-green-500' : 'text-gray-400'"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="text-xs" [class]="criteria().hasSpecialChar ? 'text-green-700' : 'text-gray-600'">
+              One special character
+            </span>
+          </div>
         </div>
-        <div class="requirement" [class.met]="hasLowercase()">
-          <span class="requirement-icon">{{ hasLowercase() ? '✓' : '○' }}</span>
-          Lowercase letter
-        </div>
-        <div class="requirement" [class.met]="hasNumber()">
-          <span class="requirement-icon">{{ hasNumber() ? '✓' : '○' }}</span>
-          Number
-        </div>
-        <div class="requirement" [class.met]="hasSpecialChar()">
-          <span class="requirement-icon">{{ hasSpecialChar() ? '✓' : '○' }}</span>
-          Special character
-        </div>
-        <div class="requirement" [class.met]="hasMinLength()">
-          <span class="requirement-icon">{{ hasMinLength() ? '✓' : '○' }}</span>
-          At least 8 characters
-        </div>
-      </div>
+      }
     </div>
   `,
   styles: [`
-    .password-strength-container {
-      margin-top: 0.5rem;
-      padding: 0.75rem;
-      background-color: #f9fafb;
-      border-radius: 0.5rem;
-      border: 1px solid #e5e7eb;
-    }
-
-    .strength-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.5rem;
-    }
-
-    .strength-label {
-      font-size: 0.875rem;
-      color: #374151;
-      font-weight: 500;
-    }
-
-    .strength-score {
-      font-size: 0.875rem;
-      font-weight: 600;
-    }
-
-    .strength-bar {
-      width: 100%;
-      height: 0.25rem;
-      background-color: #e5e7eb;
-      border-radius: 0.125rem;
-      overflow: hidden;
-      margin-bottom: 0.75rem;
-    }
-
-    .strength-fill {
-      height: 100%;
-      transition: all 0.3s ease;
-      border-radius: 0.125rem;
-    }
-
-    .feedback {
-      margin-bottom: 0.75rem;
-    }
-
-    .feedback-list {
-      margin: 0;
-      padding-left: 1rem;
-      font-size: 0.875rem;
-      color: #6b7280;
-    }
-
-    .feedback-item {
-      margin-bottom: 0.25rem;
-    }
-
-    .requirements {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 0.5rem;
-    }
-
-    .requirement {
-      display: flex;
-      align-items: center;
-      font-size: 0.875rem;
-      color: #6b7280;
-      transition: color 0.2s ease;
-    }
-
-    .requirement.met {
-      color: #059669;
-    }
-
-    .requirement-icon {
-      margin-right: 0.5rem;
-      font-weight: bold;
-      width: 1rem;
-      text-align: center;
-    }
-
-    .requirement.met .requirement-icon {
-      color: #059669;
+    :host {
+      display: block;
     }
   `]
 })
 export class PasswordStrengthComponent {
-  @Input() showFeedback = true;
-  @Input() showRequirements = true;
+  @Input() password = signal('');
+  @Input() minLength = 8;
+  @Input() showCriteria = true;
 
-  password = signal('');
+  maxScore = 5;
+  strengthLevels = [1, 2, 3, 4, 5];
 
-  @Input() set value(password: string) {
-    this.password.set(password || '');
-  }
-
-  // Individual requirement checks
-  hasUppercase = computed(() => /[A-Z]/.test(this.password()));
-  hasLowercase = computed(() => /[a-z]/.test(this.password()));
-  hasNumber = computed(() => /[0-9]/.test(this.password()));
-  hasSpecialChar = computed(() => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(this.password()));
-  hasMinLength = computed(() => this.password().length >= 8);
-
-  strength = computed((): PasswordStrength => {
+  // Computed password criteria
+  criteria = computed((): PasswordStrengthCriteria => {
     const pwd = this.password();
-    if (!pwd) {
-      return {
-        score: 0,
-        feedback: [],
-        color: '#e5e7eb',
-        label: 'No password'
-      };
-    }
-
-    let score = 0;
-    const feedback: string[] = [];
-
-    // Length check
-    if (pwd.length >= 8) {
-      score += 1;
-    } else {
-      feedback.push('Use at least 8 characters');
-    }
-
-    // Character variety checks
-    if (this.hasUppercase()) score += 1;
-    else feedback.push('Add uppercase letters');
-
-    if (this.hasLowercase()) score += 1;
-    else feedback.push('Add lowercase letters');
-
-    if (this.hasNumber()) score += 1;
-    else feedback.push('Add numbers');
-
-    if (this.hasSpecialChar()) score += 1;
-    else feedback.push('Add special characters');
-
-    // Additional complexity checks
-    if (pwd.length >= 12) score += 1;
-    if (this.hasNoRepeatingChars(pwd)) score += 1;
-    if (this.hasNoDictionaryWords(pwd)) score += 1;
-
-    // Cap at 4 for display purposes
-    score = Math.min(score, 4);
-
     return {
-      score,
-      feedback,
-      ...this.getStrengthDisplay(score)
+      minLength: pwd.length >= this.minLength,
+      hasLowercase: /[a-z]/.test(pwd),
+      hasUppercase: /[A-Z]/.test(pwd),
+      hasNumber: /\d/.test(pwd),
+      hasSpecialChar: /[@$!%*?&]/.test(pwd)
     };
   });
 
-  private getStrengthDisplay(score: number): { color: string; label: string } {
-    switch (score) {
-      case 0:
-      case 1:
-        return { color: '#dc2626', label: 'Very Weak' };
-      case 2:
-        return { color: '#ea580c', label: 'Weak' };
-      case 3:
-        return { color: '#ca8a04', label: 'Fair' };
-      case 4:
-        return { color: '#059669', label: 'Strong' };
-      default:
-        return { color: '#16a34a', label: 'Very Strong' };
+  // Computed strength score
+  score = computed((): number => {
+    const c = this.criteria();
+    let score = 0;
+
+    if (c.minLength) score++;
+    if (c.hasLowercase) score++;
+    if (c.hasUppercase) score++;
+    if (c.hasNumber) score++;
+    if (c.hasSpecialChar) score++;
+
+    return score;
+  });
+
+  getStrengthBarClass(level: number): string {
+    const score = this.score();
+    const baseClass = 'transition-colors duration-200 ';
+
+    if (level <= score) {
+      if (score <= 1) return baseClass + 'bg-red-500';
+      if (score <= 2) return baseClass + 'bg-yellow-500';
+      if (score <= 3) return baseClass + 'bg-blue-500';
+      if (score <= 4) return baseClass + 'bg-green-400';
+      return baseClass + 'bg-green-500';
     }
+
+    return baseClass + 'bg-gray-200';
   }
 
-  private hasNoRepeatingChars(password: string): boolean {
-    // Check for 3+ consecutive repeating characters
-    return !/(.)\1{2,}/.test(password);
+  getStrengthText(): string {
+    const score = this.score();
+    const texts = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very strong'];
+    return texts[score] || 'Very weak';
   }
 
-  private hasNoDictionaryWords(password: string): boolean {
-    // Basic check for common dictionary words
-    const commonWords = [
-      'password', 'admin', 'user', 'login', 'welcome', 'hello',
-      'qwerty', 'abc123', '123456', 'password123', 'admin123'
-    ];
+  getStrengthTextClass(): string {
+    const score = this.score();
 
-    const lowerPassword = password.toLowerCase();
-    return !commonWords.some(word => lowerPassword.includes(word));
+    if (score <= 1) return 'text-red-600';
+    if (score <= 2) return 'text-yellow-600';
+    if (score <= 3) return 'text-blue-600';
+    if (score <= 4) return 'text-green-600';
+    return 'text-green-700';
   }
 }

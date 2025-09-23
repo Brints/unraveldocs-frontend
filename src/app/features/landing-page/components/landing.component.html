@@ -113,26 +113,27 @@
     </section>
 
     <!-- Blog Preview Section (New) -->
-    <section *ngIf="shouldShowSection('blog')"
-             id="blog"
-             class="section blog-section"
-             [class.visible]="sections().find(s => s.id === 'blog')?.visible">
-      <app-blog-preview
-        [maxPosts]="3"
-        (postClicked)="onCtaClick('blog-post')"
-        (viewAllClicked)="onCtaClick('blog-view-all')">
-      </app-blog-preview>
-    </section>
+    @if (shouldShowSection('blog')) {
+      <section id="blog"
+               class="section blog-section"
+               [class.visible]="sections().find(s => s.id === 'blog')?.visible">
+        <app-blog-preview
+          [maxPosts]="3"
+          (postClicked)="onCtaClick('blog-post')"
+          (viewAllClicked)="onCtaClick('blog-view-all')">
+        </app-blog-preview>
+      </section>
+    }
 
     <!-- Newsletter Section (New) -->
-    <section *ngIf="shouldShowSection('newsletter')"
-             id="newsletter"
-             class="section newsletter-section">
-      <app-newsletter
-        (subscribed)="onCtaClick('newsletter-signup')"
-        (subscriptionCompleted)="onSignupComplete()">
-      </app-newsletter>
-    </section>
+    @if (shouldShowSection('newsletter')) {
+      <section id="newsletter" class="section newsletter-section">
+        <app-newsletter
+          (subscribed)="onCtaClick('newsletter-signup')"
+          (subscriptionCompleted)="onSignupComplete()">
+        </app-newsletter>
+      </section>
+    }
 
     <!-- Final CTA Section (New) -->
     <section id="cta"
