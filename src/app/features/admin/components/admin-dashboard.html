@@ -1,0 +1,582 @@
+<div class="admin-dashboard-container">
+  <!-- Admin Header -->
+  <div class="admin-header">
+    <div class="header-content">
+      <div class="header-left">
+        <h1 class="admin-title">Admin Dashboard</h1>
+        <div class="system-health-indicator" [class]="'status-' + systemHealth().status">
+          <div class="status-dot"></div>
+          <span class="status-text">{{ systemHealth().message }}</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Critical Notifications Alert -->
+        @if (criticalNotifications().length > 0) {
+          <div class="critical-alert">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.664-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+            </svg>
+            <span>{{ criticalNotifications().length }} Critical Alert{{ criticalNotifications().length > 1 ? 's' : '' }}</span>
+          </div>
+        }
+
+        <!-- View Selector -->
+        <div class="view-selector">
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="selectedView() === 'overview'"
+            (click)="onViewChange('overview')">
+            Overview
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="selectedView() === 'users'"
+            (click)="onViewChange('users')">
+            Users
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="selectedView() === 'system'"
+            (click)="onViewChange('system')">
+            System
+          </button>
+          <button
+            type="button"
+            class="view-btn"
+            [class.active]="selectedView() === 'analytics'"
+            (click)="onViewChange('analytics')">
+            Analytics
+          </button>
+        </div>
+
+        <!-- Time Range Selector -->
+        <div class="time-range-selector">
+          <button
+            type="button"
+            class="time-btn"
+            [class.active]="selectedTimeRange() === '1h'"
+            (click)="onTimeRangeChange('1h')">
+            1H
+          </button>
+          <button
+            type="button"
+            class="time-btn"
+            [class.active]="selectedTimeRange() === '24h'"
+            (click)="onTimeRangeChange('24h')">
+            24H
+          </button>
+          <button
+            type="button"
+            class="time-btn"
+            [class.active]="selectedTimeRange() === '7d'"
+            (click)="onTimeRangeChange('7d')">
+            7D
+          </button>
+          <button
+            type="button"
+            class="time-btn"
+            [class.active]="selectedTimeRange() === '30d'"
+            (click)="onTimeRangeChange('30d')">
+            30D
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="admin-content">
+    <!-- Overview Section -->
+    @if (selectedView() === 'overview') {
+      <!-- Admin Stats Grid -->
+      <div class="admin-stats-grid">
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="admin-stat-card skeleton">
+              <div class="skeleton-stat-header">
+                <div class="skeleton-stat-icon"></div>
+                <div class="skeleton-stat-title"></div>
+              </div>
+              <div class="skeleton-stat-content">
+                <div class="skeleton-stat-number"></div>
+                <div class="skeleton-stat-trend"></div>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="admin-stat-card users">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Total Users</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().totalUsers.toLocaleString() }}</div>
+              <div class="stat-subtitle">{{ stats().activeUsers.toLocaleString() }} active</div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card documents">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Documents</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().totalDocuments.toLocaleString() }}</div>
+              <div class="stat-subtitle">{{ stats().newSignupsToday }} new today</div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card storage">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Storage Used</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().storageUsed }} GB</div>
+              <div class="stat-subtitle">{{ formatBytes(stats().storageUsed * 1024 * 1024 * 1024) }}</div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card revenue">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Revenue</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">${{ stats().totalRevenue.toLocaleString() }}</div>
+              <div class="stat-subtitle growth-positive">+{{ revenueGrowth() }}% growth</div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card uptime">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">System Uptime</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().systemUptime }}%</div>
+              <div class="stat-subtitle">Last 30 days</div>
+            </div>
+          </div>
+
+          <div class="admin-stat-card response-time">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Avg Response</h3>
+            </div>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().averageResponseTime }}ms</div>
+              <div class="stat-subtitle">API response time</div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Main Grid -->
+      <div class="admin-main-grid">
+        <!-- Quick Actions Panel -->
+        <div class="admin-panel quick-actions-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Quick Actions</h2>
+            <p class="panel-description">Administrative tasks and controls</p>
+          </div>
+
+          <div class="quick-actions-grid">
+            @for (action of quickActions(); track action.id) {
+              <div class="quick-action-item">
+                @if (action.route) {
+                  <a [routerLink]="action.route" class="action-button" [class]="action.color">
+                    <div class="action-icon">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActionIconPath(action.icon)"/>
+                      </svg>
+                    </div>
+                    <div class="action-content">
+                      <h4 class="action-title">{{ action.title }}</h4>
+                      <p class="action-description">{{ action.description }}</p>
+                    </div>
+                  </a>
+                } @else {
+                  <button type="button" (click)="action.action!()" class="action-button" [class]="action.color">
+                    <div class="action-icon">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActionIconPath(action.icon)"/>
+                      </svg>
+                    </div>
+                    <div class="action-content">
+                      <h4 class="action-title">{{ action.title }}</h4>
+                      <p class="action-description">{{ action.description }}</p>
+                    </div>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- System Metrics Panel -->
+        <div class="admin-panel system-metrics-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">System Metrics</h2>
+            <button type="button" (click)="refreshSystemMetrics()" class="refresh-btn">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="metrics-grid">
+            @if (isLoading()) {
+              @for (i of [1,2,3,4,5,6]; track i) {
+                <div class="metric-item skeleton">
+                  <div class="skeleton-metric-header"></div>
+                  <div class="skeleton-metric-value"></div>
+                  <div class="skeleton-metric-trend"></div>
+                </div>
+              }
+            } @else {
+              @for (metric of systemMetrics(); track metric.id) {
+                <div class="metric-item" [class]="'status-' + metric.status">
+                  <div class="metric-header">
+                    <span class="metric-name">{{ metric.name }}</span>
+                    <span class="metric-status" [class]="getMetricStatusColor(metric.status)">
+                      {{ metric.status }}
+                    </span>
+                  </div>
+                  <div class="metric-value">
+                    <span class="value">{{ metric.value }}</span>
+                    <span class="unit">{{ metric.unit }}</span>
+                  </div>
+                  <div class="metric-trend" [class]="'trend-' + metric.trend">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      @if (metric.trend === 'up') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l9.2-9.2M17 17V7H7"/>
+                      } @else if (metric.trend === 'down') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 7l-9.2 9.2M7 7v10h10"/>
+                      } @else {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                      }
+                    </svg>
+                    <span>{{ metric.trendValue > 0 ? '+' : '' }}{{ metric.trendValue }}%</span>
+                  </div>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- User Activity Panel -->
+        <div class="admin-panel user-activity-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">Recent User Activity</h2>
+            <div class="panel-actions">
+              <button type="button" (click)="exportUserActivity()" class="export-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export
+              </button>
+            </div>
+          </div>
+
+          <div class="activity-list">
+            @if (isLoading()) {
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="activity-item skeleton">
+                  <div class="skeleton-activity-left">
+                    <div class="skeleton-activity-avatar"></div>
+                    <div class="skeleton-activity-content">
+                      <div class="skeleton-activity-title"></div>
+                      <div class="skeleton-activity-subtitle"></div>
+                    </div>
+                  </div>
+                  <div class="skeleton-activity-right">
+                    <div class="skeleton-activity-status"></div>
+                    <div class="skeleton-activity-time"></div>
+                  </div>
+                </div>
+              }
+            } @else {
+              @for (activity of userActivities(); track activity.id) {
+                <div class="activity-item" [class]="'status-' + activity.status">
+                  <div class="activity-left">
+                    <div class="activity-avatar">
+                      {{ activity.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="activity-content">
+                      <div class="activity-title">{{ activity.action }}</div>
+                      <div class="activity-subtitle">
+                        <span class="user-name">{{ activity.userName }}</span>
+                        <span class="separator">•</span>
+                        <span class="resource">{{ activity.resource }}</span>
+                      </div>
+                      <div class="activity-meta">
+                        <span class="ip-address">{{ activity.ipAddress }}</span>
+                        <span class="separator">•</span>
+                        <span class="user-agent">{{ activity.userAgent }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="activity-right">
+                    <div class="activity-status" [class]="'status-' + activity.status">
+                      {{ activity.status }}
+                    </div>
+                    <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-state">
+                  <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  <p class="empty-message">No recent activity</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+
+        <!-- Notifications Panel -->
+        <div class="admin-panel notifications-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">System Notifications</h2>
+            <span class="notification-count">{{ notifications().filter(n => !n.read).length }} unread</span>
+          </div>
+
+          <div class="notifications-list">
+            @if (isLoading()) {
+              @for (i of [1,2,3]; track i) {
+                <div class="notification-item skeleton">
+                  <div class="skeleton-notification-icon"></div>
+                  <div class="skeleton-notification-content">
+                    <div class="skeleton-notification-title"></div>
+                    <div class="skeleton-notification-message"></div>
+                  </div>
+                  <div class="skeleton-notification-actions"></div>
+                </div>
+              }
+            } @else {
+              @for (notification of notifications(); track notification.id) {
+                <div class="notification-item" [class]="['severity-' + notification.severity, notification.read ? 'read' : 'unread']">
+                  <div class="notification-icon" [class]="'type-' + notification.type">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
+                    </svg>
+                  </div>
+                  <div class="notification-content">
+                    <div class="notification-header">
+                      <h4 class="notification-title">{{ notification.title }}</h4>
+                      @if (notification.actionRequired) {
+                        <span class="action-required-badge">Action Required</span>
+                      }
+                    </div>
+                    <p class="notification-message">{{ notification.message }}</p>
+                    <div class="notification-meta">
+                      <span class="notification-time">{{ formatTimeAgo(notification.timestamp) }}</span>
+                      <span class="notification-type">{{ notification.type }}</span>
+                    </div>
+                  </div>
+                  <div class="notification-actions">
+                    @if (!notification.read) {
+                      <button type="button" (click)="markNotificationAsRead(notification.id)" class="mark-read-btn">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </button>
+                    }
+                    <button type="button" (click)="dismissNotification(notification.id)" class="dismiss-btn">
+                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-state">
+                  <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 5l7 7-7 7"/>
+                  </svg>
+                  <p class="empty-message">No notifications</p>
+                </div>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Other view content placeholders -->
+    @if (selectedView() === 'users') {
+      <div class="admin-panel">
+        <h2>User Management</h2>
+        <p>User management interface will be implemented here...</p>
+      </div>
+    }
+
+    @if (selectedView() === 'system') {
+      <div class="admin-panel">
+        <h2>System Management</h2>
+        <p>System management interface will be implemented here...</p>
+      </div>
+    }
+
+    @if (selectedView() === 'analytics') {
+      <!-- Analytics Section -->
+      <div class="analytics-dashboard">
+        <!-- Analytics Header -->
+        <div class="analytics-header">
+          <h2 class="analytics-title">Analytics Dashboard</h2>
+          <button type="button" (click)="refreshChartData()" class="refresh-charts-btn">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Refresh Charts
+          </button>
+        </div>
+
+        @if (chartData()) {
+          <!-- Charts Grid -->
+          <div class="charts-grid">
+            <!-- User Growth Chart -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">User Growth Trends</h3>
+                <p class="chart-description">Total and active users over the last 30 days</p>
+              </div>
+              <app-line-chart
+                [data]="chartData()!.userGrowth"
+                [title]="''"
+                class="chart-wrapper">
+              </app-line-chart>
+            </div>
+
+            <!-- Revenue Chart -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">Revenue Growth</h3>
+                <p class="chart-description">Monthly revenue over the last 12 months</p>
+              </div>
+              <app-area-chart
+                [data]="chartData()!.revenueChart"
+                [title]="''"
+                class="chart-wrapper">
+              </app-area-chart>
+            </div>
+
+            <!-- System Metrics Over Time -->
+            <div class="chart-panel large">
+              <div class="chart-header">
+                <h3 class="chart-title">System Performance</h3>
+                <p class="chart-description">CPU, Memory, and Disk usage over the last 24 hours</p>
+              </div>
+              <app-line-chart
+                [data]="chartData()!.systemMetricsOverTime"
+                [title]="''"
+                class="chart-wrapper">
+              </app-line-chart>
+            </div>
+
+            <!-- Storage Usage Breakdown -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">Storage Usage</h3>
+                <p class="chart-description">Storage distribution by file type</p>
+              </div>
+              <app-donut-chart
+                [data]="chartData()!.storageUsage"
+                [title]="''"
+                class="chart-wrapper">
+              </app-donut-chart>
+            </div>
+
+            <!-- User Activity by Hour -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">Hourly Activity</h3>
+                <p class="chart-description">User login and document activity by hour</p>
+              </div>
+              <app-bar-chart
+                [data]="chartData()!.userActivityByHour"
+                [title]="''"
+                class="chart-wrapper">
+              </app-bar-chart>
+            </div>
+
+            <!-- Document Types Distribution -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">Document Types</h3>
+                <p class="chart-description">Distribution of document types in the system</p>
+              </div>
+              <app-donut-chart
+                [data]="chartData()!.documentsByType"
+                [title]="''"
+                class="chart-wrapper">
+              </app-donut-chart>
+            </div>
+
+            <!-- Response Time Chart -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">API Response Time</h3>
+                <p class="chart-description">Average response time over the last 24 hours</p>
+              </div>
+              <app-line-chart
+                [data]="chartData()!.responseTimeChart"
+                [title]="''"
+                class="chart-wrapper">
+              </app-line-chart>
+            </div>
+
+            <!-- Server Load Chart -->
+            <div class="chart-panel">
+              <div class="chart-header">
+                <h3 class="chart-title">Server Load</h3>
+                <p class="chart-description">Server load percentage over the last 7 days</p>
+              </div>
+              <app-area-chart
+                [data]="chartData()!.serverLoad"
+                [title]="''"
+                class="chart-wrapper">
+              </app-area-chart>
+            </div>
+          </div>
+        } @else {
+          <!-- Chart Loading State -->
+          <div class="charts-loading">
+            <div class="loading-spinner"></div>
+            <p>Loading analytics charts...</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>
