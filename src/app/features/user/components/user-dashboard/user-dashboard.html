@@ -1,0 +1,279 @@
+<div class="dashboard-container">
+  <!-- Dashboard Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="welcome-section">
+        @if (currentUser()) {
+          <h1 class="welcome-title">
+            Welcome back, {{ currentUser()?.firstName }}!
+          </h1>
+          <p class="welcome-subtitle">
+            Here's what's happening with your documents today.
+          </p>
+        } @else {
+          <div class="skeleton-loader">
+            <div class="skeleton-title"></div>
+            <div class="skeleton-subtitle"></div>
+          </div>
+        }
+      </div>
+
+      <div class="header-actions">
+        <!-- Time Range Selector -->
+        <div class="time-range-selector">
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '7d'"
+            (click)="onTimeRangeChange('7d')">
+            7 days
+          </button>
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '30d'"
+            (click)="onTimeRangeChange('30d')">
+            30 days
+          </button>
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '90d'"
+            (click)="onTimeRangeChange('90d')">
+            90 days
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      @if (isLoading()) {
+        @for (i of [1,2,3,4]; track i) {
+          <div class="stat-card skeleton">
+            <div class="skeleton-stat-icon"></div>
+            <div class="skeleton-stat-content">
+              <div class="skeleton-stat-number"></div>
+              <div class="skeleton-stat-label"></div>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="stat-card">
+          <div class="stat-icon documents">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ stats().totalDocuments }}</div>
+            <div class="stat-label">Total Documents</div>
+            <div class="stat-change positive">+12% from last month</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon activity">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ stats().recentActivity }}</div>
+            <div class="stat-label">Recent Activities</div>
+            <div class="stat-change positive">+8 this week</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon storage" [class]="storageStatus().bgColor">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ storagePercentage() }}%</div>
+            <div class="stat-label">Storage Used</div>
+            <div class="stat-change" [class]="storageStatus().color">
+              {{ stats().storageUsed }}GB / {{ stats().storageLimit }}GB
+            </div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon collaborations">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ stats().collaborations }}</div>
+            <div class="stat-label">Collaborations</div>
+            <div class="stat-change positive">3 active projects</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Quick Actions -->
+      <div class="dashboard-section quick-actions-section">
+        <div class="section-header">
+          <h2 class="section-title">Quick Actions</h2>
+          <p class="section-description">Get started with these common tasks</p>
+        </div>
+
+        <div class="quick-actions-grid">
+          @for (action of quickActions(); track action.id) {
+            <div class="quick-action-card">
+              @if (action.route) {
+                <a [routerLink]="action.route" class="action-link" [class]="action.color">
+                  <div class="action-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                  </div>
+                  <div class="action-content">
+                    <h3 class="action-title">{{ action.title }}</h3>
+                    <p class="action-description">{{ action.description }}</p>
+                  </div>
+                  <div class="action-arrow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </a>
+              } @else {
+                <button type="button" (click)="action.action!()" class="action-link" [class]="action.color">
+                  <div class="action-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                    </svg>
+                  </div>
+                  <div class="action-content">
+                    <h3 class="action-title">{{ action.title }}</h3>
+                    <p class="action-description">{{ action.description }}</p>
+                  </div>
+                  <div class="action-arrow">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </div>
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="dashboard-section recent-activity-section">
+        <div class="section-header">
+          <h2 class="section-title">Recent Activity</h2>
+          <p class="section-description">Your latest document activities</p>
+        </div>
+
+        <div class="activity-list">
+          @if (isLoading()) {
+            @for (i of [1,2,3,4]; track i) {
+              <div class="activity-item skeleton">
+                <div class="skeleton-activity-icon"></div>
+                <div class="skeleton-activity-content">
+                  <div class="skeleton-activity-title"></div>
+                  <div class="skeleton-activity-description"></div>
+                </div>
+                <div class="skeleton-activity-time"></div>
+              </div>
+            }
+          } @else {
+            @for (activity of recentActivities(); track activity.id) {
+              <div class="activity-item">
+                <div class="activity-icon" [class]="'icon-' + activity.type">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path [attr.d]="getActivityIcon(activity.type)"/>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">{{ activity.title }}</div>
+                  <div class="activity-description">{{ activity.description }}</div>
+                </div>
+                <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
+              </div>
+            } @empty {
+              <div class="empty-state">
+                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <p class="empty-message">No recent activity</p>
+                <p class="empty-description">Start by creating a new document</p>
+              </div>
+            }
+          }
+        </div>
+
+        @if (recentActivities().length > 0) {
+          <div class="activity-footer">
+            <a routerLink="/activity" class="view-all-link">
+              View all activity
+              <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- Storage Usage -->
+      <div class="dashboard-section storage-section">
+        <div class="section-header">
+          <h2 class="section-title">Storage Usage</h2>
+          <p class="section-description">Monitor your storage consumption</p>
+        </div>
+
+        <div class="storage-content">
+          <div class="storage-chart">
+            <div class="storage-circle">
+              <svg class="storage-svg" viewBox="0 0 100 100">
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  stroke="#e5e7eb"
+                  stroke-width="8"/>
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="40"
+                  fill="none"
+                  [attr.stroke]="storageStatus().color === 'text-red-600' ? '#ef4444' : storageStatus().color === 'text-yellow-600' ? '#f59e0b' : '#10b981'"
+                  stroke-width="8"
+                  stroke-linecap="round"
+                  [attr.stroke-dasharray]="2 * Math.PI * 40"
+                  [attr.stroke-dashoffset]="2 * Math.PI * 40 * (1 - storagePercentage() / 100)"
+                  transform="rotate(-90 50 50)"/>
+              </svg>
+              <div class="storage-percentage">{{ storagePercentage() }}%</div>
+            </div>
+          </div>
+
+          <div class="storage-details">
+            <div class="storage-status" [class]="storageStatus().color">
+              {{ storageStatus().status }}
+            </div>
+            <div class="storage-usage">
+              {{ stats().storageUsed }}GB of {{ stats().storageLimit }}GB used
+            </div>
+            <button class="upgrade-storage-btn" type="button">
+              Upgrade Storage
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
