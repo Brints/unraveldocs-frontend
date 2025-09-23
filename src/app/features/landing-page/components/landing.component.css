@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+main {
+  scroll-margin-top: 80px;
+}
+
+section {
+  scroll-margin-top: 80px;
+}

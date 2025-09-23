@@ -1,0 +1,45 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+
+@Component({
+  selector: 'app-footer',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: 'footer.component.html',
+  styleUrls: ['footer.component.css']
+})
+
+export class FooterComponent {
+  currentYear = new Date().getFullYear();
+
+  linkGroups = [
+    {
+      title: 'Product',
+      links: [
+        { text: 'Features', href: '#features' },
+        { text: 'Pricing', href: '#pricing' },
+        { text: 'How It Works', href: '#how-it-works' },
+        { text: 'API', href: '#api' }
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { text: 'About Us', href: '#about' },
+        { text: 'Careers', href: '#careers' },
+        { text: 'Contact', href: '#contact' },
+        { text: 'Blog', href: '#blog' }
+      ]
+    },
+    {
+      title: 'Legal',
+      links: [
+        { text: 'Privacy Policy', href: '#privacy' },
+        { text: 'Terms of Service', href: '#terms' },
+        { text: 'Cookie Policy', href: '#cookies' },
+        { text: 'GDPR', href: '#gdpr' }
+      ]
+    }
+  ];
+}
+
