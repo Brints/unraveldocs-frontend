@@ -1,4 +1,401 @@
-/*
-  Component-specific styles can be placed here.
-  However, this component is currently styled using Tailwind CSS utility classes directly in the HTML template.
-*/
+/* Signup Container and Layout */
+.signup-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.signup-card {
+  width: 100%;
+  max-width: 480px;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  padding: 2rem;
+  position: relative;
+}
+
+/* Header Styles */
+.signup-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.signup-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.signup-subtitle {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.login-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.login-link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+/* Social Authentication */
+.social-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Divider */
+.divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.divider-text {
+  background: white;
+  padding: 0 1rem;
+  color: #6b7280;
+  font-size: 0.875rem;
+  position: relative;
+  z-index: 1;
+}
+
+/* Error Alert */
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.error-icon {
+  flex-shrink: 0;
+  color: #dc2626;
+}
+
+/* Form Styles */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Password Field Group */
+.password-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.password-generator-toggle {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 0.875rem;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.password-generator-toggle:hover:not(:disabled) {
+  color: #2563eb;
+  background-color: #eff6ff;
+  padding: 0.5rem 0.75rem;
+}
+
+.password-generator-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: opacity 0.2s ease;
+}
+
+.checkbox-label.error {
+  color: #dc2626;
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkbox-custom {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #d1d5db;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.checkbox-input:checked + .checkbox-custom {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkbox-input:checked + .checkbox-custom::after {
+  content: '✓';
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+}
+
+.checkbox-input:focus + .checkbox-custom {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-text {
+  color: #374151;
+}
+
+.terms-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
+}
+
+.required-indicator {
+  color: #dc2626;
+  margin-left: 0.25rem;
+}
+
+/* Security Notice */
+.security-notice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 0.5rem;
+  color: #059669;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 1rem;
+}
+
+.security-icon {
+  color: #059669;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 0.75rem;
+  background: white;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Google Authentication Section */
+.google-auth-section {
+  margin-bottom: 1.5rem;
+}
+
+.google-error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.google-error-message .error-icon {
+  flex-shrink: 0;
+  color: #dc2626;
+}
+
+/* Enhanced disabled states for Google signup integration */
+.signup-form[data-disabled="true"] {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.signup-form[data-disabled="true"] input,
+.signup-form[data-disabled="true"] button {
+  cursor: not-allowed;
+}
+
+/* Loading overlay for entire form during Google signup */
+.signup-card.google-loading {
+  position: relative;
+}
+
+.signup-card.google-loading::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+  border-radius: inherit;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .signup-container {
+    padding: 0.5rem;
+  }
+
+  .signup-card {
+    padding: 1.5rem;
+    margin: 0.5rem;
+  }
+
+  .signup-title {
+    font-size: 1.75rem;
+  }
+
+  .social-auth {
+    gap: 0.5rem;
+  }
+
+  .checkbox-group {
+    gap: 0.75rem;
+  }
+
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+
+  .google-auth-section {
+    margin-bottom: 1rem;
+  }
+
+  .google-error-message {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .signup-card {
+    padding: 1rem;
+  }
+
+  .signup-title {
+    font-size: 1.5rem;
+  }
+
+  .signup-form {
+    gap: 1.25rem;
+  }
+}
+
+/* Focus and Accessibility Improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .signup-card {
+    border: 2px solid #000;
+  }
+
+  .divider::before {
+    background: #000;
+  }
+
+  .checkbox-custom {
+    border-color: #000;
+  }
+}
+
+/* Print styles */
+@media print {
+  .signup-container {
+    background: white;
+    padding: 0;
+  }
+
+  .signup-card {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+
+  .modal-overlay {
+    display: none;
+  }
+}

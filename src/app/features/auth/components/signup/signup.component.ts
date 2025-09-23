@@ -1,13 +1,26 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import {FormInputComponent} from '../../../../shared/ui/form-input.component';
-import {PasswordGeneratorComponent} from '../../../../shared/ui/password-generator.component';
-import {ButtonComponent} from '../../../../shared/ui/button.component';
-import {PasswordStrengthComponent} from '../../../../shared/ui/password-strength.component';
+import { FormInputComponent } from '../../../../shared/ui/form-input.component';
+import { PasswordGeneratorComponent } from '../../../../shared/ui/password-generator.component';
+import { ButtonComponent } from '../../../../shared/ui/button.component';
+import { PasswordStrengthComponent } from '../../../../shared/ui/password-strength.component';
+import { CustomValidators } from '../../../../shared/validators/custom-validators';
+import { AuthError, AuthErrorCodes } from '../../models/auth.model';
+import { GoogleSignupComponent } from '../google-signup/google-signup.component';
+import { GoogleSignupResponse, GoogleAuthError } from '../../models/google-auth.model';
+import { environment } from '../../../../../environments/environment';
 
+interface SignupFormData {
+  fullName: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+  terms: boolean;
+  marketing: boolean;
+}
 
 @Component({
   selector: 'app-signup',
@@ -19,94 +32,153 @@ import {PasswordStrengthComponent} from '../../../../shared/ui/password-strength
     FormInputComponent,
     ButtonComponent,
     PasswordStrengthComponent,
-    PasswordGeneratorComponent
+    PasswordGeneratorComponent,
+    GoogleSignupComponent
   ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css']
 })
 export class SignupComponent {
-  signupForm: FormGroup;
+  private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
+  // Form setup with improved validators
+  signupForm = this.fb.group({
+    fullName: ['', [
+      Validators.required,
+      Validators.minLength(2),
+      Validators.maxLength(50),
+      CustomValidators.noWhitespace()
+    ]],
+    email: ['', [
+      Validators.required,
+      Validators.email,
+      Validators.maxLength(100)
+    ]],
+    password: ['', [
+      Validators.required,
+      CustomValidators.strongPassword()
+    ]],
+    confirmPassword: ['', [Validators.required]],
+    terms: [false, [Validators.requiredTrue]],
+    marketing: [false]
+  }, {
+    validators: [CustomValidators.passwordMatch('password', 'confirmPassword')]
+  });
+
+  // Reactive state
   currentPassword = signal('');
-  errorMessage = signal('');
+  authError = signal<AuthError | null>(null);
   isLoading = signal(false);
   showPasswordGen = signal(false);
+  socialLoading = signal<'google' | 'github' | null>(null);
 
-  constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private router: Router
-  ) {
-    this.signupForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [
-        Validators.required,
-        Validators.minLength(8),
-        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
-      ]],
-      confirmPassword: ['', [Validators.required]],
-      terms: [false, [Validators.requiredTrue]],
-      marketing: [false]
-    }, {
-      validators: this.passwordMatchValidator
+  // Google signup configuration
+  googleConfig = {
+    showMarketingConsent: true,
+    showReferralCode: false,
+    redirectAfterSignup: '/dashboard',
+    theme: 'light' as const,
+    size: 'medium' as const
+  };
+
+  // Google signup state
+  googleSignupInProgress = signal(false);
+  googleError = signal<GoogleAuthError | null>(null);
+
+  // Computed properties for better UX
+  isFormValid = computed(() => this.signupForm.valid);
+  passwordStrength = computed(() => this.currentPassword());
+
+  // Form controls for easier access
+  get fullNameControl() { return this.signupForm.get('fullName') as FormControl; }
+  get emailControl() { return this.signupForm.get('email') as FormControl; }
+  get passwordControl() { return this.signupForm.get('password') as FormControl; }
+  get confirmPasswordControl() { return this.signupForm.get('confirmPassword') as FormControl; }
+  get termsControl() { return this.signupForm.get('terms') as FormControl; }
+  get marketingControl() { return this.signupForm.get('marketing') as FormControl; }
+
+  // Make environment available to template
+  environment = environment;
+
+  constructor() {
+    // Subscribe to password changes for strength indicator
+    this.passwordControl.valueChanges.subscribe(value => {
+      this.currentPassword.set(value || '');
+    });
+
+    // Clear auth errors when form changes
+    this.signupForm.valueChanges.subscribe(() => {
+      if (this.authError()) {
+        this.authError.set(null);
+      }
     });
   }
 
-  private passwordMatchValidator(form: any) {
-    const password = form.get('password');
-    const confirmPassword = form.get('confirmPassword');
-
-    if (password && confirmPassword && password.value !== confirmPassword.value) {
-      confirmPassword.setErrors({ passwordMismatch: true });
-      return { passwordMismatch: true };
+  // Form submission with comprehensive error handling
+  async onSubmit(): Promise<void> {
+    if (this.signupForm.invalid) {
+      this.markFormGroupTouched();
+      return;
     }
 
-    return null;
-  }
+    this.isLoading.set(true);
+    this.authError.set(null);
 
-  isFieldInvalid(fieldName: string): boolean {
-    const field = this.signupForm.get(fieldName);
-    return !!(field?.invalid && (field?.dirty || field?.touched));
-  }
+    try {
+      const formValue = this.signupForm.value as SignupFormData;
 
-  getFieldError(fieldName: string): string {
-    const field = this.signupForm.get(fieldName);
-    if (field?.errors && (field.dirty || field.touched)) {
-      if (field.errors['required']) return `${this.getFieldLabel(fieldName)} is required`;
-      if (field.errors['email']) return 'Please enter a valid email address';
-      if (field.errors['minlength']) return `${this.getFieldLabel(fieldName)} must be at least ${field.errors['minlength'].requiredLength} characters`;
-      if (field.errors['pattern'] && fieldName === 'password') return 'Password must contain uppercase, lowercase, number, and special character';
-      if (field.errors['passwordMismatch']) return 'Passwords do not match';
-      if (field.errors['requiredTrue']) return 'You must agree to the terms and conditions';
+      const user = await this.authService.signup({
+        name: formValue.fullName.trim(),
+        email: formValue.email.toLowerCase().trim(),
+        password: formValue.password
+      });
+
+      // Success - navigate to dashboard or email verification
+      if (user.emailVerified) {
+        await this.router.navigate(['/dashboard']);
+      } else {
+        await this.router.navigate(['/auth/verify-email'], {
+          queryParams: { email: user.email }
+        });
+      }
+    } catch (error) {
+      this.handleAuthError(error as AuthError);
+    } finally {
+      this.isLoading.set(false);
     }
-    return '';
   }
 
-  private getFieldLabel(fieldName: string): string {
-    const labels: { [key: string]: string } = {
-      fullName: 'Full name',
-      email: 'Email address',
-      password: 'Password',
-      confirmPassword: 'Confirm password'
-    };
-    return labels[fieldName] || fieldName;
+  // Social authentication methods
+  async signupWithGoogle(): Promise<void> {
+    await this.handleSocialAuth('google');
   }
 
-  onPasswordChange(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.currentPassword.set(target.value);
+  async signupWithGitHub(): Promise<void> {
+    await this.handleSocialAuth('github');
   }
 
-  toggleTerms(): void {
-    const current = this.signupForm.get('terms')?.value;
-    this.signupForm.patchValue({ terms: !current });
+  private async handleSocialAuth(provider: 'google' | 'github'): Promise<void> {
+    this.socialLoading.set(provider);
+    this.authError.set(null);
+
+    try {
+      const authUrl = await this.authService.socialAuth({
+        provider,
+        redirectUrl: `${window.location.origin}/auth/callback`
+      });
+
+      // Redirect to OAuth provider
+      window.location.href = authUrl;
+    } catch (error) {
+      this.handleAuthError(error as AuthError);
+    } finally {
+      this.socialLoading.set(null);
+    }
   }
 
-  toggleMarketing(): void {
-    const current = this.signupForm.get('marketing')?.value;
-    this.signupForm.patchValue({ marketing: !current });
-  }
-
+  // Password generator methods
   showPasswordGenerator(): void {
     this.showPasswordGen.set(true);
   }
@@ -122,40 +194,131 @@ export class SignupComponent {
     });
     this.currentPassword.set(password);
     this.hidePasswordGenerator();
+
+    // Mark password fields as touched to show validation
+    this.passwordControl.markAsTouched();
+    this.confirmPasswordControl.markAsTouched();
   }
 
-  async onSubmit(): Promise<void> {
-    if (this.signupForm.invalid) {
-      this.signupForm.markAllAsTouched();
-      return;
+  // Checkbox toggle methods
+  toggleTerms(): void {
+    const current = this.termsControl.value;
+    this.termsControl.patchValue(!current);
+    this.termsControl.markAsTouched();
+  }
+
+  toggleMarketing(): void {
+    const current = this.marketingControl.value;
+    this.marketingControl.patchValue(!current);
+  }
+
+  // Google signup handlers
+  onGoogleSignupStarted(): void {
+    this.googleSignupInProgress.set(true);
+    this.authError.set(null);
+    this.googleError.set(null);
+  }
+
+  onGoogleSignupSuccess(response: GoogleSignupResponse): void {
+    this.googleSignupInProgress.set(false);
+
+    // Handle successful Google signup
+    console.log('Google signup successful:', response);
+
+    // You can add analytics tracking here
+    if (environment.features.socialLoginTracking) {
+      this.trackGoogleSignup(response);
     }
 
-    this.isLoading.set(true);
-    this.errorMessage.set('');
+    // Navigate is handled by the Google component
+  }
 
-    try {
-      const formValue = this.signupForm.value;
-      await this.authService.signup({
-        name: formValue.fullName,
-        email: formValue.email,
-        password: formValue.password
-      });
+  onGoogleSignupError(error: GoogleAuthError): void {
+    this.googleSignupInProgress.set(false);
+    this.googleError.set(error);
 
-      await this.router.navigate(['/dashboard']);
-    } catch (error: any) {
-      this.errorMessage.set(error.message || 'An error occurred during signup. Please try again.');
-    } finally {
-      this.isLoading.set(false);
+    // Log error for debugging
+    console.error('Google signup error:', error);
+  }
+
+  onGoogleSignupCancelled(): void {
+    this.googleSignupInProgress.set(false);
+    this.googleError.set(null);
+  }
+
+  private trackGoogleSignup(response: GoogleSignupResponse): void {
+    // Add your analytics tracking here
+    // Example: Google Analytics, Mixpanel, etc.
+    console.log('Tracking Google signup:', {
+      userId: response.user.id,
+      isNewUser: response.isNewUser,
+      email: response.user.email
+    });
+  }
+
+  // Helper method to check if any signup is in progress
+  isAnySignupInProgress(): boolean {
+    return this.isLoading() || this.googleSignupInProgress();
+  }
+
+  // Utility methods
+  private markFormGroupTouched(): void {
+    Object.keys(this.signupForm.controls).forEach(key => {
+      const control = this.signupForm.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  private handleAuthError(error: AuthError): void {
+    this.authError.set(error);
+
+    // Handle specific error types
+    switch (error.code) {
+      case AuthErrorCodes.USER_EXISTS:
+        this.emailControl.setErrors({ userExists: true });
+        break;
+      case AuthErrorCodes.WEAK_PASSWORD:
+        this.passwordControl.setErrors({ weakPassword: true });
+        break;
+      case AuthErrorCodes.RATE_LIMITED:
+        // Form-level error, already set in authError signal
+        break;
+      default:
+        // Generic error handling
+        break;
     }
   }
 
-  async signupWithGoogle(): Promise<void> {
-    // Implement Google OAuth signup
-    console.log('Signup with Google');
+  // Template helper methods
+  getSocialButtonText(provider: 'google' | 'github'): string {
+    const loading = this.socialLoading();
+    if (loading === provider) {
+      return `Connecting to ${provider}...`;
+    }
+    return `Continue with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
   }
 
-  async signupWithGitHub(): Promise<void> {
-    // Implement GitHub OAuth signup
-    console.log('Signup with GitHub');
+  isSocialLoading(provider: 'google' | 'github'): boolean {
+    return this.socialLoading() === provider;
+  }
+
+  getErrorMessage(): string {
+    const error = this.authError();
+    if (!error) return '';
+
+    switch (error.code) {
+      case AuthErrorCodes.USER_EXISTS:
+        return 'An account with this email already exists. Try logging in instead.';
+      case AuthErrorCodes.WEAK_PASSWORD:
+        return 'Password is too weak. Please choose a stronger password.';
+      case AuthErrorCodes.RATE_LIMITED:
+        return 'Too many signup attempts. Please wait a few minutes and try again.';
+      case AuthErrorCodes.NETWORK_ERROR:
+        return 'Network error. Please check your connection and try again.';
+      case AuthErrorCodes.SERVER_ERROR:
+        return 'Server error. Please try again later.';
+      default:
+        return error.message || 'An unexpected error occurred. Please try again.';
+    }
   }
 }
