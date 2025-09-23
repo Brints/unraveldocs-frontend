@@ -1,155 +1,205 @@
-<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
+<!-- Login Form Container -->
+<div class="login-container">
+  <div class="login-card">
     <!-- Header -->
-    <div class="text-center mb-8">
-      <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
-        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
-        </svg>
-      </div>
-      <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-      <p class="text-gray-600">Sign in to your UnravelDocs account</p>
+    <div class="login-header">
+      <h1 class="login-title">Welcome back</h1>
+      <p class="login-subtitle">
+        Don't have an account?
+        <a routerLink="/auth/signup" class="signup-link">Create account</a>
+      </p>
     </div>
 
-    <!-- Form -->
-    <div class="bg-white rounded-2xl shadow-xl p-8">
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Email -->
-        <app-form-input
-          id="email"
-          label="Email Address"
-          type="email"
-          placeholder="Enter your email address"
-          formControlName="email"
-          [required]="true"
-          [hasError]="isFieldInvalid('email')"
-          [errorMessage]="getFieldError('email')"
-          icon='<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/></svg>'
-          autocomplete="email"
-        />
+    <!-- Google Login Component -->
+    <div class="google-auth-section">
+      <app-google-signup
+        [clientId]="environment.google.clientId"
+        [fullWidth]="true"
+        [usePopup]="environment.features.googlePopupAuth"
+        [signupConfig]="googleConfig"
+        [additionalScopes]="[]"
+        (signupStarted)="onGoogleLoginStarted()"
+        (signupSuccess)="onGoogleLoginSuccess($event)"
+        (signupError)="onGoogleLoginError($event)"
+        (signupCancelled)="onGoogleLoginCancelled()">
+      </app-google-signup>
 
-        <!-- Password -->
-        <app-form-input
-          id="password"
-          label="Password"
-          type="password"
-          placeholder="Enter your password"
-          formControlName="password"
-          [required]="true"
-          [hasError]="isFieldInvalid('password')"
-          [errorMessage]="getFieldError('password')"
-          icon='<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>'
-          autocomplete="current-password"
-        />
+      <!-- Google Error Display -->
+      <div *ngIf="googleError()" class="google-error-message" role="alert">
+        <svg class="error-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        {{ getGoogleErrorMessage() }}
+      </div>
+    </div>
 
-        <!-- Remember Me and Forgot Password -->
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="relative">
-              <input
-                id="rememberMe"
-                type="checkbox"
-                formControlName="rememberMe"
-                class="sr-only"
-              >
-              <div
-                class="w-5 h-5 border-2 rounded transition-all duration-200 flex items-center justify-center cursor-pointer"
-                [class]="loginForm.get('rememberMe')?.value
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'bg-white border-gray-300 hover:border-blue-400'"
-                (click)="toggleRememberMe()"
-              >
-                <svg *ngIf="loginForm.get('rememberMe')?.value" class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                </svg>
-              </div>
-            </div>
-            <label for="rememberMe" class="text-sm text-gray-700 cursor-pointer">
-              Remember me
-            </label>
-          </div>
+    <!-- Divider -->
+    <div class="divider">
+      <span class="divider-text">or sign in with email</span>
+    </div>
 
-          <a
-            routerLink="/forgot-password"
-            class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors"
-          >
-            Forgot password?
-          </a>
-        </div>
-
-        <!-- Error Message -->
-        <div *ngIf="errorMessage()" class="p-4 bg-red-50 border border-red-200 rounded-xl">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-            </svg>
-            <p class="text-sm text-red-800">{{ errorMessage() }}</p>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <app-button
-          type="submit"
-          variant="primary"
-          size="lg"
-          class="w-full"
-          [disabled]="loginForm.invalid || isLoading()"
-          [loading]="isLoading()"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1"/>
-          </svg>
-          Sign In
-        </app-button>
-      </form>
-
-      <!-- Signup Link -->
-      <div class="mt-8 text-center">
-        <p class="text-gray-600">
-          Don't have an account?
-          <a routerLink="/signup" class="text-blue-600 hover:text-blue-800 font-semibold transition-colors">
-            Create one here
-          </a>
+    <!-- Rate Limiting Warning -->
+    <div *ngIf="isRateLimited()" class="rate-limit-warning" role="alert">
+      <svg class="warning-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+      <div class="rate-limit-content">
+        <p class="rate-limit-message">Too many failed login attempts</p>
+        <p class="rate-limit-timer" *ngIf="retryAfter() > 0">
+          Please wait {{ formatRetryTime() }} before trying again
         </p>
       </div>
     </div>
 
-    <!-- Social Login -->
-    <div class="mt-8">
-      <div class="relative">
-        <div class="absolute inset-0 flex items-center">
-          <div class="w-full border-t border-gray-300"></div>
-        </div>
-        <div class="relative flex justify-center text-sm">
-          <span class="px-4 bg-gray-50 text-gray-500">Or continue with</span>
+    <!-- Login Attempts Warning -->
+    <div *ngIf="loginAttempts() > 2 && !isRateLimited()" class="attempts-warning">
+      <svg class="warning-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+      </svg>
+      {{ attemptsRemaining() }} attempts remaining before account is temporarily locked
+    </div>
+
+    <!-- Global Error Message -->
+    <div *ngIf="error()" class="error-alert" role="alert">
+      <svg class="error-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+      </svg>
+      {{ getErrorMessage() }}
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form" novalidate>
+
+      <!-- Email Input -->
+      <app-form-input
+        label="Email Address"
+        type="email"
+        placeholder="Enter your email address"
+        [required]="true"
+        [control]="emailControl"
+        [disabled]="isAnyLoginInProgress() || isRateLimited()"
+        helpText="The email address you used to create your account">
+      </app-form-input>
+
+      <!-- Password Input -->
+      <app-form-input
+        label="Password"
+        type="password"
+        placeholder="Enter your password"
+        [required]="true"
+        [control]="passwordControl"
+        [disabled]="isAnyLoginInProgress() || isRateLimited()">
+      </app-form-input>
+
+      <!-- Remember Me and Forgot Password -->
+      <div class="form-options">
+        <label class="remember-me-label">
+          <input
+            type="checkbox"
+            [checked]="rememberMeControl.value"
+            (change)="toggleRememberMe()"
+            [disabled]="isAnyLoginInProgress() || isRateLimited()"
+            class="checkbox-input">
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-text">Remember me</span>
+        </label>
+
+        <button
+          type="button"
+          class="forgot-password-link"
+          (click)="showForgotPasswordForm()"
+          [disabled]="isAnyLoginInProgress()">
+          Forgot password?
+        </button>
+      </div>
+
+      <!-- Login Button -->
+      <app-button
+        type="submit"
+        variant="primary"
+        size="lg"
+        fullWidth="true"
+        [isLoading]="loading()"
+        [disabled]="!canAttemptLogin()"
+        loadingText="Signing in...">
+        Sign In
+      </app-button>
+
+      <!-- Alternative Login Methods -->
+      <div class="alternative-login" *ngIf="!isAnyLoginInProgress()">
+        <p class="alternative-text">Or continue with</p>
+        <div class="social-buttons">
+          <app-button
+            variant="outline"
+            [isLoading]="isSocialLoading('github')"
+            [disabled]="isAnyLoginInProgress() || isRateLimited()"
+            (clicked)="loginWithGitHub()">
+            <svg slot="icon-left" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0C5.374 0 0 5.373 0 12 0 17.302 3.438 21.8 8.207 23.387c.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/>
+            </svg>
+            {{ getSocialButtonText('github') }}
+          </app-button>
         </div>
       </div>
 
-      <div class="mt-6 grid grid-cols-2 gap-3">
-        <button
-          type="button"
-          class="flex justify-center items-center gap-2 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-          (click)="loginWithGoogle()"
-        >
-          <svg class="w-5 h-5" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Google
-        </button>
+      <!-- Account Actions -->
+      <div class="account-actions">
+        <p class="account-help">
+          Having trouble?
+          <a href="/support" class="support-link">Contact support</a>
+        </p>
+      </div>
+    </form>
 
-        <button
-          type="button"
-          class="flex justify-center items-center gap-2 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
-          (click)="loginWithGitHub()"
-        >
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-          GitHub
-        </button>
+    <!-- Security Notice -->
+    <div class="security-notice">
+      <svg class="security-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+      </svg>
+      Your login is secured with industry-standard encryption
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal -->
+  <div *ngIf="showForgotPassword()" class="modal-overlay" (click)="hideForgotPasswordForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="forgot-password-modal">
+        <div class="modal-header">
+          <h3>Reset your password</h3>
+          <button
+            type="button"
+            class="close-btn"
+            (click)="hideForgotPasswordForm()"
+            aria-label="Close">
+            ×
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <p>Enter your email address and we'll send you instructions to reset your password.</p>
+
+          <app-form-input
+            label="Email Address"
+            type="email"
+            placeholder="Enter your email address"
+            [required]="true"
+            #forgotPasswordEmail>
+          </app-form-input>
+        </div>
+
+        <div class="modal-actions">
+          <app-button
+            variant="primary"
+            (clicked)="resetPassword(forgotPasswordEmail.value)">
+            Send Reset Instructions
+          </app-button>
+
+          <app-button
+            variant="ghost"
+            (clicked)="hideForgotPasswordForm()">
+            Cancel
+          </app-button>
+        </div>
       </div>
     </div>
   </div>

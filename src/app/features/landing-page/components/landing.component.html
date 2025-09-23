@@ -1,23 +1,197 @@
-<app-header></app-header>
+<!-- Skip to Content Link for Accessibility -->
+<a href="#main-content" class="skip-link" (click)="skipToContent()">
+  Skip to main content
+</a>
 
-<main class="pt-20">
-  <app-hero></app-hero>
+<!-- Loading Screen -->
+<div *ngIf="!loadingComplete()" class="loading-screen">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading amazing content...</p>
+  </div>
+</div>
 
-  <section id="features">
-    <app-features></app-features>
-  </section>
+<!-- Progress Indicator -->
+<div *ngIf="landingConfig.showProgressIndicator && isScrolled()" class="scroll-progress">
+  <div class="progress-bar" [style.width.%]="getScrollProgress()"></div>
+</div>
 
-  <section id="how-it-works">
-    <app-how-it-works></app-how-it-works>
-  </section>
+<!-- Back to Top Button -->
+<button *ngIf="isScrolled()"
+        class="back-to-top"
+        (click)="scrollToSection('hero')"
+        aria-label="Back to top">
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/>
+  </svg>
+</button>
 
-  <section id="testimonials">
-    <app-testimonials></app-testimonials>
-  </section>
+<!-- Main Landing Page Content -->
+<div class="landing-page" [class.loading]="!loadingComplete()">
 
-  <section id="pricing">
-    <app-pricing></app-pricing>
-  </section>
-</main>
+  <!-- Header with Navigation -->
+  <app-header
+    [isScrolled]="isScrolled()"
+    [currentSection]="getCurrentSection()"
+    (sectionClicked)="scrollToSection($event)">
+  </app-header>
 
-<app-footer></app-footer>
+  <!-- Main Content -->
+  <main id="main-content" class="main-content">
+
+    <!-- Hero Section -->
+    <section id="hero" class="section hero-section"
+             [class.animate]="landingConfig.enableAnimations">
+      <app-hero
+        (ctaClicked)="onCtaClick('hero-primary')"
+        (signupCompleted)="onSignupComplete()">
+      </app-hero>
+    </section>
+
+    <!-- Stats Section (New) -->
+    <section *ngIf="shouldShowSection('stats')"
+             id="stats"
+             class="section stats-section"
+             [class.visible]="sections().find(s => s.id === 'stats')?.visible">
+      <app-stats
+        [animateOnVisible]="landingConfig.enableAnimations"
+        (statClicked)="onCtaClick('stats')">
+      </app-stats>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features"
+             class="section features-section"
+             [class.visible]="sections().find(s => s.id === 'features')?.visible">
+      <app-features
+        [lazyLoad]="landingConfig.enableLazyLoading"
+        (featureClicked)="onCtaClick('feature')"
+        (imageLoad)="onImageLoad($event)"
+        (imageError)="onImageError($event)">
+      </app-features>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works"
+             class="section how-it-works-section"
+             [class.visible]="sections().find(s => s.id === 'how-it-works')?.visible">
+      <app-how-it-works
+        [variant]="getVariant('how-it-works')"
+        (stepClicked)="onCtaClick('how-it-works')">
+      </app-how-it-works>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials"
+             class="section testimonials-section"
+             [class.visible]="sections().find(s => s.id === 'testimonials')?.visible">
+      <app-testimonials
+        [autoplay]="landingConfig.enableAnimations"
+        (testimonialClicked)="onCtaClick('testimonial')">
+      </app-testimonials>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing"
+             class="section pricing-section"
+             [class.visible]="sections().find(s => s.id === 'pricing')?.visible">
+      <app-pricing
+        [highlightPopular]="true"
+        (planSelected)="onCtaClick('pricing-' + $event)"
+        (signupCompleted)="onSignupComplete()">
+      </app-pricing>
+    </section>
+
+    <!-- FAQ Section (New) -->
+    <section id="faq"
+             class="section faq-section"
+             [class.visible]="sections().find(s => s.id === 'faq')?.visible">
+      <app-faq
+        [searchable]="true"
+        (questionClicked)="onCtaClick('faq')">
+      </app-faq>
+    </section>
+
+    <!-- Blog Preview Section (New) -->
+    <section *ngIf="shouldShowSection('blog')"
+             id="blog"
+             class="section blog-section"
+             [class.visible]="sections().find(s => s.id === 'blog')?.visible">
+      <app-blog-preview
+        [maxPosts]="3"
+        (postClicked)="onCtaClick('blog-post')"
+        (viewAllClicked)="onCtaClick('blog-view-all')">
+      </app-blog-preview>
+    </section>
+
+    <!-- Newsletter Section (New) -->
+    <section *ngIf="shouldShowSection('newsletter')"
+             id="newsletter"
+             class="section newsletter-section">
+      <app-newsletter
+        (subscribed)="onCtaClick('newsletter-signup')"
+        (subscriptionCompleted)="onSignupComplete()">
+      </app-newsletter>
+    </section>
+
+    <!-- Final CTA Section (New) -->
+    <section id="cta"
+             class="section cta-section"
+             [class.visible]="sections().find(s => s.id === 'cta')?.visible">
+      <app-cta
+        [variant]="getVariant('final-cta')"
+        (ctaClicked)="onCtaClick('final-cta')"
+        (signupCompleted)="onSignupComplete()">
+      </app-cta>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <app-footer
+    [showNewsletterSignup]="landingConfig.showNewsletter"
+    (footerLinkClicked)="onCtaClick('footer-' + $event)"
+    (socialClicked)="onCtaClick('social-' + $event)">
+  </app-footer>
+
+  <!-- Floating Action Button (Mobile) -->
+  <div class="floating-actions" *ngIf="isScrolled()">
+    <button class="fab primary"
+            (click)="onCtaClick('floating-cta')"
+            routerLink="/auth/signup"
+            aria-label="Get started now">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Cookie Consent Banner (if needed) -->
+  <div class="cookie-banner" *ngIf="false"> <!-- Set condition based on consent status -->
+    <div class="cookie-content">
+      <p>We use cookies to enhance your experience. By continuing to visit this site you agree to our use of cookies.</p>
+      <div class="cookie-actions">
+        <button class="btn-accept">Accept All</button>
+        <button class="btn-settings">Settings</button>
+        <button class="btn-decline">Decline</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Debug Panel (Development Only) -->
+  <div *ngIf="false" class="analytics-debug"> <!-- Set to true for development -->
+    <h4>Analytics Debug</h4>
+    <div class="debug-stats">
+      <p>Page Views: {{ getAnalytics().pageViews }}</p>
+      <p>Time on Page: {{ getAnalytics().timeOnPage }}s</p>
+      <p>Scroll Depth: {{ getAnalytics().scrollDepth.toFixed(1) }}%</p>
+      <p>CTA Clicks: {{ getAnalytics().ctaClicks }}</p>
+      <p>Signups: {{ getAnalytics().signups }}</p>
+      <p>Current Section: {{ getCurrentSection() }}</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Structured Data for SEO (rendered in head by component) -->
+<!-- This is handled programmatically in the component -->

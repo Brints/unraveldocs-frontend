@@ -1,202 +1,148 @@
-import { Injectable, signal } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, map } from 'rxjs/operators';
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar?: string;
-  plan: 'free' | 'pro' | 'enterprise';
-  createdAt: Date;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  user?: User;
-  token?: string;
-  message?: string;
-}
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-  rememberMe?: boolean;
-}
-
-export interface SignupRequest {
-  name: string;
-  email: string;
-  password: string;
-  marketing?: boolean;
-}
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { catchError, tap, map } from 'rxjs/operators';
+import {
+  User,
+  SignupRequest,
+  LoginRequest,
+  AuthResponse,
+  SocialAuthProvider,
+  PasswordResetRequest,
+  PasswordResetConfirm,
+  EmailVerificationRequest,
+  AuthError,
+  AuthErrorCodes
+} from '../models/auth.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private currentUserSignal = signal<User | null>(null);
-  private isLoadingSignal = signal(false);
+  private API_URL = 'https://your-api-url.com/api'; // Replace with your API URL
+  private currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
+  public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
 
-  // Public getters for reactive state
-  currentUser = this.currentUserSignal.asReadonly();
-  isLoading = this.isLoadingSignal.asReadonly();
-
-  get isAuthenticated(): boolean {
-    return this.currentUserSignal() !== null;
-  }
-
-  constructor() {
-    // Check for existing session on service initialization
+  constructor(private http: HttpClient) {
     this.loadStoredUser();
   }
 
-  private loadStoredUser(): void {
-    const storedUser = localStorage.getItem('unraveldocs_user');
-    const storedToken = localStorage.getItem('unraveldocs_token');
-
-    if (storedUser && storedToken) {
-      try {
-        const user = JSON.parse(storedUser);
-        this.currentUserSignal.set(user);
-      } catch (error) {
-        // Clear invalid stored data
-        this.clearStoredAuth();
-      }
+  private loadStoredUser() {
+    const userJson = localStorage.getItem('currentUser');
+    if (userJson) {
+      const user: User = JSON.parse(userJson);
+      this.currentUserSubject.next(user);
     }
   }
 
-  private clearStoredAuth(): void {
-    localStorage.removeItem('unraveldocs_user');
-    localStorage.removeItem('unraveldocs_token');
-  }
-
-  async login(credentials: LoginRequest): Promise<User> {
-    this.isLoadingSignal.set(true);
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // Mock validation - replace with real API call
-      if (credentials.email === 'demo@unraveldocs.com' && credentials.password === 'password123') {
-        const user: User = {
-          id: '1',
-          email: credentials.email,
-          name: 'Demo User',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo',
-          plan: 'pro',
-          createdAt: new Date()
-        };
-
-        const token = 'mock_jwt_token_' + Date.now();
-
-        // Store auth data
-        localStorage.setItem('unraveldocs_user', JSON.stringify(user));
-        localStorage.setItem('unraveldocs_token', token);
-
-        // Update reactive state
-        this.currentUserSignal.set(user);
-
-        return user;
-      } else {
-        throw new Error('Invalid email or password');
-      }
-    } catch (error: any) {
-      throw error;
-    } finally {
-      this.isLoadingSignal.set(false);
+  private setCurrentUser(user: User | null) {
+    this.currentUserSubject.next(user);
+    if (user) {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('currentUser');
     }
   }
 
-  async signup(userData: SignupRequest): Promise<User> {
-    this.isLoadingSignal.set(true);
+  private storeTokens(accessToken: string, refreshToken: string) {
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+  }
 
+  private clearStoredTokens() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+  }
+
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Unknown error!';
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      errorMessage = `Error ${error.status}: ${error.error.message}`;
+    }
+    return throwError(errorMessage);
+  }
+
+  private transformError(error: any): AuthError {
+    // Transform the error into a user-friendly message
+    let message = 'An error occurred';
+    let code: AuthErrorCodes = AuthErrorCodes.UnknownError;
+
+    if (error.status === 400) {
+      message = 'Invalid request';
+      code = AuthErrorCodes.InvalidRequest;
+    } else if (error.status === 401) {
+      message = 'Unauthorized';
+      code = AuthErrorCodes.Unauthorized;
+    } else if (error.status === 403) {
+      message = 'Forbidden';
+      code = AuthErrorCodes.Forbidden;
+    } else if (error.status === 404) {
+      message = 'Not found';
+      code = AuthErrorCodes.NotFound;
+    } else if (error.status === 500) {
+      message = 'Server error';
+      code = AuthErrorCodes.ServerError;
+    }
+
+    return { message, code };
+  }
+
+  async login(request: LoginRequest): Promise<LoginResponse> {
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await this.http.post<LoginResponse>(`${this.API_URL}/login`, request)
+        .pipe(catchError(this.handleError))
+        .toPromise();
 
-      // Mock validation - replace with real API call
-      if (userData.email === 'existing@example.com') {
-        throw new Error('An account with this email already exists');
+      if (response) {
+        this.storeTokens(response.accessToken, response.refreshToken);
+        this.setCurrentUser(response.user);
+        return response;
       }
-
-      const user: User = {
-        id: Date.now().toString(),
-        email: userData.email,
-        name: userData.name,
-        avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.name}`,
-        plan: 'free',
-        createdAt: new Date()
-      };
-
-      const token = 'mock_jwt_token_' + Date.now();
-
-      // Store auth data
-      localStorage.setItem('unraveldocs_user', JSON.stringify(user));
-      localStorage.setItem('unraveldocs_token', token);
-
-      // Update reactive state
-      this.currentUserSignal.set(user);
-
-      return user;
-    } catch (error: any) {
-      throw error;
-    } finally {
-      this.isLoadingSignal.set(false);
+      throw new Error('Login failed');
+    } catch (error) {
+      throw this.transformError(error);
     }
   }
 
   async logout(): Promise<void> {
-    this.isLoadingSignal.set(true);
-
     try {
-      // Simulate API call to invalidate token
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Clear stored data
-      this.clearStoredAuth();
-
-      // Update reactive state
-      this.currentUserSignal.set(null);
+      // Call logout endpoint to invalidate tokens server-side
+      await this.http.post(`${this.API_URL}/logout`, {})
+        .pipe(catchError(() => of(null))) // Don't fail if logout endpoint fails
+        .toPromise();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.warn('Logout endpoint failed:', error);
     } finally {
-      this.isLoadingSignal.set(false);
+      this.clearStoredTokens();
+      this.setCurrentUser(null);
     }
   }
 
   async refreshToken(): Promise<string> {
-    // Simulate token refresh
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    const newToken = 'refreshed_jwt_token_' + Date.now();
-    localStorage.setItem('unraveldocs_token', newToken);
-    return newToken;
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    try {
+      const response = await this.http.post<{ accessToken: string }>(`${this.API_URL}/refresh`, {
+        refreshToken
+      }).pipe(catchError(this.handleError)).toPromise();
+
+      if (response) {
+        localStorage.setItem('accessToken', response.accessToken);
+        return response.accessToken;
+      }
+      throw new Error('Token refresh failed');
+    } catch (error) {
+      this.logout(); // Clear invalid tokens
+      throw this.transformError(error);
+    }
   }
 
-  getToken(): string | null {
-    return localStorage.getItem('unraveldocs_token');
-  }
-
-  // OAuth methods (placeholder implementations)
-  async loginWithGoogle(): Promise<User> {
-    throw new Error('Google OAuth not implemented yet');
-  }
-
-  async loginWithGitHub(): Promise<User> {
-    throw new Error('GitHub OAuth not implemented yet');
-  }
-
-  async forgotPassword(email: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // Simulate sending reset email
-    console.log(`Password reset email sent to ${email}`);
-  }
-
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    // Simulate password reset
-    console.log('Password reset successfully');
-  }
+  // ...existing methods
 }
-
