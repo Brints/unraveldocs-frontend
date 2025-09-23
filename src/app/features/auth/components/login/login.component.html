@@ -104,13 +104,12 @@
           <span class="checkbox-text">Remember me</span>
         </label>
 
-        <button
-          type="button"
+        <a
+          routerLink="/auth/forgot-password"
           class="forgot-password-link"
-          (click)="showForgotPasswordForm()"
-          [disabled]="isAnyLoginInProgress()">
+          [class.disabled]="isAnyLoginInProgress()">
           Forgot password?
-        </button>
+        </a>
       </div>
 
       <!-- Login Button -->
@@ -157,50 +156,6 @@
         <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
       </svg>
       Your login is secured with industry-standard encryption
-    </div>
-  </div>
-
-  <!-- Forgot Password Modal -->
-  <div *ngIf="showForgotPassword()" class="modal-overlay" (click)="hideForgotPasswordForm()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="forgot-password-modal">
-        <div class="modal-header">
-          <h3>Reset your password</h3>
-          <button
-            type="button"
-            class="close-btn"
-            (click)="hideForgotPasswordForm()"
-            aria-label="Close">
-            ×
-          </button>
-        </div>
-
-        <div class="modal-body">
-          <p>Enter your email address and we'll send you instructions to reset your password.</p>
-
-          <app-form-input
-            label="Email Address"
-            type="email"
-            placeholder="Enter your email address"
-            [required]="true"
-            #forgotPasswordEmail>
-          </app-form-input>
-        </div>
-
-        <div class="modal-actions">
-          <app-button
-            variant="primary"
-            (clicked)="resetPassword(forgotPasswordEmail.value)">
-            Send Reset Instructions
-          </app-button>
-
-          <app-button
-            variant="ghost"
-            (clicked)="hideForgotPasswordForm()">
-            Cancel
-          </app-button>
-        </div>
-      </div>
     </div>
   </div>
 </div>

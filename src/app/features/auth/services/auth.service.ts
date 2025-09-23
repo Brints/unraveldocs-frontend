@@ -1,15 +1,18 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import {
   User,
   SignupRequest,
   LoginRequest,
   AuthResponse,
+  LoginResponse,
   SocialAuthProvider,
   PasswordResetRequest,
   PasswordResetConfirm,
+  PasswordResetResponse,
+  PasswordResetValidation,
   EmailVerificationRequest,
   AuthError,
   AuthErrorCodes
@@ -144,5 +147,121 @@ export class AuthService {
     }
   }
 
-  // ...existing methods
+  /**
+   * Request a password reset email
+   */
+  async forgotPassword(request: PasswordResetRequest): Promise<PasswordResetResponse> {
+    try {
+      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/forgot-password`, request)
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        return response;
+      }
+      throw new Error('Password reset request failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Validate a password reset token
+   */
+  async validateResetToken(token: string): Promise<PasswordResetValidation> {
+    try {
+      const response = await this.http.post<PasswordResetValidation>(`${this.API_URL}/validate-reset-token`, { token })
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        return response;
+      }
+      throw new Error('Token validation failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Reset password using token
+   */
+  async resetPassword(request: PasswordResetConfirm): Promise<PasswordResetResponse> {
+    try {
+      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/reset-password`, request)
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        return response;
+      }
+      throw new Error('Password reset failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Check if user is authenticated
+   */
+  isAuthenticated(): boolean {
+    const token = localStorage.getItem('accessToken');
+    return !!token && !this.isTokenExpired(token);
+  }
+
+  /**
+   * Check if token is expired
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < currentTime;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Get current user
+   */
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
+  /**
+   * Verify email address using token
+   */
+  async verifyEmail(request: EmailVerificationRequest): Promise<PasswordResetResponse> {
+    try {
+      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/verify-email`, request)
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        return response;
+      }
+      throw new Error('Email verification failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
+  /**
+   * Resend email verification
+   */
+  async resendVerificationEmail(email: string): Promise<PasswordResetResponse> {
+    try {
+      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/resend-verification`, { email })
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        return response;
+      }
+      throw new Error('Resend verification failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
 }
