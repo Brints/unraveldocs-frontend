@@ -1,8 +1,7 @@
 /* Admin Dashboard Container */
 .admin-dashboard-container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%);
-  background-attachment: fixed;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #581c87 100%) fixed;
   padding: 1.5rem;
 }
 

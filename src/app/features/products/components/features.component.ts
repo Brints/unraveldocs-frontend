@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -16,7 +16,7 @@ import { CommonModule } from '@angular/common';
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div class="feature-card group" *ngFor="let feature of features; let i = index">
+          <div class="feature-card group" *ngFor="let feature of features; let i = index" (click)="onFeatureClick(feature.id)">
             <div class="feature-icon" [innerHTML]="feature.icon"></div>
             <h3 class="text-xl font-bold text-gray-900 mb-4">{{ feature.title }}</h3>
             <p class="text-gray-600 mb-6 leading-relaxed">{{ feature.description }}</p>
@@ -40,6 +40,7 @@ import { CommonModule } from '@angular/common';
       animation: fadeInUp 0.6s ease forwards;
       opacity: 0;
       transform: translateY(30px);
+      cursor: pointer;
     }
 
     .feature-card:nth-child(1) { animation-delay: 0.1s; }
@@ -67,85 +68,56 @@ import { CommonModule } from '@angular/common';
   `]
 })
 export class FeaturesComponent {
+  @Input() lazyLoad = false;
+  @Output() featureClicked = new EventEmitter<string>();
+  @Output() imageLoad = new EventEmitter<string>();
+  @Output() imageError = new EventEmitter<string>();
+
   features = [
     {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-      </svg>`,
-      title: 'AI-Powered OCR',
-      description: 'Advanced optical character recognition powered by machine learning for exceptional accuracy.',
+      id: 'ocr',
+      title: 'Advanced OCR Technology',
+      description: 'Extract text from images and PDFs with industry-leading accuracy using our cutting-edge OCR engine.',
+      icon: `<svg fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`,
       points: [
-        'Supports 50+ languages',
-        '99.5% accuracy rate',
-        'Handwritten text recognition',
-        'Real-time processing'
+        '99.9% accuracy rate',
+        'Multi-language support',
+        'Handwriting recognition'
       ]
     },
     {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-      </svg>`,
-      title: 'Multiple Format Support',
-      description: 'Upload various image formats and get perfectly formatted documents.',
+      id: 'conversion',
+      title: 'Multi-Format Conversion',
+      description: 'Convert between various document formats seamlessly while preserving formatting and quality.',
+      icon: `<svg fill="currentColor" viewBox="0 0 20 20"><path d="M8 5a1 1 0 100 2h5.586l-1.293 1.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L13.586 5H8zM12 15a1 1 0 100-2H6.414l1.293-1.293a1 1 0 10-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L6.414 15H12z"/></svg>`,
       points: [
-        'PNG, JPG, JPEG, PDF support',
-        'Batch processing available',
-        'High-resolution image support',
-        'Automatic format detection'
+        'PDF, Word, Excel, PowerPoint',
+        'Maintains original formatting',
+        'Batch processing available'
       ]
     },
     {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-      </svg>`,
-      title: 'Professional Output',
-      description: 'Get properly formatted DOCX files ready for editing and sharing.',
+      id: 'automation',
+      title: 'Intelligent Automation',
+      description: 'Automate your document workflows with smart processing and routing capabilities.',
+      icon: `<svg fill="currentColor" viewBox="0 0 20 20"><path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"/></svg>`,
       points: [
-        'Microsoft Word compatible',
-        'Preserves formatting',
-        'Editable text output',
-        'Professional layouts'
-      ]
-    },
-    {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-      </svg>`,
-      title: 'Secure & Private',
-      description: 'Your documents are processed securely with enterprise-grade encryption.',
-      points: [
-        'End-to-end encryption',
-        'GDPR compliant',
-        'No data retention',
-        'Secure file transfer'
-      ]
-    },
-    {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-      </svg>`,
-      title: 'Lightning Fast',
-      description: 'Process documents in seconds with our optimized processing pipeline.',
-      points: [
-        'Under 10 seconds processing',
-        'Real-time preview',
-        'Instant downloads',
-        'Optimized for speed'
-      ]
-    },
-    {
-      icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"/>
-      </svg>`,
-      title: 'Smart Enhancement',
-      description: 'Automatic image enhancement and text optimization for better results.',
-      points: [
-        'Auto contrast adjustment',
-        'Noise reduction',
-        'Text straightening',
-        'Quality enhancement'
+        'Smart document classification',
+        'Automated data extraction',
+        'Custom workflow rules'
       ]
     }
   ];
-}
 
+  onFeatureClick(featureId: string): void {
+    this.featureClicked.emit(featureId);
+  }
+
+  onImageLoadSuccess(imageSrc: string): void {
+    this.imageLoad.emit(imageSrc);
+  }
+
+  onImageLoadError(imageSrc: string): void {
+    this.imageError.emit(imageSrc);
+  }
+}

@@ -7,6 +7,7 @@ export interface User {
   emailVerified: boolean;
   createdAt: string;
   updatedAt: string;
+  plan?: 'free' | 'pro' | 'enterprise';
 }
 
 export interface SignupRequest {
@@ -62,7 +63,12 @@ export enum AuthErrorCodes {
   ServerError = 'SERVER_ERROR',
   UnknownError = 'UNKNOWN_ERROR',
   PasswordTooWeak = 'PASSWORD_TOO_WEAK',
-  EmailNotVerified = 'EMAIL_NOT_VERIFIED'
+  EmailNotVerified = 'EMAIL_NOT_VERIFIED',
+  // Add missing error codes for signup component
+  USER_EXISTS = 'EMAIL_ALREADY_EXISTS', // Map to existing code
+  WEAK_PASSWORD = 'PASSWORD_TOO_WEAK', // Map to existing code
+  RATE_LIMITED = 'RATE_LIMITED',
+  NETWORK_ERROR = 'NETWORK_ERROR'
 }
 
 export interface AuthError {

@@ -368,7 +368,7 @@
         <div class="admin-panel notifications-panel">
           <div class="panel-header">
             <h2 class="panel-title">System Notifications</h2>
-            <span class="notification-count">{{ notifications().filter(n => !n.read).length }} unread</span>
+            <span class="notification-count">{{ getUnreadNotificationsCount() }} unread</span>
           </div>
 
           <div class="notifications-list">
@@ -465,108 +465,15 @@
         @if (chartData()) {
           <!-- Charts Grid -->
           <div class="charts-grid">
-            <!-- User Growth Chart -->
+            <!-- Placeholder for charts - chart components will be implemented later -->
             <div class="chart-panel">
               <div class="chart-header">
-                <h3 class="chart-title">User Growth Trends</h3>
-                <p class="chart-description">Total and active users over the last 30 days</p>
+                <h3 class="chart-title">Analytics Charts</h3>
+                <p class="chart-description">Chart components will be implemented here with proper data binding</p>
               </div>
-              <app-line-chart
-                [data]="chartData()!.userGrowth"
-                [title]="''"
-                class="chart-wrapper">
-              </app-line-chart>
-            </div>
-
-            <!-- Revenue Chart -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">Revenue Growth</h3>
-                <p class="chart-description">Monthly revenue over the last 12 months</p>
+              <div class="chart-placeholder">
+                <p>Chart data loaded successfully. Chart components need to be configured to accept the correct data format.</p>
               </div>
-              <app-area-chart
-                [data]="chartData()!.revenueChart"
-                [title]="''"
-                class="chart-wrapper">
-              </app-area-chart>
-            </div>
-
-            <!-- System Metrics Over Time -->
-            <div class="chart-panel large">
-              <div class="chart-header">
-                <h3 class="chart-title">System Performance</h3>
-                <p class="chart-description">CPU, Memory, and Disk usage over the last 24 hours</p>
-              </div>
-              <app-line-chart
-                [data]="chartData()!.systemMetricsOverTime"
-                [title]="''"
-                class="chart-wrapper">
-              </app-line-chart>
-            </div>
-
-            <!-- Storage Usage Breakdown -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">Storage Usage</h3>
-                <p class="chart-description">Storage distribution by file type</p>
-              </div>
-              <app-donut-chart
-                [data]="chartData()!.storageUsage"
-                [title]="''"
-                class="chart-wrapper">
-              </app-donut-chart>
-            </div>
-
-            <!-- User Activity by Hour -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">Hourly Activity</h3>
-                <p class="chart-description">User login and document activity by hour</p>
-              </div>
-              <app-bar-chart
-                [data]="chartData()!.userActivityByHour"
-                [title]="''"
-                class="chart-wrapper">
-              </app-bar-chart>
-            </div>
-
-            <!-- Document Types Distribution -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">Document Types</h3>
-                <p class="chart-description">Distribution of document types in the system</p>
-              </div>
-              <app-donut-chart
-                [data]="chartData()!.documentsByType"
-                [title]="''"
-                class="chart-wrapper">
-              </app-donut-chart>
-            </div>
-
-            <!-- Response Time Chart -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">API Response Time</h3>
-                <p class="chart-description">Average response time over the last 24 hours</p>
-              </div>
-              <app-line-chart
-                [data]="chartData()!.responseTimeChart"
-                [title]="''"
-                class="chart-wrapper">
-              </app-line-chart>
-            </div>
-
-            <!-- Server Load Chart -->
-            <div class="chart-panel">
-              <div class="chart-header">
-                <h3 class="chart-title">Server Load</h3>
-                <p class="chart-description">Server load percentage over the last 7 days</p>
-              </div>
-              <app-area-chart
-                [data]="chartData()!.serverLoad"
-                [title]="''"
-                class="chart-wrapper">
-              </app-area-chart>
             </div>
           </div>
         } @else {

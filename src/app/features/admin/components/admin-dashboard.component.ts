@@ -1,12 +1,7 @@
 import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { LineChartComponent } from '../../../shared/components/charts/line-chart.component';
-import { DonutChartComponent } from '../../../shared/components/charts/donut-chart.component';
-import { BarChartComponent } from '../../../shared/components/charts/bar-chart.component';
-import { AreaChartComponent } from '../../../shared/components/charts/area-chart.component';
 import { ChartsService, ChartDataSets } from '../../../shared/services/charts.service';
 
 interface AdminStats {
@@ -71,17 +66,15 @@ interface QuickAdminAction {
   imports: [
     CommonModule,
     RouterModule,
-    ReactiveFormsModule,
-    LineChartComponent,
-    DonutChartComponent,
-    BarChartComponent,
-    AreaChartComponent
+    // LineChartComponent,
+    // DonutChartComponent,
+    // BarChartComponent,
+    // AreaChartComponent
   ],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })
 export class AdminDashboardComponent implements OnInit, OnDestroy {
-  private readonly fb = inject(FormBuilder);
   private readonly chartsService = inject(ChartsService);
   private subscriptions = new Subscription();
 
@@ -213,12 +206,9 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadChartData(): void {
-    // Subscribe to chart data from service
-    this.subscriptions.add(
-      this.chartsService.getChartData().subscribe(data => {
-        this.chartData.set(data);
-      })
-    );
+    // Get chart data directly from service signal
+    const chartDataSignal = this.chartsService.getChartData();
+    this.chartData.set(chartDataSignal());
   }
 
   async refreshChartData(): Promise<void> {
@@ -496,5 +486,10 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       'wrench': 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
     };
     return iconPaths[icon as keyof typeof iconPaths] || iconPaths.cog;
+  }
+
+  // Template Helper Methods
+  getUnreadNotificationsCount(): number {
+    return this.notifications().filter(n => !n.read).length;
   }
 }

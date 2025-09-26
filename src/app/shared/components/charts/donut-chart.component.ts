@@ -1,6 +1,6 @@
-import { Component, Input, OnInit, ViewChild, ElementRef, signal, effect } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
@@ -37,7 +37,7 @@ export interface DonutChartData {
     }
   `]
 })
-export class DonutChartComponent implements OnInit {
+export class DonutChartComponent implements OnInit, OnDestroy {
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   @Input() data = signal<DonutChartData>({ labels: [], datasets: [] });
   @Input() title = signal('');
@@ -67,12 +67,13 @@ export class DonutChartComponent implements OnInit {
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) return;
 
-    const config: ChartConfiguration = {
-      type: 'doughnut' as ChartType,
+    const config: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
       data: this.data(),
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        cutout: '70%',
         plugins: {
           title: {
             display: !!this.title(),
@@ -89,8 +90,7 @@ export class DonutChartComponent implements OnInit {
               usePointStyle: true
             }
           }
-        },
-        cutout: '70%'
+        }
       }
     };
 

@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
-
 /* Custom styles for UnravelDocs */
 
 @layer base {
@@ -158,4 +157,3 @@
 .upload-demo-zone.dragover {
   @apply border-blue-500 bg-blue-50 scale-105;
 }
-

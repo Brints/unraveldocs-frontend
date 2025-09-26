@@ -1,3 +1,5 @@
+import { User } from './auth.model';
+
 export interface LoginRequest {
   email: string;
   password: string;

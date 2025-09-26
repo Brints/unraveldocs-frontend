@@ -300,89 +300,143 @@ export class LandingComponent implements OnInit, OnDestroy {
         behavior: 'smooth',
         block: 'start'
       });
-
-      // Track navigation
-      if (this.landingConfig.trackAnalytics) {
-        console.log(`Navigated to section: ${sectionId}`);
-      }
     }
   }
 
-  // CTA tracking methods
-  onCtaClick(ctaType: string): void {
-    this.analytics.update(data => ({
-      ...data,
-      ctaClicks: data.ctaClicks + 1
-    }));
-
-    // Track specific CTA type
-    console.log(`CTA clicked: ${ctaType}`);
-  }
-
-  onSignupComplete(): void {
-    this.analytics.update(data => ({
-      ...data,
-      signups: data.signups + 1
-    }));
-
-    console.log('Signup completed from landing page');
-  }
-
-  // Performance optimization methods
-  onImageLoad(imageName: string): void {
-    console.log(`Image loaded: ${imageName}`);
-  }
-
-  onImageError(imageName: string): void {
-    console.error(`Failed to load image: ${imageName}`);
-  }
-
-  // Accessibility methods
   skipToContent(): void {
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
       mainContent.focus();
+      mainContent.scrollIntoView({ behavior: 'smooth' });
     }
   }
 
-  // Public getters for template
   getCurrentSection(): string {
     return this.currentSection();
   }
 
   getScrollProgress(): number {
+    if (!isPlatformBrowser(this.platformId)) return 0;
+
     const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
     return Math.min(100, (this.scrollY() / documentHeight) * 100);
   }
 
-  getAnalytics(): LandingPageAnalytics {
+  // Section visibility and configuration methods
+  shouldShowSection(sectionId: string): boolean {
+    switch (sectionId) {
+      case 'stats':
+        return this.landingConfig.showStats;
+      case 'blog':
+        return this.landingConfig.showBlogPreviews;
+      case 'newsletter':
+        return this.landingConfig.showNewsletter;
+      default:
+        return true;
+    }
+  }
+
+  getVariant(sectionId: string): string {
+    switch (sectionId) {
+      case 'how-it-works':
+        return 'default';
+      case 'final-cta':
+        return 'primary';
+      default:
+        return 'default';
+    }
+  }
+
+  getSectionVisibility(sectionId: string): boolean {
+    const section = this.sections().find(s => s.id === sectionId);
+    return section?.visible || false;
+  }
+
+  // Event handlers
+  onCtaClick(source: string): void {
+    console.log(`CTA clicked: ${source}`);
+
+    // Track analytics
+    this.analytics.update(data => ({
+      ...data,
+      ctaClicks: data.ctaClicks + 1
+    }));
+
+    // Handle different CTA actions
+    switch (source) {
+      case 'hero-primary':
+        this.scrollToSection('pricing');
+        break;
+      case 'pricing-basic':
+      case 'pricing-pro':
+      case 'pricing-enterprise':
+        // Redirect to signup with plan
+        console.log(`Signup for plan: ${source}`);
+        break;
+      case 'final-cta':
+        this.scrollToSection('pricing');
+        break;
+      default:
+        console.log(`Generic CTA: ${source}`);
+    }
+  }
+
+  onSignupComplete(): void {
+    console.log('Signup completed');
+
+    // Track analytics
+    this.analytics.update(data => ({
+      ...data,
+      signups: data.signups + 1
+    }));
+
+    // Show success message or redirect
+    // This would typically integrate with your auth system
+  }
+
+  onImageLoad(event: any): void {
+    console.log('Image loaded:', event);
+    // Handle successful image loading
+  }
+
+  onImageError(event: any): void {
+    console.error('Image failed to load:', event);
+    // Handle image loading errors - could show placeholder
+  }
+
+  onNewsletterSignup(email: string): void {
+    console.log('Newsletter signup:', email);
+
+    // Track analytics
+    this.analytics.update(data => ({
+      ...data,
+      signups: data.signups + 1
+    }));
+
+    // Handle newsletter signup
+    // This would typically call a newsletter service
+  }
+
+  // UI interaction methods
+  openHelp(): void {
+    console.log('Opening help');
+    // This would typically open a help modal or redirect to help page
+  }
+
+  acceptCookies(): void {
+    console.log('Cookies accepted');
+    // Handle cookie acceptance
+    localStorage.setItem('cookies-accepted', 'true');
+  }
+
+  declineCookies(): void {
+    console.log('Cookies declined');
+    // Handle cookie decline
+    localStorage.setItem('cookies-accepted', 'false');
+  }
+
+  // Getter for analytics (for template)
+  landingAnalytics() {
     return this.analytics();
-  }
-
-  // Feature flags for conditional rendering
-  shouldShowSection(sectionName: string): boolean {
-    switch (sectionName) {
-      case 'stats': return this.landingConfig.showStats;
-      case 'blog': return this.landingConfig.showBlogPreviews;
-      case 'newsletter': return this.landingConfig.showNewsletter;
-      default: return true;
-    }
-  }
-
-  // A/B testing support
-  getVariant(testName: string): string {
-    // Simple A/B testing implementation
-    const hash = this.hashCode(testName + navigator.userAgent);
-    return hash % 2 === 0 ? 'A' : 'B';
-  }
-
-  private hashCode(str: string): number {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32-bit integer
-    }
-    return Math.abs(hash);
   }
 }

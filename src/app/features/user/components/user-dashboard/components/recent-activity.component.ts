@@ -1,5 +1,5 @@
 import { Component, Input, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 export interface ActivityItem {
@@ -19,7 +19,7 @@ export interface ActivityItem {
 @Component({
   selector: 'app-recent-activity',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, NgOptimizedImage],
   template: `
     <div class="dashboard-section recent-activity-section">
       <div class="section-header">
@@ -29,7 +29,7 @@ export interface ActivityItem {
 
       <div class="activity-list">
         @if (loading()) {
-          @for (i of [1,2,3,4]; track i) {
+          @for (i of [1, 2, 3, 4]; track i) {
             <div class="activity-item skeleton">
               <div class="skeleton-activity-icon"></div>
               <div class="skeleton-activity-content">
@@ -44,9 +44,9 @@ export interface ActivityItem {
             <div class="activity-item" (click)="onActivityClick(activity)">
               <div class="activity-icon" [class]="getActivityIconClass(activity.type)">
                 @if (activity.user?.avatar) {
-                  <img [src]="activity.user.avatar" [alt]="activity.user.name" class="user-avatar">
+                  <img ngSrc="activity.user!.avatar" [alt]="activity.user!.name" class="user-avatar" fill>
                 } @else {
-                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                     <path [attr.d]="getActivityIcon(activity.type)"/>
                   </svg>
                 }
@@ -59,9 +59,9 @@ export interface ActivityItem {
                     <span class="activity-user">by {{ activity.user.name }}</span>
                   }
                 </div>
-                @if (activity.metadata?.tags) {
+                @if (activity.metadata?.['tags']) {
                   <div class="activity-tags">
-                    @for (tag of activity.metadata.tags; track tag) {
+                    @for (tag of activity.metadata!['tags']; track tag) {
                       <span class="activity-tag">{{ tag }}</span>
                     }
                   </div>
@@ -69,17 +69,20 @@ export interface ActivityItem {
               </div>
               <div class="activity-time-container">
                 <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
-                @if (activity.metadata?.priority) {
-                  <div class="activity-priority" [class]="'priority-' + activity.metadata.priority">
-                    {{ activity.metadata.priority }}
+                @if (activity.metadata?.['priority']) {
+                  <div class="activity-priority"
+                       [ngClass]="'priority-' + activity.metadata!['priority']">
+                    {{ activity.metadata!['priority'] }}
                   </div>
                 }
               </div>
             </div>
           } @empty {
             <div class="empty-state">
-              <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                   xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
               <p class="empty-message">No recent activity</p>
               <p class="empty-description">Start by creating a new document</p>
@@ -92,7 +95,8 @@ export interface ActivityItem {
         <div class="activity-footer">
           <a routerLink="/activity" class="view-all-link">
             View all activity
-            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                 xmlns="http://www.w3.org/2000/svg">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
           </a>

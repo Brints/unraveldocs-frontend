@@ -103,4 +103,17 @@ export class HeaderComponent {
     if (!name) return 'U';
     return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
   }
+
+  getUserFullName(user: any): string {
+    if (!user) return 'User';
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+  }
+
+  getUserAvatar(user: any): string {
+    return user?.profilePicture || '/assets/default-avatar.png';
+  }
+
+  getUserPlan(user: any): string {
+    return user?.plan || 'free';
+  }
 }
