@@ -156,8 +156,12 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: url('/assets/images/hero-pattern.svg') no-repeat center center;
-  background-size: cover;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+  linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
+  linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
+  linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
+  background-size: 20px 20px;
+  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   opacity: 0.1;
   z-index: 0;
 }
@@ -450,7 +454,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .section {
     border-bottom: 2px solid;
   }

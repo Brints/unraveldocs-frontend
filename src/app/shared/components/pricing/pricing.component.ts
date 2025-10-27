@@ -1,66 +1,90 @@
-import { Component } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
+interface PricingPlan {
+  id: string;
+  name: string;
+  price: number;
+  period: string;
+  description: string;
+  features: string[];
+  buttonText: string;
+  popular?: boolean;
+}
 
 @Component({
   selector: 'app-pricing',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: 'pricing.component.html',
-  styleUrl: 'pricing.component.css',
+  templateUrl: './pricing.component.html',
+  styleUrls: ['./pricing.component.css']
 })
 export class PricingComponent {
-  plans = [
+  @Input() highlightPopular = false;
+  @Output() planSelected = new EventEmitter<string>();
+  @Output() signupCompleted = new EventEmitter<void>();
+
+  plans: PricingPlan[] = [
     {
+      id: 'free',
       name: 'Free',
-      price: '0',
-      period: 'forever',
-      description: 'Perfect for getting started with basic document conversion',
+      price: 0,
+      period: 'month',
+      description: 'Perfect for trying out our service',
       features: [
-        '5 documents per month',
-        'Basic OCR accuracy',
-        'Standard processing speed',
-        'DOCX export',
-        'Email support',
+        '5 document conversions per month',
+        'Basic text extraction',
+        'Standard accuracy',
+        'Email support'
       ],
-      buttonText: 'Get Started Free',
-      popular: false,
+      buttonText: 'Get Started Free'
     },
     {
+      id: 'pro',
       name: 'Pro',
-      price: '9',
+      price: 15,
       period: 'month',
-      description: 'Ideal for professionals and small businesses',
+      description: 'Best for professionals and small teams',
       features: [
-        '100 documents per month',
-        'Advanced AI OCR',
-        'Priority processing',
-        'Multiple export formats',
-        'Batch processing',
-        'Premium support',
+        '100 document conversions per month',
+        'Advanced AI text extraction',
+        '99.5% accuracy guarantee',
+        'Multiple output formats',
+        'Priority support',
+        'API access'
       ],
       buttonText: 'Start Pro Trial',
-      popular: true,
+      popular: true
     },
     {
+      id: 'enterprise',
       name: 'Enterprise',
-      price: '29',
+      price: 49,
       period: 'month',
       description: 'For large teams and organizations',
       features: [
-        'Unlimited documents',
-        'Highest accuracy AI',
-        'Instant processing',
-        'API access',
+        'Unlimited document conversions',
+        'Premium AI processing',
         'Custom integrations',
+        'White-label solution',
         'Dedicated support',
-        'Advanced security',
+        'SLA guarantee',
+        'Advanced analytics'
       ],
-      buttonText: 'Contact Sales',
-      popular: false,
-    },
+      buttonText: 'Contact Sales'
+    }
   ];
 
-  selectPlan(plan: any) {
+  selectPlan(plan: PricingPlan) {
     console.log('Selected plan:', plan.name);
+    // Handle plan selection logic
+  }
+
+  onPlanSelect(planId: string): void {
+    this.planSelected.emit(planId);
+  }
+
+  onSignupComplete(): void {
+    this.signupCompleted.emit();
   }
 }

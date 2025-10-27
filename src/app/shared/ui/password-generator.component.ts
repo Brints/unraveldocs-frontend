@@ -293,7 +293,7 @@ export class PasswordGeneratorComponent {
 
   hasValidOptions(): boolean {
     return this.includeUppercase() || this.includeLowercase() ||
-           this.includeNumbers() || this.includeSymbols();
+      this.includeNumbers() || this.includeSymbols();
   }
 
   generatePassword(): void {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -10,6 +10,9 @@ import { CommonModule } from '@angular/common';
 })
 
 export class FooterComponent {
+  @Output() newsletterSignup = new EventEmitter<string>();
+  @Output() linkClicked = new EventEmitter<string>();
+
   currentYear = new Date().getFullYear();
 
   linkGroups = [
@@ -41,5 +44,12 @@ export class FooterComponent {
       ]
     }
   ];
-}
 
+  onNewsletterSignup(email: string): void {
+    this.newsletterSignup.emit(email);
+  }
+
+  onLinkClick(linkId: string): void {
+    this.linkClicked.emit(linkId);
+  }
+}
