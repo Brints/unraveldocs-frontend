@@ -459,7 +459,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .login-card {
     border: 2px solid #000;
   }

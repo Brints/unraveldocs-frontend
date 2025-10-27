@@ -117,6 +117,45 @@ export class AuthService {
     }
   }
 
+  async signup(request: { name: string; email: string; password: string }): Promise<User> {
+    try {
+      const signupRequest: SignupRequest = {
+        email: request.email,
+        password: request.password,
+        firstName: request.name.split(' ')[0] || request.name,
+        lastName: request.name.split(' ').slice(1).join(' ') || ''
+      };
+
+      const response = await this.http.post<AuthResponse>(`${this.API_URL}/signup`, signupRequest)
+        .pipe(catchError(this.handleError))
+        .toPromise();
+
+      if (response) {
+        this.storeTokens(response.accessToken, response.refreshToken);
+        this.setCurrentUser(response.user);
+        return response.user;
+      }
+      throw new Error('Signup failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
+  async socialAuth(request: { provider: string; redirectUrl: string }): Promise<string> {
+    try {
+      const response = await this.http.post<{ authUrl: string }>(`${this.API_URL}/auth/social/${request.provider}`, {
+        redirectUrl: request.redirectUrl
+      }).pipe(catchError(this.handleError)).toPromise();
+
+      if (response) {
+        return response.authUrl;
+      }
+      throw new Error('Social auth initialization failed');
+    } catch (error) {
+      throw this.transformError(error);
+    }
+  }
+
   async logout(): Promise<void> {
     try {
       // Call logout endpoint to invalidate tokens server-side

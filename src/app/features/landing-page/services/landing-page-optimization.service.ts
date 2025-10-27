@@ -194,7 +194,8 @@ export class LandingPageOptimizationService {
       // Collect FID
       const fidObserver = new PerformanceObserver((list) => {
         list.getEntries().forEach((entry) => {
-          metrics.firstInputDelay = entry.processingStart - entry.startTime;
+          const fidEntry = entry as PerformanceEventTiming;
+          metrics.firstInputDelay = fidEntry.processingStart - fidEntry.startTime;
         });
       });
       fidObserver.observe({ entryTypes: ['first-input'] });

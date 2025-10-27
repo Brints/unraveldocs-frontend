@@ -258,7 +258,7 @@
 }
 
 /* High contrast mode support */
-@media (prefers-contrast: high) {
+@media (prefers-contrast: more) {
   .google-signup-btn {
     border: 2px solid #000;
     background: #fff;

@@ -108,96 +108,96 @@
             </div>
           }
         } @else {
-        <div class="admin-stat-card users">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
-              </svg>
+          <div class="admin-stat-card users">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Total Users</h3>
             </div>
-            <h3 class="stat-title">Total Users</h3>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().totalUsers.toLocaleString() }}</div>
+              <div class="stat-subtitle">{{ stats().activeUsers.toLocaleString() }} active</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats().totalUsers.toLocaleString() }}</div>
-            <div class="stat-subtitle">{{ stats().activeUsers.toLocaleString() }} active</div>
-          </div>
-        </div>
 
-        <div class="admin-stat-card documents">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-              </svg>
+          <div class="admin-stat-card documents">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Documents</h3>
             </div>
-            <h3 class="stat-title">Documents</h3>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().totalDocuments.toLocaleString() }}</div>
+              <div class="stat-subtitle">{{ stats().newSignupsToday }} new today</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats().totalDocuments.toLocaleString() }}</div>
-            <div class="stat-subtitle">{{ stats().newSignupsToday }} new today</div>
-          </div>
-        </div>
 
-        <div class="admin-stat-card storage">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
-              </svg>
+          <div class="admin-stat-card storage">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Storage Used</h3>
             </div>
-            <h3 class="stat-title">Storage Used</h3>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().storageUsed }} GB</div>
+              <div class="stat-subtitle">{{ formatBytes(stats().storageUsed * 1024 * 1024 * 1024) }}</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats().storageUsed }} GB</div>
-            <div class="stat-subtitle">{{ formatBytes(stats().storageUsed * 1024 * 1024 * 1024) }}</div>
-          </div>
-        </div>
 
-        <div class="admin-stat-card revenue">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
-              </svg>
+          <div class="admin-stat-card revenue">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Revenue</h3>
             </div>
-            <h3 class="stat-title">Revenue</h3>
+            <div class="stat-content">
+              <div class="stat-number">${{ stats().totalRevenue.toLocaleString() }}</div>
+              <div class="stat-subtitle growth-positive">+{{ revenueGrowth() }}% growth</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">${{ stats().totalRevenue.toLocaleString() }}</div>
-            <div class="stat-subtitle growth-positive">+{{ revenueGrowth() }}% growth</div>
-          </div>
-        </div>
 
-        <div class="admin-stat-card uptime">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
+          <div class="admin-stat-card uptime">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">System Uptime</h3>
             </div>
-            <h3 class="stat-title">System Uptime</h3>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().systemUptime }}%</div>
+              <div class="stat-subtitle">Last 30 days</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats().systemUptime }}%</div>
-            <div class="stat-subtitle">Last 30 days</div>
-          </div>
-        </div>
 
-        <div class="admin-stat-card response-time">
-          <div class="stat-header">
-            <div class="stat-icon">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
+          <div class="admin-stat-card response-time">
+            <div class="stat-header">
+              <div class="stat-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+              </div>
+              <h3 class="stat-title">Avg Response</h3>
             </div>
-            <h3 class="stat-title">Avg Response</h3>
+            <div class="stat-content">
+              <div class="stat-number">{{ stats().averageResponseTime }}ms</div>
+              <div class="stat-subtitle">API response time</div>
+            </div>
           </div>
-          <div class="stat-content">
-            <div class="stat-number">{{ stats().averageResponseTime }}ms</div>
-            <div class="stat-subtitle">API response time</div>
-          </div>
-        </div>
-      }
+        }
       </div>
 
       <!-- Main Grid -->
@@ -225,18 +225,18 @@
                     </div>
                   </a>
                 } @else {
-                <button type="button" (click)="action.action!()" class="action-button" [class]="action.color">
-                  <div class="action-icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActionIconPath(action.icon)"/>
-                    </svg>
-                  </div>
-                  <div class="action-content">
-                    <h4 class="action-title">{{ action.title }}</h4>
-                    <p class="action-description">{{ action.description }}</p>
-                  </div>
-                </button>
-              }
+                  <button type="button" (click)="action.action!()" class="action-button" [class]="action.color">
+                    <div class="action-icon">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActionIconPath(action.icon)"/>
+                      </svg>
+                    </div>
+                    <div class="action-content">
+                      <h4 class="action-title">{{ action.title }}</h4>
+                      <p class="action-description">{{ action.description }}</p>
+                    </div>
+                  </button>
+                }
               </div>
             }
           </div>
@@ -263,33 +263,33 @@
                 </div>
               }
             } @else {
-            @for (metric of systemMetrics(); track metric.id) {
-              <div class="metric-item" [class]="'status-' + metric.status">
-                <div class="metric-header">
-                  <span class="metric-name">{{ metric.name }}</span>
-                  <span class="metric-status" [class]="getMetricStatusColor(metric.status)">
+              @for (metric of systemMetrics(); track metric.id) {
+                <div class="metric-item" [class]="'status-' + metric.status">
+                  <div class="metric-header">
+                    <span class="metric-name">{{ metric.name }}</span>
+                    <span class="metric-status" [class]="getMetricStatusColor(metric.status)">
                       {{ metric.status }}
                     </span>
+                  </div>
+                  <div class="metric-value">
+                    <span class="value">{{ metric.value }}</span>
+                    <span class="unit">{{ metric.unit }}</span>
+                  </div>
+                  <div class="metric-trend" [class]="'trend-' + metric.trend">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      @if (metric.trend === 'up') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l9.2-9.2M17 17V7H7"/>
+                      } @else if (metric.trend === 'down') {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 7l-9.2 9.2M7 7v10h10"/>
+                      } @else {
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+                      }
+                    </svg>
+                    <span>{{ metric.trendValue > 0 ? '+' : '' }}{{ metric.trendValue }}%</span>
+                  </div>
                 </div>
-                <div class="metric-value">
-                  <span class="value">{{ metric.value }}</span>
-                  <span class="unit">{{ metric.unit }}</span>
-                </div>
-                <div class="metric-trend" [class]="'trend-' + metric.trend">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    @if (metric.trend === 'up') {
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 17l9.2-9.2M17 17V7H7"/>
-                    } @else if (metric.trend === 'down') {
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 7l-9.2 9.2M7 7v10h10"/>
-                  } @else {
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-                  }
-                  </svg>
-                  <span>{{ metric.trendValue > 0 ? '+' : '' }}{{ metric.trendValue }}%</span>
-                </div>
-              </div>
+              }
             }
-          }
           </div>
         </div>
 
@@ -325,42 +325,42 @@
                 </div>
               }
             } @else {
-            @for (activity of userActivities(); track activity.id) {
-              <div class="activity-item" [class]="'status-' + activity.status">
-                <div class="activity-left">
-                  <div class="activity-avatar">
-                    {{ activity.userName.charAt(0).toUpperCase() }}
+              @for (activity of userActivities(); track activity.id) {
+                <div class="activity-item" [class]="'status-' + activity.status">
+                  <div class="activity-left">
+                    <div class="activity-avatar">
+                      {{ activity.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="activity-content">
+                      <div class="activity-title">{{ activity.action }}</div>
+                      <div class="activity-subtitle">
+                        <span class="user-name">{{ activity.userName }}</span>
+                        <span class="separator">•</span>
+                        <span class="resource">{{ activity.resource }}</span>
+                      </div>
+                      <div class="activity-meta">
+                        <span class="ip-address">{{ activity.ipAddress }}</span>
+                        <span class="separator">•</span>
+                        <span class="user-agent">{{ activity.userAgent }}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div class="activity-content">
-                    <div class="activity-title">{{ activity.action }}</div>
-                    <div class="activity-subtitle">
-                      <span class="user-name">{{ activity.userName }}</span>
-                      <span class="separator">•</span>
-                      <span class="resource">{{ activity.resource }}</span>
+                  <div class="activity-right">
+                    <div class="activity-status" [class]="'status-' + activity.status">
+                      {{ activity.status }}
                     </div>
-                    <div class="activity-meta">
-                      <span class="ip-address">{{ activity.ipAddress }}</span>
-                      <span class="separator">•</span>
-                      <span class="user-agent">{{ activity.userAgent }}</span>
-                    </div>
+                    <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
                   </div>
                 </div>
-                <div class="activity-right">
-                  <div class="activity-status" [class]="'status-' + activity.status">
-                    {{ activity.status }}
-                  </div>
-                  <div class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</div>
+              } @empty {
+                <div class="empty-state">
+                  <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                  </svg>
+                  <p class="empty-message">No recent activity</p>
                 </div>
-              </div>
-            } @empty {
-              <div class="empty-state">
-                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <p class="empty-message">No recent activity</p>
-              </div>
+              }
             }
-          }
           </div>
         </div>
 
@@ -384,50 +384,50 @@
                 </div>
               }
             } @else {
-            @for (notification of notifications(); track notification.id) {
-              <div class="notification-item" [class]="['severity-' + notification.severity, notification.read ? 'read' : 'unread']">
-                <div class="notification-icon" [class]="'type-' + notification.type">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
-                  </svg>
-                </div>
-                <div class="notification-content">
-                  <div class="notification-header">
-                    <h4 class="notification-title">{{ notification.title }}</h4>
-                    @if (notification.actionRequired) {
-                      <span class="action-required-badge">Action Required</span>
+              @for (notification of notifications(); track notification.id) {
+                <div class="notification-item" [class]="['severity-' + notification.severity, notification.read ? 'read' : 'unread']">
+                  <div class="notification-icon" [class]="'type-' + notification.type">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
+                    </svg>
+                  </div>
+                  <div class="notification-content">
+                    <div class="notification-header">
+                      <h4 class="notification-title">{{ notification.title }}</h4>
+                      @if (notification.actionRequired) {
+                        <span class="action-required-badge">Action Required</span>
+                      }
+                    </div>
+                    <p class="notification-message">{{ notification.message }}</p>
+                    <div class="notification-meta">
+                      <span class="notification-time">{{ formatTimeAgo(notification.timestamp) }}</span>
+                      <span class="notification-type">{{ notification.type }}</span>
+                    </div>
+                  </div>
+                  <div class="notification-actions">
+                    @if (!notification.read) {
+                      <button type="button" (click)="markNotificationAsRead(notification.id)" class="mark-read-btn">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                      </button>
                     }
-                  </div>
-                  <p class="notification-message">{{ notification.message }}</p>
-                  <div class="notification-meta">
-                    <span class="notification-time">{{ formatTimeAgo(notification.timestamp) }}</span>
-                    <span class="notification-type">{{ notification.type }}</span>
-                  </div>
-                </div>
-                <div class="notification-actions">
-                  @if (!notification.read) {
-                    <button type="button" (click)="markNotificationAsRead(notification.id)" class="mark-read-btn">
+                    <button type="button" (click)="dismissNotification(notification.id)" class="dismiss-btn">
                       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                       </svg>
                     </button>
-                  }
-                  <button type="button" (click)="dismissNotification(notification.id)" class="dismiss-btn">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  </button>
+                  </div>
                 </div>
-              </div>
-            } @empty {
-              <div class="empty-state">
-                <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 5l7 7-7 7"/>
-                </svg>
-                <p class="empty-message">No notifications</p>
-              </div>
+              } @empty {
+                <div class="empty-state">
+                  <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 5l7 7-7 7"/>
+                  </svg>
+                  <p class="empty-message">No notifications</p>
+                </div>
+              }
             }
-          }
           </div>
         </div>
       </div>
@@ -477,12 +477,12 @@
             </div>
           </div>
         } @else {
-        <!-- Chart Loading State -->
-        <div class="charts-loading">
-          <div class="loading-spinner"></div>
-          <p>Loading analytics charts...</p>
-        </div>
-      }
+          <!-- Chart Loading State -->
+          <div class="charts-loading">
+            <div class="loading-spinner"></div>
+            <p>Loading analytics charts...</p>
+          </div>
+        }
       </div>
     }
   </div>
