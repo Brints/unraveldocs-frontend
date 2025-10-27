@@ -1,0 +1,27 @@
+.process-step {
+  transition: all 0.6s ease;
+  opacity: 0.4;
+  transform: scale(0.9);
+}
+
+.process-step.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.arrow {
+  transition: opacity 0.6s ease;
+  opacity: 0.3;
+}
+
+.arrow.active {
+  opacity: 1;
+}
+
+.step-icon {
+  transition: all 0.3s ease;
+}
+
+.process-step.active .step-icon {
+  box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
+}

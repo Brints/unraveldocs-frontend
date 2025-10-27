@@ -15,16 +15,21 @@ import {
   PasswordResetValidation,
   EmailVerificationRequest,
   AuthError,
-  AuthErrorCodes
+  AuthErrorCodes,
 } from '../models/auth.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
+  currentUser() {
+    throw new Error('Method not implemented.');
+  }
   private API_URL = 'https://your-api-url.com/api'; // Replace with your API URL
-  private currentUserSubject: BehaviorSubject<User | null> = new BehaviorSubject<User | null>(null);
-  public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  private currentUserSubject: BehaviorSubject<User | null> =
+    new BehaviorSubject<User | null>(null);
+  public currentUser$: Observable<User | null> =
+    this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
     this.loadStoredUser();
@@ -96,7 +101,8 @@ export class AuthService {
 
   async login(request: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await this.http.post<LoginResponse>(`${this.API_URL}/login`, request)
+      const response = await this.http
+        .post<LoginResponse>(`${this.API_URL}/login`, request)
         .pipe(catchError(this.handleError))
         .toPromise();
 
@@ -114,7 +120,8 @@ export class AuthService {
   async logout(): Promise<void> {
     try {
       // Call logout endpoint to invalidate tokens server-side
-      await this.http.post(`${this.API_URL}/logout`, {})
+      await this.http
+        .post(`${this.API_URL}/logout`, {})
         .pipe(catchError(() => of(null))) // Don't fail if logout endpoint fails
         .toPromise();
     } catch (error) {
@@ -132,9 +139,12 @@ export class AuthService {
     }
 
     try {
-      const response = await this.http.post<{ accessToken: string }>(`${this.API_URL}/refresh`, {
-        refreshToken
-      }).pipe(catchError(this.handleError)).toPromise();
+      const response = await this.http
+        .post<{ accessToken: string }>(`${this.API_URL}/refresh`, {
+          refreshToken,
+        })
+        .pipe(catchError(this.handleError))
+        .toPromise();
 
       if (response) {
         localStorage.setItem('accessToken', response.accessToken);
@@ -150,9 +160,12 @@ export class AuthService {
   /**
    * Request a password reset email
    */
-  async forgotPassword(request: PasswordResetRequest): Promise<PasswordResetResponse> {
+  async forgotPassword(
+    request: PasswordResetRequest
+  ): Promise<PasswordResetResponse> {
     try {
-      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/forgot-password`, request)
+      const response = await this.http
+        .post<PasswordResetResponse>(`${this.API_URL}/forgot-password`, request)
         .pipe(catchError(this.handleError))
         .toPromise();
 
@@ -170,7 +183,10 @@ export class AuthService {
    */
   async validateResetToken(token: string): Promise<PasswordResetValidation> {
     try {
-      const response = await this.http.post<PasswordResetValidation>(`${this.API_URL}/validate-reset-token`, { token })
+      const response = await this.http
+        .post<PasswordResetValidation>(`${this.API_URL}/validate-reset-token`, {
+          token,
+        })
         .pipe(catchError(this.handleError))
         .toPromise();
 
@@ -186,9 +202,12 @@ export class AuthService {
   /**
    * Reset password using token
    */
-  async resetPassword(request: PasswordResetConfirm): Promise<PasswordResetResponse> {
+  async resetPassword(
+    request: PasswordResetConfirm
+  ): Promise<PasswordResetResponse> {
     try {
-      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/reset-password`, request)
+      const response = await this.http
+        .post<PasswordResetResponse>(`${this.API_URL}/reset-password`, request)
         .pipe(catchError(this.handleError))
         .toPromise();
 
@@ -232,9 +251,12 @@ export class AuthService {
   /**
    * Verify email address using token
    */
-  async verifyEmail(request: EmailVerificationRequest): Promise<PasswordResetResponse> {
+  async verifyEmail(
+    request: EmailVerificationRequest
+  ): Promise<PasswordResetResponse> {
     try {
-      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/verify-email`, request)
+      const response = await this.http
+        .post<PasswordResetResponse>(`${this.API_URL}/verify-email`, request)
         .pipe(catchError(this.handleError))
         .toPromise();
 
@@ -252,7 +274,10 @@ export class AuthService {
    */
   async resendVerificationEmail(email: string): Promise<PasswordResetResponse> {
     try {
-      const response = await this.http.post<PasswordResetResponse>(`${this.API_URL}/resend-verification`, { email })
+      const response = await this.http
+        .post<PasswordResetResponse>(`${this.API_URL}/resend-verification`, {
+          email,
+        })
         .pipe(catchError(this.handleError))
         .toPromise();
 

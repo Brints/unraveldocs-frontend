@@ -35,7 +35,7 @@
 }
 
 .user-dropdown {
-  @apply absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200
+  @apply absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border border-gray-200
   opacity-0 invisible transform scale-95 transition-all duration-200 origin-top-right;
 }
 
@@ -44,6 +44,6 @@
 }
 
 .dropdown-item {
-  @apply flex items-center space-x-3 px-4 py-3 text-sm text-gray-700
+  @apply flex items-center space-x-3 px-4 py-3 text-sm
   hover:bg-gray-50 transition-colors first:rounded-t-lg last:rounded-b-lg;
 }

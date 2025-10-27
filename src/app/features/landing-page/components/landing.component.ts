@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Meta, Title } from '@angular/platform-browser';
@@ -7,19 +15,12 @@ import { Subscription, fromEvent } from 'rxjs';
 import { throttleTime, map } from 'rxjs/operators';
 
 import { HeaderComponent } from '../../../shared/components/navbar/header/header.component';
-import { HeroComponent } from '../../../shared/components/hero.component';
+import { HeroComponent } from '../../../shared/components/hero/hero.component';
 import { FeaturesComponent } from '../../products/components/features.component';
-import { HowItWorksComponent } from '../../../shared/components/how-it-works.component';
-import { TestimonialsComponent } from '../../../shared/components/testimonials.component';
-import { PricingComponent } from '../../../shared/components/pricing.component';
+import { HowItWorksComponent } from '../../../shared/components/how-it-works/how-it-works.component';
+import { TestimonialsComponent } from '../../../shared/components/testimonials/testimonials.component';
+import { PricingComponent } from '../../../shared/components/pricing/pricing.component';
 import { FooterComponent } from '../../../shared/components/navbar/footer/footer.component';
-
-// New components for enhanced landing page
-import { StatsComponent } from '../../../shared/components/stats.component';
-import { CtaComponent } from '../../../shared/components/cta.component';
-import { FaqComponent } from '../../../shared/components/faq.component';
-import { BlogPreviewComponent } from '../../../shared/components/blog-preview.component';
-import { NewsletterComponent } from '../../../shared/components/newsletter.component';
 
 interface LandingPageSection {
   id: string;
@@ -48,14 +49,9 @@ interface LandingPageAnalytics {
     TestimonialsComponent,
     PricingComponent,
     FooterComponent,
-    StatsComponent,
-    CtaComponent,
-    FaqComponent,
-    BlogPreviewComponent,
-    NewsletterComponent
   ],
   templateUrl: './landing.component.html',
-  styleUrls: ['./landing.component.css']
+  styleUrls: ['./landing.component.css'],
 })
 export class LandingComponent implements OnInit, OnDestroy {
   private readonly meta = inject(Meta);
@@ -79,7 +75,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     { id: 'pricing', title: 'Pricing', visible: false },
     { id: 'faq', title: 'FAQ', visible: false },
     { id: 'blog', title: 'Latest Posts', visible: false },
-    { id: 'cta', title: 'Get Started', visible: false }
+    { id: 'cta', title: 'Get Started', visible: false },
   ]);
 
   // Analytics tracking
@@ -88,14 +84,14 @@ export class LandingComponent implements OnInit, OnDestroy {
     timeOnPage: 0,
     scrollDepth: 0,
     ctaClicks: 0,
-    signups: 0
+    signups: 0,
   });
 
   // Computed properties
   public isScrolled = computed(() => this.scrollY() > 100);
   public loadingComplete = computed(() => !this.isLoading());
   public visibleSections = computed(() =>
-    this.sections().filter(section => section.visible)
+    this.sections().filter((section) => section.visible)
   );
 
   // Landing page configuration
@@ -106,7 +102,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     enableAnimations: true,
     enableLazyLoading: true,
     trackAnalytics: true,
-    showProgressIndicator: true
+    showProgressIndicator: true,
   };
 
   ngOnInit(): void {
@@ -123,34 +119,39 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   private initializePage(): void {
     // Set meta tags for SEO
-    this.title.setTitle('UnravelDocs - Transform Your Documentation Experience');
+    this.title.setTitle(
+      'UnravelDocs - Transform Your Documentation Experience'
+    );
     this.meta.updateTag({
       name: 'description',
-      content: 'Streamline your documentation workflow with UnravelDocs. Create, collaborate, and publish beautiful documentation with ease.'
+      content:
+        'Streamline your documentation workflow with UnravelDocs. Create, collaborate, and publish beautiful documentation with ease.',
     });
     this.meta.updateTag({
       name: 'keywords',
-      content: 'documentation, collaboration, markdown, publishing, technical writing'
+      content:
+        'documentation, collaboration, markdown, publishing, technical writing',
     });
     this.meta.updateTag({
       property: 'og:title',
-      content: 'UnravelDocs - Transform Your Documentation Experience'
+      content: 'UnravelDocs - Transform Your Documentation Experience',
     });
     this.meta.updateTag({
       property: 'og:description',
-      content: 'Streamline your documentation workflow with powerful collaboration tools and beautiful publishing.'
+      content:
+        'Streamline your documentation workflow with powerful collaboration tools and beautiful publishing.',
     });
     this.meta.updateTag({
       property: 'og:image',
-      content: '/assets/images/og-landing.jpg'
+      content: '/assets/images/og-landing.jpg',
     });
     this.meta.updateTag({
       property: 'og:url',
-      content: 'https://unraveldocs.com'
+      content: 'https://unraveldocs.com',
     });
     this.meta.updateTag({
       name: 'twitter:card',
-      content: 'summary_large_image'
+      content: 'summary_large_image',
     });
 
     // Set structured data for rich snippets
@@ -171,7 +172,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     );
 
     this.subscriptions.add(
-      scroll$.subscribe(scrollY => {
+      scroll$.subscribe((scrollY) => {
         this.scrollY.set(scrollY);
         this.updateScrollAnalytics(scrollY);
       })
@@ -183,13 +184,13 @@ export class LandingComponent implements OnInit, OnDestroy {
 
     const observer = new IntersectionObserver(
       (entries) => {
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           const sectionId = entry.target.id;
           const isVisible = entry.isIntersecting;
 
           // Update section visibility
-          this.sections.update(sections =>
-            sections.map(section =>
+          this.sections.update((sections) =>
+            sections.map((section) =>
               section.id === sectionId
                 ? { ...section, visible: isVisible }
                 : section
@@ -204,13 +205,13 @@ export class LandingComponent implements OnInit, OnDestroy {
       },
       {
         threshold: [0.1, 0.5, 0.9],
-        rootMargin: '-50px 0px'
+        rootMargin: '-50px 0px',
       }
     );
 
     // Observe all sections after a short delay
     setTimeout(() => {
-      this.sections().forEach(section => {
+      this.sections().forEach((section) => {
         const element = document.getElementById(section.id);
         if (element) {
           observer.observe(element);
@@ -223,18 +224,18 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (!this.landingConfig.trackAnalytics) return;
 
     // Track page view
-    this.analytics.update(data => ({
+    this.analytics.update((data) => ({
       ...data,
-      pageViews: data.pageViews + 1
+      pageViews: data.pageViews + 1,
     }));
 
     // Track time on page
     const startTime = Date.now();
     window.addEventListener('beforeunload', () => {
       const timeOnPage = Date.now() - startTime;
-      this.analytics.update(data => ({
+      this.analytics.update((data) => ({
         ...data,
-        timeOnPage: timeOnPage / 1000 // Convert to seconds
+        timeOnPage: timeOnPage / 1000, // Convert to seconds
       }));
     });
   }
@@ -242,12 +243,13 @@ export class LandingComponent implements OnInit, OnDestroy {
   private updateScrollAnalytics(scrollY: number): void {
     if (!this.landingConfig.trackAnalytics) return;
 
-    const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const documentHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
     const scrollPercentage = Math.min(100, (scrollY / documentHeight) * 100);
 
-    this.analytics.update(data => ({
+    this.analytics.update((data) => ({
       ...data,
-      scrollDepth: Math.max(data.scrollDepth, scrollPercentage)
+      scrollDepth: Math.max(data.scrollDepth, scrollPercentage),
     }));
   }
 
@@ -256,10 +258,10 @@ export class LandingComponent implements OnInit, OnDestroy {
     const criticalImages = [
       '/assets/images/hero-bg.jpg',
       '/assets/images/feature-1.jpg',
-      '/assets/images/testimonial-1.jpg'
+      '/assets/images/testimonial-1.jpg',
     ];
 
-    criticalImages.forEach(src => {
+    criticalImages.forEach((src) => {
       const img = new Image();
       img.src = src;
     });
@@ -269,21 +271,21 @@ export class LandingComponent implements OnInit, OnDestroy {
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      'name': 'UnravelDocs',
-      'description': 'Documentation collaboration and publishing platform',
-      'url': 'https://unraveldocs.com',
-      'applicationCategory': 'BusinessApplication',
-      'operatingSystem': 'Web',
-      'offers': {
+      name: 'UnravelDocs',
+      description: 'Documentation collaboration and publishing platform',
+      url: 'https://unraveldocs.com',
+      applicationCategory: 'BusinessApplication',
+      operatingSystem: 'Web',
+      offers: {
         '@type': 'Offer',
-        'price': '0',
-        'priceCurrency': 'USD'
+        price: '0',
+        priceCurrency: 'USD',
       },
-      'aggregateRating': {
+      aggregateRating: {
         '@type': 'AggregateRating',
-        'ratingValue': '4.8',
-        'reviewCount': '127'
-      }
+        ratingValue: '4.8',
+        reviewCount: '127',
+      },
     };
 
     const script = document.createElement('script');
@@ -298,7 +300,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     if (element) {
       element.scrollIntoView({
         behavior: 'smooth',
-        block: 'start'
+        block: 'start',
       });
 
       // Track navigation
@@ -310,9 +312,9 @@ export class LandingComponent implements OnInit, OnDestroy {
 
   // CTA tracking methods
   onCtaClick(ctaType: string): void {
-    this.analytics.update(data => ({
+    this.analytics.update((data) => ({
       ...data,
-      ctaClicks: data.ctaClicks + 1
+      ctaClicks: data.ctaClicks + 1,
     }));
 
     // Track specific CTA type
@@ -320,9 +322,9 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   onSignupComplete(): void {
-    this.analytics.update(data => ({
+    this.analytics.update((data) => ({
       ...data,
-      signups: data.signups + 1
+      signups: data.signups + 1,
     }));
 
     console.log('Signup completed from landing page');
@@ -351,7 +353,8 @@ export class LandingComponent implements OnInit, OnDestroy {
   }
 
   getScrollProgress(): number {
-    const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const documentHeight =
+      document.documentElement.scrollHeight - window.innerHeight;
     return Math.min(100, (this.scrollY() / documentHeight) * 100);
   }
 
@@ -362,10 +365,14 @@ export class LandingComponent implements OnInit, OnDestroy {
   // Feature flags for conditional rendering
   shouldShowSection(sectionName: string): boolean {
     switch (sectionName) {
-      case 'stats': return this.landingConfig.showStats;
-      case 'blog': return this.landingConfig.showBlogPreviews;
-      case 'newsletter': return this.landingConfig.showNewsletter;
-      default: return true;
+      case 'stats':
+        return this.landingConfig.showStats;
+      case 'blog':
+        return this.landingConfig.showBlogPreviews;
+      case 'newsletter':
+        return this.landingConfig.showNewsletter;
+      default:
+        return true;
     }
   }
 
@@ -380,7 +387,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash);
