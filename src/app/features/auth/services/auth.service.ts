@@ -8,7 +8,6 @@ import {
   LoginRequest,
   AuthResponse,
   LoginResponse,
-  SocialAuthProvider,
   PasswordResetRequest,
   PasswordResetConfirm,
   PasswordResetResponse,
@@ -17,6 +16,7 @@ import {
   AuthError,
   AuthErrorCodes,
 } from '../models/auth.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -25,7 +25,7 @@ export class AuthService {
   currentUser() {
     throw new Error('Method not implemented.');
   }
-  private API_URL = 'https://your-api-url.com/api'; // Replace with your API URL
+  private API_URL = environment.apiUrl; // Replace with your API URL
   private currentUserSubject: BehaviorSubject<User | null> =
     new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> =
@@ -71,7 +71,7 @@ export class AuthService {
       // Server-side error
       errorMessage = `Error ${error.status}: ${error.error.message}`;
     }
-    return throwError(errorMessage);
+    return throwError(() => new Error(errorMessage));
   }
 
   private transformError(error: any): AuthError {

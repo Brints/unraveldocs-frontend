@@ -13,16 +13,21 @@
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center space-x-8">
         @if (!authService.isAuthenticated()) {
-          <button class="nav-link" (click)="scrollToSection('features')">Features</button>
-          <button class="nav-link" (click)="scrollToSection('how-it-works')">How It Works</button>
-          <button class="nav-link" (click)="scrollToSection('pricing')">Pricing</button>
-          <button class="nav-link" (click)="scrollToSection('testimonials')">Testimonials</button>
+          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+                  (click)="scrollToSection('features')">Features</button>
+          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+                  (click)="scrollToSection('how-it-works')">How It Works</button>
+          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+                  (click)="scrollToSection('pricing')">Pricing</button>
+          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+                  (click)="scrollToSection('testimonials')">Testimonials</button>
         }
 
-        <!-- Authenticated Navigation -->
         @if (authService.isAuthenticated()) {
-          <a href="/dashboard" class="nav-link">Dashboard</a>
-          <a href="/documents" class="nav-link">My Documents</a>
+          <a href="/dashboard"
+             class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">Dashboard</a>
+          <a href="/documents"
+             class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">My Documents</a>
         }
       </nav>
 

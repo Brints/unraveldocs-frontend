@@ -6,8 +6,8 @@ import { Subscription } from 'rxjs';
 
 import { AuthService } from '../../services/auth.service';
 import { GoogleAuthService } from '../../services/google-auth.service';
-import { FormInputComponent } from '../../../../shared/ui/form-input.component';
-import { ButtonComponent } from '../../../../shared/ui/button.component';
+import { FormInputComponent } from '../../../../shared/ui/form-input/form-input.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { GoogleSignupComponent } from '../google-signup/google-signup.component';
 import { CustomValidators } from '../../../../shared/validators/custom-validators';
 

@@ -5,8 +5,8 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { GoogleAuthService } from '../../services/google-auth.service';
-import { ButtonComponent } from '../../../../shared/ui/button.component';
-import { FormInputComponent } from '../../../../shared/ui/form-input.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { FormInputComponent } from '../../../../shared/ui/form-input/form-input.component';
 import {
   GoogleSignupResponse,
   GoogleAuthError,

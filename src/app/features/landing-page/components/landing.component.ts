@@ -7,19 +7,18 @@ import { Subscription, fromEvent } from 'rxjs';
 import { throttleTime, map } from 'rxjs/operators';
 
 import { HeaderComponent } from '../../../shared/components/navbar/header/header.component';
-import { HeroComponent } from '../../../shared/components/hero.component';
-import { FeaturesComponent } from '../../products/components/features.component';
-import { HowItWorksComponent } from '../../../shared/components/how-it-works.component';
-import { TestimonialsComponent } from '../../../shared/components/testimonials.component';
-import { PricingComponent } from '../../../shared/components/pricing.component';
+import { HeroComponent } from '../../../shared/components/hero/hero.component';
+import { FeaturesComponent } from '../../products/components/features/features.component';
 import { FooterComponent } from '../../../shared/components/navbar/footer/footer.component';
 
-// New components for enhanced landing page
-import { StatsComponent } from '../../../shared/components/stats.component';
-import { CtaComponent } from '../../../shared/components/cta.component';
-import { FaqComponent } from '../../../shared/components/faq.component';
-import { BlogPreviewComponent } from '../../../shared/components/blog-preview.component';
-import { NewsletterComponent } from '../../../shared/components/newsletter.component';
+import { StatsComponent } from '../../../shared/components/stats/stats.component';
+import { CtaComponent } from '../../../shared/components/cta/cta.component';
+import { FaqComponent } from '../../../shared/components/faq/faq.component';
+import { BlogPreviewComponent } from '../../../shared/components/blog-preview/blog-preview.component';
+import { NewsletterComponent } from '../../../shared/components/newsletter/newsletter.component';
+import {HowItWorksComponent} from '../../../shared/components/how-it-works/how-it-works.component';
+import {TestimonialsComponent} from '../../../shared/components/testimonials/testimonials.component';
+import {PricingComponent} from '../../../shared/components/pricing/pricing.component';
 
 interface LandingPageSection {
   id: string;

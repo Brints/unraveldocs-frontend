@@ -1,43 +1,16 @@
 import { Component, Input, OnInit, ViewChild, ElementRef, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
+import {AreaChartData} from './data';
 
 Chart.register(...registerables);
-
-export interface AreaChartData {
-  labels: string[];
-  datasets: {
-    label: string;
-    data: number[];
-    backgroundColor: string;
-    borderColor: string;
-    borderWidth?: number;
-    fill: boolean;
-    tension?: number;
-  }[];
-}
 
 @Component({
   selector: 'app-area-chart',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="chart-container">
-      <canvas #chartCanvas></canvas>
-    </div>
-  `,
-  styles: [`
-    .chart-container {
-      position: relative;
-      height: 300px;
-      width: 100%;
-    }
-
-    canvas {
-      max-height: 100%;
-      max-width: 100%;
-    }
-  `]
+  templateUrl: 'area-chart.component.html',
+  styleUrls: ['area-chart.component.css'],
 })
 export class AreaChartComponent implements OnInit {
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
