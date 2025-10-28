@@ -1,12 +1,12 @@
 import { Component, Input, Output, EventEmitter, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { GoogleAuthService } from '../../services/google-auth.service';
-import { ButtonComponent } from '../../../../shared/ui/button.component';
-import { FormInputComponent } from '../../../../shared/ui/form-input.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { FormInputComponent } from '../../../../shared/ui/form-input/form-input.component';
 import {
   GoogleSignupResponse,
   GoogleAuthError,
@@ -36,13 +36,14 @@ export interface GoogleSignupConfig {
     <div class="google-signup-container" [attr.data-theme]="config().theme">
 
       <!-- Google One-Tap (if enabled) -->
-      <div *ngIf="showOneTap()" id="g_id_onload" class="one-tap-container"></div>
+      @if (showOneTap()) {
+        <div id="g_id_onload" class="one-tap-container"></div>
+      }
 
       <!-- Main Google Signup Button -->
       <div class="google-button-container">
         <app-button
           [variant]="config().theme === 'dark' ? 'secondary' : 'outline'"
-          [size]="config().size || 'medium'"
           [fullWidth]="fullWidth"
           [isLoading]="isLoading()"
           [disabled]="!isReady() || isLoading()"
@@ -62,80 +63,87 @@ export interface GoogleSignupConfig {
       </div>
 
       <!-- Error Display -->
-      <div *ngIf="authError()" class="error-message" role="alert">
-        <svg class="error-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-        </svg>
-        {{ getErrorMessage() }}
-      </div>
+      @if (authError()) {
+        <div class="error-message" role="alert">
+          <svg class="error-icon" width="16" height="16" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          {{ getErrorMessage() }}
+        </div>
+      }
 
       <!-- Additional Options Form (shown after Google auth if needed) -->
-      <div *ngIf="showAdditionalOptions()" class="additional-options" [@slideIn]>
-        <h3>Complete Your Profile</h3>
-        <form [formGroup]="additionalForm" (ngSubmit)="completeSignup()" class="additional-form">
+      @if (showAdditionalOptions()) {
+        <div class="additional-options">
+          <h3>Complete Your Profile</h3>
+          <form [formGroup]="additionalForm" (ngSubmit)="completeSignup()" class="additional-form">
 
-          <app-form-input
-            *ngIf="config().showMarketingConsent"
-            label="Marketing Communications"
-            type="checkbox"
-            helpText="Receive product updates and special offers"
-            [control]="marketingControl">
-          </app-form-input>
+            @if (config().showMarketingConsent) {
+              <app-form-input
+                label="Marketing Communications"
+                type="checkbox"
+                helpText="Receive product updates and special offers"
+                [control]="marketingControl">
+              </app-form-input>
+            }
 
-          <app-form-input
-            *ngIf="config().showReferralCode"
-            label="Referral Code (Optional)"
-            type="text"
-            placeholder="Enter referral code"
-            [control]="referralCodeControl"
-            helpText="Have a referral code? Enter it here for special benefits">
-          </app-form-input>
+            @if (config().showReferralCode) {
+              <app-form-input
+                label="Referral Code (Optional)"
+                type="text"
+                placeholder="Enter referral code"
+                [control]="referralCodeControl"
+                helpText="Have a referral code? Enter it here for special benefits">
+              </app-form-input>
+            }
 
-          <div class="form-actions">
-            <app-button
-              type="submit"
-              variant="primary"
-              [isLoading]="isCompletingSignup()"
-              [disabled]="additionalForm.invalid || isCompletingSignup()">
-              Complete Signup
-            </app-button>
+            <div class="form-actions">
+              <app-button
+                type="submit"
+                variant="primary"
+                [isLoading]="isCompletingSignup()"
+                [disabled]="additionalForm.invalid || isCompletingSignup()">
+                Complete Signup
+              </app-button>
 
-            <app-button
-              type="button"
-              variant="ghost"
-              (clicked)="skipAdditionalOptions()"
-              [disabled]="isCompletingSignup()">
-              Skip for now
-            </app-button>
-          </div>
-        </form>
-      </div>
+              <app-button
+                type="button"
+                variant="ghost"
+                (clicked)="skipAdditionalOptions()"
+                [disabled]="isCompletingSignup()">
+                Skip for now
+              </app-button>
+            </div>
+          </form>
+        </div>
+      }
 
       <!-- Privacy Notice -->
-      <div *ngIf="showPrivacyNotice" class="privacy-notice">
-        <p class="privacy-text">
-          By continuing with Google, you agree to our
-          <a href="/terms" target="_blank" class="privacy-link">Terms of Service</a>
-          and
-          <a href="/privacy" target="_blank" class="privacy-link">Privacy Policy</a>.
-        </p>
-      </div>
+      @if (showPrivacyNotice) {
+        <div class="privacy-notice">
+          <p class="privacy-text">
+            By continuing with Google, you agree to our
+            <a href="/terms" target="_blank" class="privacy-link">Terms of Service</a>
+            and
+            <a href="/privacy" target="_blank" class="privacy-link">Privacy Policy</a>.
+          </p>
+        </div>
+      }
 
       <!-- Loading Overlay -->
-      <div *ngIf="isLoading()" class="loading-overlay">
-        <div class="loading-spinner">
-          <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"/>
-            <path d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" fill="currentColor"/>
-          </svg>
+      @if (isLoading()) {
+        <div class="loading-overlay">
+          <div class="loading-spinner">
+            <svg class="animate-spin" width="24" height="24" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25" fill="none"/>
+              <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+            </svg>
+          </div>
         </div>
-      </div>
+      }
     </div>
   `,
-  styleUrls: ['./google-signup.component.css'],
-  animations: [
-    // Add slide-in animation for additional options
-  ]
+  styleUrls: ['./google-signup.component.css']
 })
 export class GoogleSignupComponent implements OnInit, OnDestroy {
   @Input() fullWidth = false;
@@ -154,16 +162,16 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
 
-  // Reactive state
-  private authError = signal<GoogleAuthError | null>(null);
-  private isLoading = signal(false);
-  private isCompletingSignup = signal(false);
+  // Reactive state - made public for template access
+  public authError = signal<GoogleAuthError | null>(null);
+  public isLoading = signal(false);
+  public isCompletingSignup = signal(false);
   private showAdditionalForm = signal(false);
   private pendingSignupData = signal<any>(null);
   private subscriptions = new Subscription();
 
-  // Configuration
-  private config = signal<GoogleSignupConfig>({
+  // Configuration - made public for template access
+  public config = signal<GoogleSignupConfig>({
     showMarketingConsent: true,
     showReferralCode: false,
     redirectAfterSignup: '/dashboard',
@@ -177,16 +185,27 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
   public showOneTap = computed(() => !this.usePopup && this.isReady());
   public showAdditionalOptions = computed(() => this.showAdditionalForm());
 
-  // Additional options form
+  // Additional options form with proper typing
   additionalForm = this.fb.group({
     marketingConsent: [false],
     referralCode: ['', [Validators.maxLength(20)]]
   });
 
-  get marketingControl() { return this.additionalForm.get('marketingConsent')!; }
-  get referralCodeControl() { return this.additionalForm.get('referralCode')!; }
+  get marketingControl(): FormControl<boolean | null> {
+    return this.additionalForm.get('marketingConsent') as FormControl<boolean | null>;
+  }
+
+  get referralCodeControl(): FormControl<string | null> {
+    return this.additionalForm.get('referralCode') as FormControl<string | null>;
+  }
 
   ngOnInit(): void {
+    // Update config signal when input changes
+    this.config.set({
+      ...this.config(),
+      ...this.signupConfig
+    });
+
     this.initializeGoogleAuth();
     this.setupSubscriptions();
   }
@@ -238,15 +257,18 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Listen to errors from auth service
-    this.subscriptions.add(
-      this.googleAuth.error().subscribe?.(error => {
-        if (error) {
-          this.authError.set(error);
-          this.signupError.emit(error);
-        }
-      }) || new Subscription()
-    );
+    // Listen to errors from auth service - fixed subscription
+    const errorSignal = this.googleAuth.error();
+    if (errorSignal && typeof errorSignal === 'object' && 'subscribe' in errorSignal) {
+      this.subscriptions.add(
+        (errorSignal as any).subscribe((error: GoogleAuthError) => {
+          if (error) {
+            this.authError.set(error);
+            this.signupError.emit(error);
+          }
+        })
+      );
+    }
   }
 
   async handleGoogleSignup(): Promise<void> {
@@ -296,8 +318,8 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
       // Send additional data to backend if needed
       const updatedResponse = await this.updateUserProfile({
         userId: pendingData.user.id,
-        marketingConsent: formData.marketingConsent,
-        referralCode: formData.referralCode
+        marketingConsent: formData.marketingConsent ?? undefined,
+        referralCode: formData.referralCode ?? undefined
       });
 
       await this.completeSignupFlow({
@@ -343,9 +365,10 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
     this.pendingSignupData.set(null);
   }
 
-  private async updateUserProfile(data: any): Promise<any> {
+  private async updateUserProfile(data: { userId: string; marketingConsent?: boolean; referralCode?: string }): Promise<any> {
     // This would call your backend to update user profile
     // Implementation depends on your backend API
+    console.log('Updating user profile with:', data);
     return {};
   }
 
@@ -385,12 +408,5 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
   public async retry(): Promise<void> {
     this.authError.set(null);
     await this.handleGoogleSignup();
-  }
-
-  public cancel(): void {
-    this.authError.set(null);
-    this.showAdditionalForm.set(false);
-    this.pendingSignupData.set(null);
-    this.signupCancelled.emit();
   }
 }

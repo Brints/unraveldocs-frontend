@@ -91,7 +91,7 @@ export class LandingPageAnalyticsService {
       customProperties,
       timestamp: new Date(),
       sessionId: this.sessionId(),
-      userId: this.userId(),
+      userId: this.userId() || undefined,
       pageUrl: window.location.href
     };
 
@@ -392,8 +392,8 @@ export class LandingPageAnalyticsService {
 
   private sendToExternalAnalytics(event: AnalyticsEvent): void {
     // Google Analytics 4
-    if (typeof gtag !== 'undefined') {
-      gtag('event', event.eventName, {
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', event.eventName, {
         event_category: event.category,
         event_label: event.label,
         value: event.value,
@@ -402,8 +402,8 @@ export class LandingPageAnalyticsService {
     }
 
     // Mixpanel
-    if (typeof mixpanel !== 'undefined') {
-      mixpanel.track(event.eventName, {
+    if (typeof (window as any).mixpanel !== 'undefined') {
+      (window as any).mixpanel.track(event.eventName, {
         category: event.category,
         label: event.label,
         value: event.value,

@@ -75,7 +75,7 @@ export class HeaderComponent {
       .then(() => this.router.navigate(['/']))
       .then(() => {
         // Optionally handle post-navigation actions here
-        })
+      })
       .catch(err => {
         console.error('Logout/navigation failed', err);
       });
@@ -102,5 +102,18 @@ export class HeaderComponent {
   getInitials(name: string): string {
     if (!name) return 'U';
     return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase().slice(0, 2);
+  }
+
+  getUserFullName(user: any): string {
+    if (!user) return 'User';
+    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User';
+  }
+
+  getUserAvatar(user: any): string {
+    return user?.profilePicture || '/assets/default-avatar.png';
+  }
+
+  getUserPlan(user: any): string {
+    return user?.plan || 'free';
   }
 }

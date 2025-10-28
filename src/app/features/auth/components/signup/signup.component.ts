@@ -1,17 +1,19 @@
 import { Component, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { FormInputComponent } from '../../../../shared/ui/form-input.component';
-import { PasswordGeneratorComponent } from '../../../../shared/ui/password-generator.component';
-import { ButtonComponent } from '../../../../shared/ui/button.component';
-import { PasswordStrengthComponent } from '../../../../shared/ui/password-strength.component';
+import { FormInputComponent } from '../../../../shared/ui/form-input/form-input.component';
+import { PasswordGeneratorComponent } from '../../../../shared/ui/password-generator/password-generator.component';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { PasswordStrengthComponent } from '../../../../shared/ui/password-strength/password-strength.component';
 import { CustomValidators } from '../../../../shared/validators/custom-validators';
 import { AuthError, AuthErrorCodes } from '../../models/auth.model';
 import { GoogleSignupComponent } from '../google-signup/google-signup.component';
 import { GoogleSignupResponse, GoogleAuthError } from '../../models/google-auth.model';
 import { environment } from '../../../../../environments/environment';
+import {FooterComponent} from '../../../../shared/components/navbar/footer/footer.component';
+import {HeaderComponent} from '../../../../shared/components/navbar/header/header.component';
 
 interface SignupFormData {
   fullName: string;
@@ -33,7 +35,9 @@ interface SignupFormData {
     ButtonComponent,
     PasswordStrengthComponent,
     PasswordGeneratorComponent,
-    GoogleSignupComponent
+    GoogleSignupComponent,
+    FooterComponent,
+    HeaderComponent
   ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css']
@@ -72,7 +76,6 @@ export class SignupComponent {
   authError = signal<AuthError | null>(null);
   isLoading = signal(false);
   showPasswordGen = signal(false);
-  socialLoading = signal<'google' | 'github' | null>(null);
 
   // Google signup configuration
   googleConfig = {
@@ -89,7 +92,6 @@ export class SignupComponent {
 
   // Computed properties for better UX
   isFormValid = computed(() => this.signupForm.valid);
-  passwordStrength = computed(() => this.currentPassword());
 
   // Form controls for easier access
   get fullNameControl() { return this.signupForm.get('fullName') as FormControl; }
@@ -147,34 +149,6 @@ export class SignupComponent {
       this.handleAuthError(error as AuthError);
     } finally {
       this.isLoading.set(false);
-    }
-  }
-
-  // Social authentication methods
-  async signupWithGoogle(): Promise<void> {
-    await this.handleSocialAuth('google');
-  }
-
-  async signupWithGitHub(): Promise<void> {
-    await this.handleSocialAuth('github');
-  }
-
-  private async handleSocialAuth(provider: 'google' | 'github'): Promise<void> {
-    this.socialLoading.set(provider);
-    this.authError.set(null);
-
-    try {
-      const authUrl = await this.authService.socialAuth({
-        provider,
-        redirectUrl: `${window.location.origin}/auth/callback`
-      });
-
-      // Redirect to OAuth provider
-      window.location.href = authUrl;
-    } catch (error) {
-      this.handleAuthError(error as AuthError);
-    } finally {
-      this.socialLoading.set(null);
     }
   }
 
@@ -248,7 +222,6 @@ export class SignupComponent {
 
   private trackGoogleSignup(response: GoogleSignupResponse): void {
     // Add your analytics tracking here
-    // Example: Google Analytics, Mixpanel, etc.
     console.log('Tracking Google signup:', {
       userId: response.user.id,
       isNewUser: response.isNewUser,
@@ -289,19 +262,6 @@ export class SignupComponent {
     }
   }
 
-  // Template helper methods
-  getSocialButtonText(provider: 'google' | 'github'): string {
-    const loading = this.socialLoading();
-    if (loading === provider) {
-      return `Connecting to ${provider}...`;
-    }
-    return `Continue with ${provider.charAt(0).toUpperCase() + provider.slice(1)}`;
-  }
-
-  isSocialLoading(provider: 'google' | 'github'): boolean {
-    return this.socialLoading() === provider;
-  }
-
   getErrorMessage(): string {
     const error = this.authError();
     if (!error) return '';
@@ -312,11 +272,9 @@ export class SignupComponent {
       case AuthErrorCodes.WEAK_PASSWORD:
         return 'Password is too weak. Please choose a stronger password.';
       case AuthErrorCodes.RATE_LIMITED:
-        return 'Too many signup attempts. Please wait a few minutes and try again.';
+        return 'Too many signup attempts. Please try again later.';
       case AuthErrorCodes.NETWORK_ERROR:
-        return 'Network error. Please check your connection and try again.';
-      case AuthErrorCodes.SERVER_ERROR:
-        return 'Server error. Please try again later.';
+        return 'Network error occurred. Please check your connection and try again.';
       default:
         return error.message || 'An unexpected error occurred. Please try again.';
     }

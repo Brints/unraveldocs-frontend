@@ -1,29 +1,74 @@
-.pricing-card.popular {
-  @apply border-blue-500 shadow-lg transform scale-105;
-  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.15);
+.section-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #111827;
+  margin-bottom: 1rem;
 }
 
-.pricing-card.popular:hover {
-  transform: scale(1.05) translateY(-8px);
+.section-subtitle {
+  font-size: 1.25rem;
+  color: #6b7280;
+  max-width: 42rem;
+  margin: 0 auto;
+}
+
+.pricing-card {
+  position: relative;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.pricing-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+  transform: translateY(-4px);
+}
+
+.pricing-card.popular {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  transform: scale(1.05);
 }
 
 .plan-badge {
-  @apply absolute -top-4 left-1/2 transform -translate-x-1/2
-             bg-gradient-to-r from-blue-500 to-blue-700 text-white
-             px-6 py-2 rounded-full text-sm font-semibold;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
 
 .plan-button {
-  @apply py-4 px-6 rounded-xl font-semibold transition-all duration-300
-             border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:-translate-y-1;
+  padding: 1rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #374151;
+}
+
+.plan-button:hover {
+  border-color: #3b82f6;
+  background: #f8faff;
 }
 
 .plan-button.primary {
-  @apply bg-gradient-to-r from-blue-500 to-blue-700 text-white border-blue-500
-             shadow-lg hover:shadow-xl;
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border-color: #3b82f6;
 }
 
 .plan-button.primary:hover {
-  box-shadow: 0 12px 35px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
 }

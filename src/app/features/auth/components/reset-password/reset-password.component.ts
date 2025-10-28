@@ -4,7 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractContro
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PasswordResetConfirm, AuthError, PasswordResetValidation } from '../../models/auth.model';
-import { PasswordStrengthComponent } from '../../../../shared/ui/password-strength.component';
+import { PasswordStrengthComponent } from '../../../../shared/ui/password-strength/password-strength.component';
 
 interface ResetPasswordState {
   isLoading: boolean;

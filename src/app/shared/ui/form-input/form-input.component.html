@@ -1,0 +1,57 @@
+<div class="form-input-container">
+  @if (label) {
+  <label
+    [for]="id"
+    class="form-label"
+    [class.required]="required"
+    [class.error]="hasError()"
+  >
+    {{ label }}
+    @if (required) {
+    <span class="required-asterisk">*</span>
+    }
+  </label>
+  }
+
+  <div class="input-wrapper" [class.error]="hasError()">
+    <input
+      [id]="id"
+      [type]="type"
+      [placeholder]="placeholder"
+      [disabled]="disabled"
+      [value]="value()"
+      (input)="onInput($event)"
+      (blur)="onBlur()"
+      (focus)="onFocus()"
+      class="form-input"
+      [class.error]="hasError()"
+      [attr.aria-describedby]="hasError() ? id + '-error' : null"
+      [attr.aria-invalid]="hasError()"
+    />
+
+    @if (icon) {
+    <div class="input-icon">
+      <ng-content select="[slot=icon]"></ng-content>
+    </div>
+    } @if (type === 'password') {
+    <button
+      type="button"
+      class="toggle-password"
+      (click)="togglePasswordVisibility()"
+      [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+    >
+      {{ showPassword() ? "👁️" : "👁️‍🗨️" }}
+    </button>
+    }
+  </div>
+
+  @if (hasError()) {
+  <div class="error-message" [id]="id + '-error'" role="alert">
+    {{ errorMessage() }}
+  </div>
+  } @if (helpText && !hasError()) {
+  <div class="help-text">
+    {{ helpText }}
+  </div>
+  }
+</div>
