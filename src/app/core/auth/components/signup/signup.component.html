@@ -1,0 +1,283 @@
+<app-header></app-header>
+
+<main class="signup-main">
+  <!-- Background Decorations -->
+  <div class="bg-decoration bg-decoration-1"></div>
+  <div class="bg-decoration bg-decoration-2"></div>
+  <div class="bg-decoration bg-decoration-3"></div>
+
+  <!-- Signup Form Container -->
+  <div class="signup-container">
+    <!-- Left Side - Branding & Benefits -->
+    <div class="signup-left">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <span class="brand-name">UnravelDocs</span>
+        </div>
+        <h2 class="brand-tagline">Transform Your Documents with AI</h2>
+        <p class="brand-description">
+          Join thousands of professionals using UnravelDocs to streamline their document workflow
+        </p>
+      </div>
+
+      <!-- Benefits List -->
+      <div class="benefits-list">
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+          </div>
+          <div class="benefit-content">
+            <h3 class="benefit-title">Lightning Fast Processing</h3>
+            <p class="benefit-desc">Process documents in seconds with 99.5% accuracy</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+          </div>
+          <div class="benefit-content">
+            <h3 class="benefit-title">Bank-Level Security</h3>
+            <p class="benefit-desc">Your data is encrypted and fully protected</p>
+          </div>
+        </div>
+
+        <div class="benefit-item">
+          <div class="benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div class="benefit-content">
+            <h3 class="benefit-title">Team Collaboration</h3>
+            <p class="benefit-desc">Work together seamlessly with your team</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trust Indicators -->
+      <div class="trust-indicators">
+        <div class="trust-item">
+          <span class="trust-number">10K+</span>
+          <span class="trust-label">Active Users</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">99.5%</span>
+          <span class="trust-label">Accuracy</span>
+        </div>
+        <div class="trust-item">
+          <span class="trust-number">24/7</span>
+          <span class="trust-label">Support</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Signup Form -->
+    <div class="signup-right">
+      <div class="signup-card">
+        <!-- Header -->
+        <div class="signup-header">
+          <h1 class="signup-title">Create your account</h1>
+          <p class="signup-subtitle">
+            Already have an account?
+            <a routerLink="/auth/login" class="login-link">Sign in</a>
+          </p>
+        </div>
+
+        <!-- Google Signup Component -->
+        <div class="google-auth-section">
+          <app-google-signup
+            [clientId]="environment.google.clientId"
+            [fullWidth]="true"
+            [usePopup]="environment.features.googlePopupAuth"
+            [signupConfig]="googleConfig"
+            [additionalScopes]="[]"
+            (signupStarted)="onGoogleSignupStarted()"
+            (signupSuccess)="onGoogleSignupSuccess($event)"
+            (signupError)="onGoogleSignupError($event)"
+            (signupCancelled)="onGoogleSignupCancelled()">
+          </app-google-signup>
+
+          <!-- Google Error Display -->
+          @if (googleError()) {
+            <div class="error-message google-error" role="alert">
+              <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+              </svg>
+              <span>{{ googleError()?.message }}</span>
+            </div>
+          }
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">
+          <span class="divider-text">Or continue with email</span>
+        </div>
+
+        <!-- Global Error Message (for email signup) -->
+        @if (authError()) {
+          <div class="error-message auth-error" role="alert">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>{{ getErrorMessage() }}</span>
+          </div>
+        }
+
+        <!-- Email Signup Form -->
+        <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form" novalidate>
+
+          <!-- Name Row -->
+          <div class="form-row">
+            <app-form-input
+              label="First Name"
+              type="text"
+              placeholder="Enter your first name"
+              [required]="true"
+              [control]="firsNameControl"
+              [disabled]="isAnySignupInProgress()">
+            </app-form-input>
+
+            <app-form-input
+              label="Last Name"
+              type="text"
+              placeholder="Enter your last name"
+              [required]="true"
+              [control]="lastNameControl"
+              [disabled]="isAnySignupInProgress()">
+            </app-form-input>
+          </div>
+
+          <!-- Email Input -->
+          <app-form-input
+            label="Email Address"
+            type="email"
+            placeholder="Enter your email address"
+            [required]="true"
+            [control]="emailControl"
+            [disabled]="isAnySignupInProgress()"
+            helpText="We'll use this to send you important updates">
+          </app-form-input>
+
+          <!-- Password Field Group -->
+          <div class="password-field-group">
+            <app-form-input
+              label="Password"
+              type="password"
+              placeholder="Create a strong password"
+              [required]="true"
+              [control]="passwordControl"
+              [disabled]="isAnySignupInProgress()">
+            </app-form-input>
+
+            <!-- Confirm Password Input -->
+            <app-form-input
+              label="Confirm Password"
+              type="password"
+              placeholder="Confirm your password"
+              [required]="true"
+              [control]="confirmPasswordControl"
+              [disabled]="isAnySignupInProgress()">
+            </app-form-input>
+
+            <!-- Password Generator Toggle -->
+            <button
+              type="button"
+              class="password-generator-btn"
+              (click)="showPasswordGenerator()"
+              [disabled]="isAnySignupInProgress()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+              </svg>
+              Generate secure password
+            </button>
+
+            <!-- Password Strength Indicator -->
+            <app-password-strength
+              [password]="passwordControl.value">
+            </app-password-strength>
+          </div>
+
+        <!-- Terms and Marketing Checkboxes -->
+        <div class="checkbox-group">
+          <label class="checkbox-label" [class.error]="termsControl.invalid && termsControl.touched">
+            <input
+              type="checkbox"
+              [checked]="termsControl.value"
+              (change)="toggleTerms()"
+              [disabled]="isAnySignupInProgress()"
+              class="checkbox-input"
+              required>
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-text">
+              I agree to the
+              <a href="/terms" target="_blank" class="terms-link">Terms of Service</a>
+              and
+              <a href="/privacy" target="_blank" class="terms-link">Privacy Policy</a>
+              <span class="required-indicator">*</span>
+            </span>
+          </label>
+
+          <label class="checkbox-label">
+            <input
+              type="checkbox"
+              [checked]="marketingControl.value"
+              (change)="toggleMarketing()"
+              [disabled]="isAnySignupInProgress()"
+              class="checkbox-input">
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-text">
+              I'd like to receive product updates and marketing emails
+            </span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <app-button
+          type="submit"
+          variant="primary"
+          size="lg"
+          [fullWidth]="true"
+          [isLoading]="isLoading()"
+          [disabled]="!isFormValid() || isAnySignupInProgress()"
+          loadingText="Creating account...">
+          Create Account
+        </app-button>
+
+          <!-- Security Notice -->
+          <div class="security-notice">
+            <svg class="security-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9L10,17Z"/>
+            </svg>
+            Your information is encrypted and secure
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Generator Modal -->
+  @if (showPasswordGen()) {
+    <div class="modal-overlay" (click)="hidePasswordGenerator()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <app-password-generator
+          (passwordGenerated)="onPasswordGenerated($event)"
+          (closed)="hidePasswordGenerator()">
+        </app-password-generator>
+      </div>
+    </div>
+  }
+</main>
+
+<app-footer></app-footer>

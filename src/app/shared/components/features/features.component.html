@@ -1,0 +1,82 @@
+<div class="features-container">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Section Header -->
+    <div class="text-center mb-16">
+      <h2 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+        Powerful Features for Modern Teams
+      </h2>
+      <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+        Everything you need to manage, collaborate, and analyze your documents in one powerful platform.
+      </p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="features-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      @for (feature of features(); track feature.id) {
+        <div class="feature-card group"
+             (click)="onFeatureClick(feature.id)"
+             role="button"
+             tabindex="0"
+             [attr.aria-label]="'Learn more about ' + feature.title"
+             (keydown.enter)="onFeatureClick(feature.id)"
+             (keydown.space)="onFeatureClick(feature.id)">
+
+          <!-- Icon -->
+          <div class="feature-icon-wrapper mb-6">
+            <div class="feature-icon text-5xl">
+              {{ feature.icon }}
+            </div>
+          </div>
+
+          <!-- Content -->
+          <div class="feature-content">
+            <h3 class="text-2xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+              {{ feature.title }}
+            </h3>
+            <p class="text-gray-600 mb-4 leading-relaxed">
+              {{ feature.description }}
+            </p>
+
+            <!-- Benefits List -->
+            @if (feature.benefits && feature.benefits.length > 0) {
+              <ul class="feature-benefits space-y-2">
+                @for (benefit of feature.benefits; track benefit) {
+                  <li class="flex items-center text-sm text-gray-700">
+                    <svg class="w-5 h-5 text-green-500 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    {{ benefit }}
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <!-- Hover Effect Arrow -->
+          <div class="feature-arrow">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- CTA Section -->
+    <div class="text-center mt-16">
+      <p class="text-lg text-gray-600 mb-6">
+        Ready to experience these features yourself?
+      </p>
+      <button class="btn-primary px-8 py-4 text-lg"
+              (click)="onFeatureClick('get-started')">
+        Get Started Free
+        <svg class="w-5 h-5 ml-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</div>
+

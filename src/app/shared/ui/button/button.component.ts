@@ -1,5 +1,4 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 
 export type ButtonVariant =
   | 'primary'
@@ -12,7 +11,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 @Component({
   selector: 'app-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: 'button.component.html',
   styleUrl: 'button.component.css',
 })

@@ -1,45 +1,169 @@
-<section class="py-24 bg-gradient-to-b from-white to-gray-50">
-  <div class="max-w-7xl mx-auto px-6">
+<section class="how-it-works-section">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Section Header -->
     <div class="text-center mb-20">
+      <div class="inline-flex items-center justify-center px-4 py-2 bg-blue-50 rounded-full mb-6">
+        <span class="text-blue-600 font-semibold text-sm uppercase tracking-wide">Simple Process</span>
+      </div>
       <h2 class="section-title">How It Works</h2>
       <p class="section-subtitle">
-        Simple, fast, and reliable document conversion in just three steps
+        Transform your documents in three simple steps. Fast, accurate, and hassle-free.
       </p>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-12 mb-16">
-      @for (step of steps; track step.id; let i = $index) {
-        <div class="step-item text-center">
-          <div class="step-number">{{ i + 1 }}</div>
-          <div class="step-content">
-            <div class="step-icon" [innerHTML]="step.icon"></div>
-            <h3 class="text-xl font-bold text-gray-900 mb-4">{{ step.title }}</h3>
-            <p class="text-gray-600 leading-relaxed">{{ step.description }}</p>
+    <!-- Steps Container -->
+    <div class="steps-container">
+
+      <!-- Connecting Lines -->
+      <div class="connection-lines">
+        <svg class="w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="lineGradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="lineGradient2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <line class="animated-line line-1" x1="33%" y1="50%" x2="40%" y2="50%" stroke="url(#lineGradient1)" stroke-width="2" stroke-dasharray="5,5">
+            <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+          </line>
+          <line class="animated-line line-2" x1="60%" y1="50%" x2="67%" y2="50%" stroke="url(#lineGradient2)" stroke-width="2" stroke-dasharray="5,5">
+            <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+          </line>
+        </svg>
+      </div>
+
+      <!-- Steps Grid -->
+      <div class="steps-grid">
+        @for (step of steps; track step.id; let i = $index) {
+          <div class="step-card"
+               [class.active]="isStepActive(i)"
+               [class.hovered]="isStepHovered(i)"
+               (mouseenter)="onStepHover(i)"
+               (mouseleave)="onStepLeave()"
+               (click)="onStepClick(step.id)"
+               [attr.data-step]="i + 1">
+
+            <!-- Step Number Badge -->
+            <div class="step-badge" [style.background]="step.gradient">
+              <span class="step-number">{{ i + 1 }}</span>
+              <div class="step-badge-glow" [style.background]="step.gradient"></div>
+            </div>
+
+            <!-- Card Content -->
+            <div class="step-card-content">
+
+              <!-- Icon Container -->
+              <div class="step-icon-container" [style.background]="step.color + '15'">
+                <div class="step-icon" [style.color]="step.color" [innerHTML]="step.icon"></div>
+                <div class="icon-backdrop" [style.background]="step.gradient"></div>
+              </div>
+
+              <!-- Step Info -->
+              <div class="step-info">
+                <h3 class="step-title">{{ step.title }}</h3>
+                <p class="step-description">{{ step.description }}</p>
+
+                <!-- Features List -->
+                <ul class="step-features">
+                  @for (feature of step.features; track feature) {
+                    <li class="feature-item">
+                      <svg class="feature-check" [style.color]="step.color" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                      <span>{{ feature }}</span>
+                    </li>
+                  }
+                </ul>
+
+                <!-- Duration Badge -->
+                <div class="duration-badge" [style.background]="step.color + '15'" [style.color]="step.color">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>{{ step.duration }}</span>
+                </div>
+              </div>
+
+              <!-- Hover Arrow -->
+              <div class="step-arrow" [style.color]="step.color">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Decorative Elements -->
+            <div class="card-gradient-overlay" [style.background]="step.gradient"></div>
           </div>
-        </div>
-      }
+        }
+      </div>
     </div>
 
     <!-- Interactive Upload Demo -->
-    <div class="flex justify-center">
-      <div class="upload-demo-zone" [class.dragover]="isDragOver"
-           (dragover)="onDragOver($event)"
-           (dragleave)="onDragLeave($event)"
-           (drop)="onDrop($event)"
-           (click)="triggerFileInput()">
-        <input #fileInput type="file" accept="image/*,.pdf" multiple class="hidden"
-               (change)="onFileSelected($event)">
+    <div class="demo-section">
+      <div class="demo-container">
+        <h3 class="demo-title">Ready to Try?</h3>
+        <p class="demo-subtitle">Upload your first document and see the magic happen</p>
 
-        <svg class="w-24 h-24 text-blue-500 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-        </svg>
+        <div class="upload-demo-zone"
+             [class.dragover]="isDragOver"
+             (dragover)="onDragOver($event)"
+             (dragleave)="onDragLeave($event)"
+             (drop)="onDrop($event)"
+             (click)="triggerFileInput()">
 
-        <h4 class="text-2xl font-bold text-gray-900 mb-2">Try it now!</h4>
-        <p class="text-gray-600 mb-4">Drop your documents here or click to browse</p>
-        <span class="inline-block bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm">
-          PNG, JPG, JPEG, PDF
-        </span>
+          <input #fileInput type="file" accept="image/*,.pdf" multiple class="hidden"
+                 (change)="onFileSelected($event)">
+
+          <!-- Upload Icon with Animation -->
+          <div class="upload-icon-wrapper">
+            <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <div class="upload-pulse"></div>
+          </div>
+
+          <h4 class="upload-title">Drop files here or click to browse</h4>
+          <p class="upload-description">Support for PNG, JPG, JPEG, PDF files</p>
+
+          <!-- Format Badges -->
+          <div class="format-badges">
+            <span class="format-badge">PNG</span>
+            <span class="format-badge">JPG</span>
+            <span class="format-badge">PDF</span>
+            <span class="format-badge">DOCX</span>
+          </div>
+
+          <!-- Features Grid -->
+          <div class="demo-features">
+            <div class="demo-feature">
+              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+              <span>Lightning Fast</span>
+            </div>
+            <div class="demo-feature">
+              <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
+              <span>100% Secure</span>
+            </div>
+            <div class="demo-feature">
+              <svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>99.5% Accuracy</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
   </div>
 </section>
