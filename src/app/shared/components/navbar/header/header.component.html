@@ -1,143 +1,148 @@
-<header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
-        [class]="isScrolled ? 'bg-white/95 backdrop-blur-lg shadow-lg' : 'bg-white/90 backdrop-blur-md'">
+<!--fixed top-0 left-0 right-0 -->
+<header class="z-50 transition-all duration-300"
+  [class]="isScrolled ? 'bg-white/95 backdrop-blur-lg shadow-lg' : 'bg-white/90 backdrop-blur-md'">
   <div class="max-w-7xl mx-auto px-6">
     <div class="flex items-center justify-between h-20">
       <!-- Logo -->
       <div class="flex items-center cursor-pointer" (click)="navigateHome()">
-        <div class="h-10 w-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
-          <span class="text-white font-bold text-lg">UD</span>
-        </div>
+        <svg class="w-8 h-8 text-indigo-600" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          viewBox="0 0 24 24" stroke="currentColor">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
         <span class="ml-3 text-xl font-bold text-gray-900">UnravelDocs</span>
       </div>
 
       <!-- Desktop Navigation -->
       <nav class="hidden md:flex items-center space-x-8">
         @if (!authService.isAuthenticated()) {
-          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
-                  (click)="scrollToSection('features')">Features</button>
-          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
-                  (click)="scrollToSection('how-it-works')">How It Works</button>
-          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
-                  (click)="scrollToSection('pricing')">Pricing</button>
-          <button class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
-                  (click)="scrollToSection('testimonials')">Testimonials</button>
+        <button
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+          (click)="scrollToSection('features')">Features</button>
+        <button
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+          (click)="scrollToSection('how-it-works')">How It Works</button>
+        <button
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+          (click)="scrollToSection('pricing')">Pricing</button>
+        <button
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer"
+          (click)="scrollToSection('testimonials')">Testimonials</button>
         }
 
         @if (authService.isAuthenticated()) {
-          <a href="/dashboard"
-             class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">Dashboard</a>
-          <a href="/documents"
-             class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">My Documents</a>
+        <a href="/dashboard"
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">Dashboard</a>
+        <a href="/documents"
+          class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">My
+          Documents</a>
         }
       </nav>
 
       <!-- Auth Buttons - Not Authenticated -->
       @if (!authService.isAuthenticated()) {
-        <div class="hidden md:flex items-center space-x-4">
-          <button class="px-5 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
-                  (click)="navigateToLogin()">
-            Log In
-          </button>
-          <button class="btn-primary group" (click)="navigateToSignup()">
-            Sign Up Free
-            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
-            </svg>
-          </button>
-        </div>
+      <div class="hidden md:flex items-center space-x-4">
+        <button class="px-5 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors"
+          (click)="navigateToLogin()">
+          Log In
+        </button>
+        <button class="btn-primary group" (click)="navigateToSignup()">
+          Sign Up Free
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+          </svg>
+        </button>
+      </div>
       }
 
       <!-- User Menu - Authenticated -->
       @if (authService.isAuthenticated()) {
-        <div class="hidden md:flex items-center space-x-4">
-          <!-- User Plan Badge -->
-          <span class="px-3 py-1 text-xs font-semibold rounded-full"
-                [class]="getPlanBadgeClasses(getUserPlan(authService.currentUser$ | async))">
-              {{ getPlanLabel(getUserPlan(authService.currentUser$ | async)) }}
-            </span>
+      <div class="hidden md:flex items-center space-x-4">
+        <!-- User Plan Badge -->
+        <span class="px-3 py-1 text-xs font-semibold rounded-full"
+          [class]="getPlanBadgeClasses(getUserPlan(authService.currentUser$ | async))">
+          {{ getPlanLabel(getUserPlan(authService.currentUser$ | async)) }}
+        </span>
 
-          <!-- User Dropdown -->
-          <div class="relative" [class.open]="userMenuOpen">
-            <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
-                    (click)="toggleUserMenu()">
-              <img [src]="getUserAvatar(authService.currentUser$ | async)"
-                   [alt]="getUserFullName(authService.currentUser$ | async)"
-                   class="w-8 h-8 rounded-full">
-              <span class="text-gray-700 font-medium">{{ getUserFullName(authService.currentUser$ | async) }}</span>
-              <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24">
-                <path d="M19 9l-7 7-7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
+        <!-- User Dropdown -->
+        <div class="relative" [class.open]="userMenuOpen">
+          <button class="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-100 transition-colors"
+            (click)="toggleUserMenu()">
+            <img [src]="getUserAvatar(authService.currentUser$ | async)"
+              [alt]="getUserFullName(authService.currentUser$ | async)" class="w-8 h-8 rounded-full">
+            <span class="text-gray-700 font-medium">{{ getUserFullName(authService.currentUser$ | async) }}</span>
+            <svg class="w-4 h-4 text-gray-400" viewBox="0 0 24 24">
+              <path d="M19 9l-7 7-7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
+
+          <!-- Dropdown Menu -->
+          @if (userMenuOpen) {
+          <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-2">
+            <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+            <a href="/settings" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
+            <a href="/billing" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Billing</a>
+            <hr class="my-2">
+            <button (click)="logout()" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
+              Sign Out
             </button>
-
-            <!-- Dropdown Menu -->
-            @if (userMenuOpen) {
-              <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-2">
-                <a href="/profile" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                <a href="/settings" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Settings</a>
-                <a href="/billing" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Billing</a>
-                <hr class="my-2">
-                <button (click)="logout()" class="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">
-                  Sign Out
-                </button>
-              </div>
-            }
           </div>
+          }
         </div>
+      </div>
       }
 
       <!-- Mobile Menu Button -->
-      <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-              (click)="toggleMobileMenu()">
+      <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors" (click)="toggleMobileMenu()">
         @if (!mobileMenuOpen) {
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-          </svg>
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
         } @else {
-          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
         }
       </button>
     </div>
 
     <!-- Mobile Menu -->
     @if (mobileMenuOpen) {
-      <div class="md:hidden py-4 border-t border-gray-200">
-        @if (!authService.isAuthenticated()) {
-          <nav class="flex flex-col space-y-2">
-            <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                    (click)="scrollToSection('features'); closeMobileMenu()">Features</button>
-            <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                    (click)="scrollToSection('how-it-works'); closeMobileMenu()">How It Works</button>
-            <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                    (click)="scrollToSection('pricing'); closeMobileMenu()">Pricing</button>
-            <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-                    (click)="scrollToSection('testimonials'); closeMobileMenu()">Testimonials</button>
-          </nav>
+    <div class="md:hidden py-4 border-t border-gray-200">
+      @if (!authService.isAuthenticated()) {
+      <nav class="flex flex-col space-y-2">
+        <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          (click)="scrollToSection('features'); closeMobileMenu()">Features</button>
+        <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          (click)="scrollToSection('how-it-works'); closeMobileMenu()">How It Works</button>
+        <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          (click)="scrollToSection('pricing'); closeMobileMenu()">Pricing</button>
+        <button class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
+          (click)="scrollToSection('testimonials'); closeMobileMenu()">Testimonials</button>
+      </nav>
 
-          <div class="flex flex-col space-y-2 mt-4 px-4">
-            <button class="w-full py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    (click)="navigateToLogin()">
-              Log In
-            </button>
-            <button class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    (click)="navigateToSignup()">
-              Sign Up Free
-            </button>
-          </div>
-        } @else {
-          <nav class="flex flex-col space-y-2">
-            <a href="/dashboard" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a>
-            <a href="/documents" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">My Documents</a>
-            <a href="/profile" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Profile</a>
-            <a href="/settings" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a>
-            <button (click)="logout()" class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
-              Sign Out
-            </button>
-          </nav>
-        }
+      <div class="flex flex-col space-y-2 mt-4 px-4">
+        <button class="w-full py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
+          (click)="navigateToLogin()">
+          Log In
+        </button>
+        <button class="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700" (click)="navigateToSignup()">
+          Sign Up Free
+        </button>
       </div>
+      } @else {
+      <nav class="flex flex-col space-y-2">
+        <a href="/dashboard" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a>
+        <a href="/documents" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">My Documents</a>
+        <a href="/profile" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Profile</a>
+        <a href="/settings" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a>
+        <button (click)="logout()" class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
+          Sign Out
+        </button>
+      </nav>
+      }
+    </div>
     }
   </div>
 </header>

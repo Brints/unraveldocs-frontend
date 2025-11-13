@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AuthService } from '../../../../features/auth/services/auth.service';
+import {AuthService} from '../../../../core/auth/services/auth.service';
 
 @Component({
   selector: 'app-header',
@@ -37,14 +37,14 @@ export class HeaderComponent {
     this.router.navigate(['/']);
   }
 
-  navigateToLogin(): void {
+  async navigateToLogin(): Promise<void> {
     this.closeMobileMenu();
-    this.router.navigate(['/login']);
+    await this.router.navigate(['/auth/login']);
   }
 
-  navigateToSignup(): void {
+  async navigateToSignup(): Promise<void> {
     this.closeMobileMenu();
-    this.router.navigate(['/signup']);
+    await this.router.navigate(['/auth/signup']);
   }
 
   toggleMobileMenu(): void {

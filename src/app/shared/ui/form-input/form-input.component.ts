@@ -1,4 +1,4 @@
-import { Component, Input, forwardRef, signal } from '@angular/core';
+import { Component, Input, OnInit, forwardRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ControlValueAccessor,
@@ -20,7 +20,7 @@ import {
   templateUrl: 'form-input.component.html',
   styleUrls: ['form-input.component.css'],
 })
-export class FormInputComponent implements ControlValueAccessor {
+export class FormInputComponent implements ControlValueAccessor, OnInit {
   @Input() label = '';
   @Input() type = 'text';
   @Input() placeholder = '';
