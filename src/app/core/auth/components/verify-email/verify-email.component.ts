@@ -1,124 +1,41 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
+import {CommonModule, NgOptimizedImage} from '@angular/common';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { EmailVerificationRequest, AuthError } from '../../models/auth.model';
+import { EmailVerificationRequest, AuthError, AuthErrorCodes } from '../../models/auth.model';
 
 interface EmailVerificationState {
   isLoading: boolean;
   isSuccess: boolean;
   error: string | null;
   email: string | null;
+  resendSuccess: boolean;
+  resendLoading: boolean;
+  redirectCountdown: number;
 }
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  template: `
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div class="max-w-md w-full space-y-8">
-        <div>
-          <img class="mx-auto h-12 w-auto" src="/assets/logo.svg" alt="UnravelDocs">
-          <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Email Verification
-          </h2>
-        </div>
-
-        @if (state().isLoading) {
-          <div class="text-center">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p class="mt-4 text-gray-600">Verifying your email address...</p>
-          </div>
-        } @else if (state().isSuccess) {
-          <div class="rounded-md bg-green-50 p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-green-800">
-                  Email verified successfully!
-                </h3>
-                <div class="mt-2 text-sm text-green-700">
-                  <p>Your email address has been verified. You can now access all features of your account.</p>
-                </div>
-                <div class="mt-4">
-                  <a
-                    routerLink="/auth/login"
-                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-green-700 bg-green-100 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                  >
-                    Continue to Sign In
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        } @else if (state().error) {
-          <div class="rounded-md bg-red-50 p-4">
-            <div class="flex">
-              <div class="flex-shrink-0">
-                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="ml-3">
-                <h3 class="text-sm font-medium text-red-800">
-                  Email verification failed
-                </h3>
-                <div class="mt-2 text-sm text-red-700">
-                  <p>{{ state().error }}</p>
-                </div>
-                <div class="mt-4 space-x-2">
-                  <button
-                    type="button"
-                    (click)="resendVerification()"
-                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                  >
-                    Resend verification email
-                  </button>
-                  <a
-                    routerLink="/auth/signup"
-                    class="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    Back to signup
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        }
-
-        <div class="text-center">
-          <a
-            routerLink="/auth/login"
-            class="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Back to sign in
-          </a>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `]
+  imports: [CommonModule, RouterModule, NgOptimizedImage],
+  templateUrl: 'verify-email.component.html',
+  styleUrl: 'verify-email.component.css'
 })
-export class VerifyEmailComponent implements OnInit {
+export class VerifyEmailComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
-  private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private redirectTimer?: number;
 
   // Using signals for reactive state management
   state = signal<EmailVerificationState>({
     isLoading: true,
     isSuccess: false,
     error: null,
-    email: null
+    email: null,
+    resendSuccess: false,
+    resendLoading: false,
+    redirectCountdown: 5
   });
 
   async ngOnInit(): Promise<void> {
@@ -127,30 +44,39 @@ export class VerifyEmailComponent implements OnInit {
       const token = params['token'];
       const email = params['email'];
 
+      if (email) {
+        this.updateState({ email: decodeURIComponent(email) });
+      }
+
       if (token) {
-        await this.verifyEmail(token);
+        await this.verifyEmail(token, email);
       } else {
         this.updateState({
           isLoading: false,
-          error: 'No verification token provided'
+          error: 'No verification token provided. Please use the link from your verification email.'
         });
-      }
-
-      if (email) {
-        this.updateState({ email: decodeURIComponent(email) });
       }
     });
   }
 
-  private async verifyEmail(token: string): Promise<void> {
+  ngOnDestroy(): void {
+    if (this.redirectTimer) {
+      window.clearInterval(this.redirectTimer);
+    }
+  }
+
+  private async verifyEmail(token: string, email: string): Promise<void> {
     try {
-      const request: EmailVerificationRequest = { token };
+      const request: EmailVerificationRequest = { token, email };
       await this.authService.verifyEmail(request);
 
       this.updateState({
         isLoading: false,
         isSuccess: true
       });
+
+      // Start countdown and redirect to login
+      this.startRedirectCountdown();
 
     } catch (error) {
       const authError = error as AuthError;
@@ -161,29 +87,54 @@ export class VerifyEmailComponent implements OnInit {
     }
   }
 
+  private startRedirectCountdown(): void {
+    this.redirectTimer = window.setInterval(async () => {
+      const currentCountdown = this.state().redirectCountdown;
+      if (currentCountdown > 1) {
+        this.updateState({ redirectCountdown: currentCountdown - 1 });
+      } else {
+        if (this.redirectTimer) {
+          window.clearInterval(this.redirectTimer);
+        }
+        await this.router.navigate(['/auth/login']);
+      }
+    }, 1000);
+  }
+
+  async redirectNow(): Promise<void> {
+    if (this.redirectTimer) {
+      window.clearInterval(this.redirectTimer);
+    }
+    await this.router.navigate(['/auth/login']);
+  }
+
   async resendVerification(): Promise<void> {
     if (!this.state().email) {
-      this.updateState({ error: 'No email address available for resending verification' });
+      this.updateState({ error: 'No email address available for resending verification. Please sign up again.' });
       return;
     }
 
     try {
-      this.updateState({ isLoading: true, error: null });
+      this.updateState({ resendLoading: true, resendSuccess: false, error: null });
 
       await this.authService.resendVerificationEmail(this.state().email!);
 
       this.updateState({
-        isLoading: false,
+        resendLoading: false,
+        resendSuccess: true,
         error: null
       });
 
-      // Show success message
-      alert('Verification email has been resent to ' + this.state().email);
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        this.updateState({ resendSuccess: false });
+      }, 5000);
 
     } catch (error) {
       const authError = error as AuthError;
       this.updateState({
-        isLoading: false,
+        resendLoading: false,
+        resendSuccess: false,
         error: this.getErrorMessage(authError)
       });
     }
@@ -194,17 +145,35 @@ export class VerifyEmailComponent implements OnInit {
   }
 
   private getErrorMessage(error: AuthError): string {
+    // Map specific backend messages
+    const message = error.message?.toLowerCase() || '';
+
+    if (message.includes('user does not exist')) {
+      return 'No account found with this email address. Please sign up first.';
+    }
+
+    if (message.includes('token has expired')) {
+      return 'This verification link has expired. Please request a new verification email.';
+    }
+
+    if (message.includes('invalid') && message.includes('token')) {
+      return 'This verification link is invalid. Please check your email or request a new verification link.';
+    }
+
+    // Fallback to error codes
     switch (error.code) {
-      case 'INVALID_TOKEN':
-        return 'This verification link is invalid or has expired.';
-      case 'TOKEN_EXPIRED':
+      case AuthErrorCodes.InvalidToken:
+        return 'This verification link is invalid or has been used already.';
+      case AuthErrorCodes.TokenExpired:
         return 'This verification link has expired. Please request a new one.';
-      case 'USER_NOT_FOUND':
-        return 'No account found with this verification token.';
-      case 'SERVER_ERROR':
+      case AuthErrorCodes.UserNotFound:
+        return 'No account found. Please check your email or sign up again.';
+      case AuthErrorCodes.ServerError:
         return 'Server error. Please try again later.';
+      case AuthErrorCodes.NotFound:
+        return 'Verification failed. The requested resource was not found.';
       default:
-        return error.message || 'An unexpected error occurred during email verification.';
+        return error.message || 'An unexpected error occurred during email verification. Please try again.';
     }
   }
 }

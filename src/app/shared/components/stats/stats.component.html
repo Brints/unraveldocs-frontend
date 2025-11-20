@@ -1,0 +1,23 @@
+<section class="stats-section" [class.animate]="animateOnVisible">
+  <div class="container">
+    <h2>Our Impact in Numbers</h2>
+    <div class="stats-grid">
+      <div class="stat-item" (click)="onStatClick('users')">
+        <div class="stat-number">10K+</div>
+        <div class="stat-label">Active Users</div>
+      </div>
+      <div class="stat-item" (click)="onStatClick('documents')">
+        <div class="stat-number">50K+</div>
+        <div class="stat-label">Documents Created</div>
+      </div>
+      <div class="stat-item" (click)="onStatClick('teams')">
+        <div class="stat-number">1K+</div>
+        <div class="stat-label">Teams</div>
+      </div>
+      <div class="stat-item" (click)="onStatClick('satisfaction')">
+        <div class="stat-number">98%</div>
+        <div class="stat-label">Satisfaction Rate</div>
+      </div>
+    </div>
+  </div>
+</section>

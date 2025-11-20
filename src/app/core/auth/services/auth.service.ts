@@ -63,15 +63,9 @@ export class AuthService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Unknown error!';
-    if (error.error instanceof ErrorEvent) {
-      // Client-side error
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Server-side error
-      errorMessage = `Error ${error.status}: ${error.error.message}`;
-    }
-    return throwError(() => new Error(errorMessage));
+    // Return the original error to preserve backend error structure
+    // This allows transformError to properly extract error messages and codes
+    return throwError(() => error);
   }
 
   private transformError(error: any): AuthError {
@@ -79,23 +73,57 @@ export class AuthService {
     let message = 'An error occurred';
     let code: AuthErrorCodes = AuthErrorCodes.UnknownError;
 
+    console.log('Transform Error - Full error object:', error);
+    console.log('Transform Error - error.error:', error.error);
+    console.log('Transform Error - error.status:', error.status);
+    console.log('Transform Error - error.message:', error.message);
+
+    // Extract message from backend - try multiple paths
+    if (error.error?.message) {
+      // standard error response: { statusCode, error, message }
+      message = error.error.message;
+    } else if (typeof error.error === 'string') {
+      // Sometimes error is a string
+      message = error.error;
+    } else if (error.message) {
+      // Fallback to error.message
+      message = error.message;
+    }
+
+    console.log('Transform Error - Extracted message:', message);
+
+    // Map status codes to error codes and check for specific patterns
     if (error.status === 400) {
-      message = 'Invalid request';
       code = AuthErrorCodes.InvalidRequest;
+      // Check for specific token-related errors
+      if (message.toLowerCase().includes('token has expired') ||
+          message.toLowerCase().includes('expired')) {
+        code = AuthErrorCodes.TokenExpired;
+      } else if (message.toLowerCase().includes('invalid') &&
+                 message.toLowerCase().includes('token')) {
+        code = AuthErrorCodes.InvalidToken;
+      }
     } else if (error.status === 401) {
-      message = 'Unauthorized';
       code = AuthErrorCodes.Unauthorized;
     } else if (error.status === 403) {
-      message = 'Forbidden';
-      code = AuthErrorCodes.Forbidden;
+      // Check if it's invalid credentials vs forbidden
+      if (message.toLowerCase().includes('invalid credentials') ||
+          message.toLowerCase().includes('attempts left')) {
+        code = AuthErrorCodes.InvalidCredentials;
+      } else {
+        code = AuthErrorCodes.Forbidden;
+      }
     } else if (error.status === 404) {
-      message = 'Not found';
       code = AuthErrorCodes.NotFound;
+      if (message.toLowerCase().includes('user')) {
+        code = AuthErrorCodes.UserNotFound;
+      }
     } else if (error.status === 500) {
-      message = 'Server error';
+      message = 'Server error. Please try again later.';
       code = AuthErrorCodes.ServerError;
     }
 
+    console.log('Transform Error - Final:', { message, code });
     return { message, code };
   }
 
@@ -103,14 +131,53 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<LoginResponse>(`${this.API_URL}/login`, request)
+          .post<any>(`${this.API_URL}/auth/login`, request)
           .pipe(catchError(this.handleError))
       );
 
-      if (response) {
-        this.storeTokens(response.accessToken, response.refreshToken);
-        this.setCurrentUser(response.user);
-        return response;
+      console.log('Login response:', response); // Debug log
+
+      // Handle the backend response structure which wraps data
+      let loginData: any = null;
+
+      // Check if response has a data wrapper (your backend structure)
+      if (response && response.data) {
+        loginData = response.data;
+      } else if (response) {
+        loginData = response;
+      }
+
+      if (loginData && loginData.accessToken && loginData.refreshToken) {
+        // Extract user data and tokens from the response
+        const { accessToken, refreshToken, ...userData } = loginData;
+
+        // Map backend user fields to frontend User model
+        const user: User = {
+          id: userData.id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          profilePicture: userData.profilePicture || undefined,
+          emailVerified: userData.emailVerified ?? userData.isVerified ?? false,
+          createdAt: userData.createdAt,
+          updatedAt: userData.updatedAt,
+          plan: userData.plan
+        };
+
+        // Store tokens and user
+        this.storeTokens(accessToken, refreshToken);
+        this.setCurrentUser(user);
+
+        // Return properly formatted response
+        const loginResponse: LoginResponse = {
+          user,
+          accessToken,
+          refreshToken,
+          requiresTwoFactor: loginData.requiresTwoFactor,
+          twoFactorMethods: loginData.twoFactorMethods
+        };
+
+        return loginResponse;
       }
       throw new Error('Login failed');
     } catch (error) {
@@ -121,17 +188,67 @@ export class AuthService {
   async signup(request: SignupRequest): Promise<User> {
     try {
       const response = await firstValueFrom(
-        this.http.post<AuthResponse>(`${this.API_URL}/signup`, request)
+        this.http.post<any>(`${this.API_URL}/auth/signup`, request)
           .pipe(catchError(this.handleError))
       );
 
-      if (response) {
-        this.storeTokens(response.accessToken, response.refreshToken);
-        this.setCurrentUser(response.user);
-        return response.user;
+      console.log('Signup response:', response); // Debug log
+
+      // Handle different possible response structures
+      let user: User | null = null;
+      let accessToken: string | null = null;
+      let refreshToken: string | null = null;
+      let backendUser: any = null;
+
+      // Check if response has a data wrapper (your backend structure)
+      if (response && response.data) {
+        if (response.data.user) {
+          backendUser = response.data.user;
+          accessToken = response.data.accessToken || response.data.access_token || response.accessToken || response.access_token;
+          refreshToken = response.data.refreshToken || response.data.refresh_token || response.refreshToken || response.refresh_token;
+        } else if (response.data.id && response.data.email) {
+          backendUser = response.data;
+          accessToken = response.accessToken || response.access_token;
+          refreshToken = response.refreshToken || response.refresh_token;
+        }
       }
-      throw new Error('Signup failed');
+      // Check if response has a nested user object
+      else if (response && response.user) {
+        backendUser = response.user;
+        accessToken = response.accessToken || response.access_token;
+        refreshToken = response.refreshToken || response.refresh_token;
+      }
+      // Check if response is the user object directly
+      else if (response && response.id && response.email) {
+        backendUser = response;
+      }
+
+      // Map backend user fields to frontend User model
+      if (backendUser && backendUser.id && backendUser.email) {
+        user = {
+          id: backendUser.id,
+          email: backendUser.email,
+          firstName: backendUser.firstName,
+          lastName: backendUser.lastName,
+          profilePicture: backendUser.profilePicture || undefined,
+          emailVerified: backendUser.emailVerified ?? backendUser.isVerified ?? false,
+          createdAt: backendUser.createdAt,
+          updatedAt: backendUser.updatedAt,
+          plan: backendUser.plan
+        };
+
+        // Store tokens if available (may not be present in signup response)
+        if (accessToken && refreshToken) {
+          this.storeTokens(accessToken, refreshToken);
+        }
+        this.setCurrentUser(user);
+        return user;
+      }
+
+      console.error('Invalid signup response structure:', response);
+      throw new Error('Signup failed: Invalid response from server');
     } catch (error) {
+      console.error('Signup error:', error);
       throw this.transformError(error);
     }
   }
@@ -204,7 +321,7 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/forgot-password`, request)
+          .post<PasswordResetResponse>(`${this.API_URL}/user/forgot-password`, request)
           .pipe(catchError(this.handleError))
       );
 
@@ -248,7 +365,7 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/reset-password`, request)
+          .post<PasswordResetResponse>(`${this.API_URL}/user/reset-password`, request)
           .pipe(catchError(this.handleError))
       );
 
@@ -298,7 +415,7 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/verify-email`, request)
+          .post<PasswordResetResponse>(`${this.API_URL}/auth/verify-email`, request)
           .pipe(catchError(this.handleError))
       );
 
@@ -318,7 +435,7 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/resend-verification`, {
+          .post<PasswordResetResponse>(`${this.API_URL}/auth/resend-verification-email`, {
             email,
           })
           .pipe(catchError(this.handleError))

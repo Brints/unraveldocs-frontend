@@ -16,7 +16,7 @@
   <div class="input-wrapper" [class.error]="hasError()">
     <input
       [id]="id"
-      [type]="type"
+      [type]="currentType()"
       [placeholder]="placeholder"
       [disabled]="disabled"
       [value]="value()"
@@ -40,7 +40,11 @@
       (click)="togglePasswordVisibility()"
       [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
     >
-      {{ showPassword() ? "👁️" : "👁️‍🗨️" }}
+      @if (showPassword()) {
+        <span>👁️</span>
+      } @else {
+        <span>👁️‍🗨️</span>
+      }
     </button>
     }
   </div>
