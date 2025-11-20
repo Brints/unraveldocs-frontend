@@ -1,0 +1,77 @@
+<section class="newsletter-section">
+  <div class="container">
+    <div class="newsletter-content">
+      <div class="newsletter-header">
+        <h2>Stay in the Loop</h2>
+        <p>Get the latest updates, tips, and insights delivered straight to your inbox.</p>
+      </div>
+
+      <form class="newsletter-form" (ngSubmit)="onSubmit()" #form="ngForm">
+        <div class="form-group">
+          <input
+            type="email"
+            name="email"
+            [(ngModel)]="email"
+            placeholder="Enter your email address"
+            class="email-input"
+            required
+            email
+            #emailInput="ngModel">
+          <button
+            type="submit"
+            class="subscribe-btn"
+            [disabled]="form.invalid || isLoading">
+            @if (isLoading) {
+              <span class="spinner"></span>
+            } @else {
+              Subscribe
+            }
+          </button>
+        </div>
+
+        @if (emailInput.invalid && emailInput.touched) {
+          <div class="error-message">
+            Please enter a valid email address
+          </div>
+        }
+
+        @if (successMessage) {
+          <div class="success-message">
+            {{ successMessage }}
+          </div>
+        }
+
+        @if (errorMessage) {
+          <div class="error-message">
+            {{ errorMessage }}
+          </div>
+        }
+      </form>
+
+      <div class="newsletter-benefits">
+        <div class="benefit">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill="currentColor"/>
+          </svg>
+          <span>Weekly documentation tips</span>
+        </div>
+        <div class="benefit">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill="currentColor"/>
+          </svg>
+          <span>Product updates and features</span>
+        </div>
+        <div class="benefit">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" fill="currentColor"/>
+          </svg>
+          <span>Exclusive content and resources</span>
+        </div>
+      </div>
+
+      <p class="privacy-note">
+        We respect your privacy. Unsubscribe at any time.
+      </p>
+    </div>
+  </div>
+</section>

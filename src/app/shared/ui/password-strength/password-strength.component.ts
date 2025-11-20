@@ -17,7 +17,15 @@ export interface PasswordStrengthCriteria {
   styleUrls: ['password-strength.component.css'],
 })
 export class PasswordStrengthComponent {
-  @Input() password = signal('');
+  @Input() set password(value: string) {
+    this._password.set(value || '');
+  }
+
+  get password(): string {
+    return this._password();
+  }
+
+  private _password = signal('');
   @Input() minLength = 8;
   @Input() showCriteria = true;
 
@@ -26,7 +34,7 @@ export class PasswordStrengthComponent {
 
   // Computed password criteria
   criteria = computed((): PasswordStrengthCriteria => {
-    const pwd = this.password();
+    const pwd = this._password();
     return {
       minLength: pwd.length >= this.minLength,
       hasLowercase: /[a-z]/.test(pwd),

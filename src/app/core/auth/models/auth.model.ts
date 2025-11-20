@@ -11,11 +11,17 @@ export interface User {
 }
 
 export interface SignupRequest {
-  email: string;
-  password: string;
   firstName: string;
   lastName: string;
+  email: string;
+  password: string;
   confirmPassword: string;
+  acceptTerms: boolean;
+  subscribeToMarketing?: boolean;
+  dateOfBirth?: string; // ISO date string format (YYYY-MM-DD)
+  profession?: string;
+  organization?: string;
+  country: string;
 }
 
 export interface LoginRequest {
@@ -40,13 +46,15 @@ export interface PasswordResetRequest {
 }
 
 export interface PasswordResetConfirm {
+  email: string;
   token: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmNewPassword: string;
 }
 
 export interface EmailVerificationRequest {
   token: string;
+  email: string
 }
 
 export interface SocialAuthProvider {

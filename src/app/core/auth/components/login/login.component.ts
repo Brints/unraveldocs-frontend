@@ -20,10 +20,9 @@ import {
   LoginError,
   LoginErrorCodes
 } from '../../models/auth.model';
+import {FooterComponent} from '../../../../shared/components/navbar/footer/footer.component';
 import {FormInputComponent} from '../../../../shared/ui/form-input/form-input.component';
 import {ButtonComponent} from '../../../../shared/ui/button/button.component';
-import {HeaderComponent} from '../../../../shared/components/navbar/header/header.component';
-import {FooterComponent} from '../../../../shared/components/navbar/footer/footer.component';
 import {environment} from '../../../../../environments/environment';
 
 interface LoginFormData {
@@ -39,11 +38,10 @@ interface LoginFormData {
     CommonModule,
     ReactiveFormsModule,
     RouterModule,
-    FormInputComponent,
-    ButtonComponent,
     GoogleSignupComponent,
-    HeaderComponent,
-    FooterComponent
+    FooterComponent,
+    FormInputComponent,
+    ButtonComponent
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
@@ -78,24 +76,28 @@ export class LoginComponent implements OnInit, OnDestroy {
   // Make these public for template access
   public googleError = signal<GoogleAuthError | null>(null);
   public loginAttempts = signal(0);
+  public attemptsRemaining = signal<number | null>(null);
   public isRateLimited = signal(false);
   public retryAfter = signal(0);
+  public isFormValidSignal = signal(false);
 
   private showForgotPassword = signal(false);
   private redirectUrl = signal<string | null>(null);
+  public showPassword = signal(false);
 
   // Computed properties
   public error = computed(() => this.loginError());
   public loading = computed(() => this.isLoading());
-  public isFormValid = computed(() => this.loginForm.valid);
+  public isFormValid = computed(() => this.isFormValidSignal());
   public canAttemptLogin = computed(() =>
     !this.isLoading() &&
     !this.isRateLimited() &&
-    this.isFormValid()
+    this.isFormValidSignal()
   );
-  public attemptsRemaining = computed(() =>
-    Math.max(0, 5 - this.loginAttempts())
-  );
+  public showAttemptsWarning = computed(() => {
+    const remaining = this.attemptsRemaining();
+    return remaining !== null && remaining > 0 && remaining <= 3;
+  });
 
   // Form controls for easier access
   get emailControl() { return this.loginForm.get('email') as FormControl; }
@@ -120,6 +122,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.setupRedirectUrl();
     this.setupFormSubscriptions();
     this.checkForAutoLogin();
+    // Initialize form validity
+    this.isFormValidSignal.set(this.loginForm.valid);
   }
 
   ngOnDestroy(): void {
@@ -135,6 +139,20 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private setupFormSubscriptions(): void {
+    // Track form validity reactively
+    this.subscriptions.add(
+      this.loginForm.statusChanges.subscribe(() => {
+        this.isFormValidSignal.set(this.loginForm.valid);
+      })
+    );
+
+    // Track form validity on value changes too
+    this.subscriptions.add(
+      this.loginForm.valueChanges.subscribe(() => {
+        this.isFormValidSignal.set(this.loginForm.valid);
+      })
+    );
+
     // Clear errors when form changes
     this.subscriptions.add(
       this.loginForm.valueChanges.subscribe(() => {
@@ -262,6 +280,10 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.rememberMeControl.patchValue(!current);
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword.update(current => !current);
+  }
+
   private markFormGroupTouched(): void {
     Object.keys(this.loginForm.controls).forEach(key => {
       const control = this.loginForm.get(key);
@@ -273,6 +295,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private handleLoginSuccess(response: LoginResponse): void {
     // Reset login attempts
     this.loginAttempts.set(0);
+    this.attemptsRemaining.set(null);
     this.isRateLimited.set(false);
 
     // Handle two-factor authentication if required
@@ -329,23 +352,28 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     // Convert AuthError to LoginError
     const authError = error as AuthError;
+
+    // Use the actual backend message instead of hardcoded messages
+    const backendMessage = authError.message;
+
     switch (authError.code) {
-      // Fixed property name to match AuthErrorCodes enum
+      case AuthErrorCodes.Forbidden:
       case AuthErrorCodes.InvalidCredentials:
+        // Keep the backend message which includes attempt count
         return {
           code: LoginErrorCodes.INVALID_CREDENTIALS,
-          message: 'Invalid email or password. Please try again.'
+          message: backendMessage || 'Invalid email or password. Please try again.'
         };
       case AuthErrorCodes.RATE_LIMITED:
         return {
           code: LoginErrorCodes.TOO_MANY_ATTEMPTS,
-          message: 'Too many login attempts. Please try again later.',
+          message: backendMessage || 'Too many login attempts. Please try again later.',
           retryAfter: 300 // 5 minutes
         };
       default:
         return {
           code: LoginErrorCodes.SERVER_ERROR,
-          message: authError.message || 'An unexpected error occurred.'
+          message: backendMessage || 'An unexpected error occurred.'
         };
     }
   }

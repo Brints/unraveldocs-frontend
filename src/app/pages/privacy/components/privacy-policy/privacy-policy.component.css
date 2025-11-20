@@ -1,0 +1,52 @@
+/* Privacy Policy Component Styles */
+
+/* Smooth scroll behavior */
+:host {
+  display: block;
+}
+
+/* Enhanced section spacing */
+section {
+  scroll-margin-top: 2rem;
+}
+
+/* Link hover effects */
+a {
+  transition: color 0.2s ease-in-out;
+}
+
+/* List styling enhancements */
+ul {
+  line-height: 1.75;
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none;
+  }
+
+  .bg-gradient-to-b {
+    background: white !important;
+  }
+
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
+}
+

@@ -1,0 +1,153 @@
+<div class="date-picker-wrapper">
+  <!-- Label -->
+  @if (label) {
+    <label class="date-picker-label">
+      {{ label }}
+      @if (required) {
+        <span class="required-indicator">*</span>
+      }
+    </label>
+  }
+
+  <!-- Input Field -->
+  <div class="date-picker-input-wrapper">
+    <div
+      class="date-picker-input"
+      [class.disabled]="disabled"
+      [class.has-value]="displayValue()"
+      (click)="toggleCalendar()">
+
+      <!-- Calendar Icon -->
+      <svg class="calendar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+        <line x1="16" y1="2" x2="16" y2="6"></line>
+        <line x1="8" y1="2" x2="8" y2="6"></line>
+        <line x1="3" y1="10" x2="21" y2="10"></line>
+      </svg>
+
+      <!-- Display Value -->
+      <span class="date-display" [class.placeholder]="!displayValue()">
+        {{ displayValue() || placeholder }}
+      </span>
+
+      <!-- Clear Button -->
+      @if (displayValue() && !disabled) {
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearDate(); $event.stopPropagation()"
+          aria-label="Clear date">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      }
+    </div>
+
+    <!-- Calendar Dropdown -->
+    @if (isOpen()) {
+      <div class="calendar-dropdown" (click)="$event.stopPropagation()">
+        <!-- Calendar Header -->
+        <div class="calendar-header">
+          <div class="calendar-nav">
+            <button
+              type="button"
+              class="nav-button"
+              (click)="previousYear()"
+              aria-label="Previous year">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="11 17 6 12 11 7"></polyline>
+                <polyline points="18 17 13 12 18 7"></polyline>
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              class="nav-button"
+              (click)="previousMonth()"
+              aria-label="Previous month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+
+            <div class="current-month-year">
+              <span class="month-name">{{ monthName() }}</span>
+              <span class="year-name">{{ currentYear() }}</span>
+            </div>
+
+            <button
+              type="button"
+              class="nav-button"
+              (click)="nextMonth()"
+              aria-label="Next month">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              class="nav-button"
+              (click)="nextYear()"
+              aria-label="Next year">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="13 17 18 12 13 7"></polyline>
+                <polyline points="6 17 11 12 6 7"></polyline>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Today Button -->
+          @if (!isCurrentMonthAndYear()) {
+            <button
+              type="button"
+              class="today-button"
+              (click)="goToToday()">
+              Today
+            </button>
+          }
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid">
+          <!-- Weekday Headers -->
+          <div class="weekday-header">Sun</div>
+          <div class="weekday-header">Mon</div>
+          <div class="weekday-header">Tue</div>
+          <div class="weekday-header">Wed</div>
+          <div class="weekday-header">Thu</div>
+          <div class="weekday-header">Fri</div>
+          <div class="weekday-header">Sat</div>
+
+          <!-- Calendar Days -->
+          @for (day of calendarDays(); track day.date.getTime()) {
+            <button
+              type="button"
+              class="calendar-day"
+              [class.other-month]="!day.isCurrentMonth"
+              [class.today]="day.isToday"
+              [class.selected]="day.isSelected"
+              [class.disabled]="day.isDisabled"
+              [disabled]="day.isDisabled"
+              (click)="selectDate(day.date)">
+              {{ day.day }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Help Text -->
+  @if (helpText) {
+    <p class="help-text">{{ helpText }}</p>
+  }
+</div>
+
+<!-- Overlay to close calendar when clicking outside -->
+@if (isOpen()) {
+  <div class="calendar-overlay" (click)="closeCalendar()"></div>
+}
+

@@ -5,70 +5,8 @@ import { CommonModule } from '@angular/common';
   selector: 'app-cta',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <section class="cta-section" [class]="'variant-' + variant">
-      <div class="container">
-        <div class="cta-content">
-          <h2>Ready to Transform Your Documentation?</h2>
-          <p>Join thousands of teams already using UnravelDocs to streamline their documentation workflow.</p>
-          <div class="cta-actions">
-            <button class="btn btn-primary" (click)="onCtaClick()">
-              Get Started Free
-            </button>
-            <button class="btn btn-secondary" (click)="onSignupClick()">
-              View Demo
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  `,
-  styles: [`
-    .cta-section {
-      padding: 5rem 0;
-      text-align: center;
-    }
-    .variant-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-    .variant-default {
-      background: #f8f9fa;
-    }
-    .cta-content h2 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    .cta-content p {
-      font-size: 1.2rem;
-      margin-bottom: 2rem;
-      opacity: 0.9;
-    }
-    .cta-actions {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .btn {
-      padding: 1rem 2rem;
-      border-radius: 8px;
-      font-weight: 600;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .btn-primary {
-      background: #007bff;
-      color: white;
-    }
-    .btn-secondary {
-      background: transparent;
-      color: currentColor;
-      border: 2px solid currentColor;
-    }
-  `]
+  templateUrl: 'cta.component.html',
+  styleUrl: 'cta.component.css'
 })
 export class CtaComponent {
   @Input() variant = 'default';

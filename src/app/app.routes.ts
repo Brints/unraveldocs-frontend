@@ -10,6 +10,17 @@ export const routes: Routes = [
     path: 'auth',
     loadChildren: () => import('./core/auth/auth.routes').then(m => m.authRoutes)
   },
-  { path: 'dashboard', component: UserDashboardComponent, canActivate: [authGuard] },
+  {
+    path: 'admin',
+    loadChildren: () => import('./pages/admin/admin.routes').then(m => m.adminRoutes)
+  },
+  {
+    path: '',
+    loadChildren: () => import('./pages/privacy/privacy.routes').then(m => m.privacyRoutes)
+  },
+  {
+    path: '',
+    loadChildren: () => import('./pages/user/user.routes').then(m => m.userRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];

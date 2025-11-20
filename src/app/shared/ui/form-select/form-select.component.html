@@ -1,0 +1,144 @@
+<div class="form-select-container">
+  @if (label) {
+  <label
+    [for]="id"
+    class="form-label"
+    [class.required]="required"
+    [class.error]="hasError()"
+  >
+    {{ label }}
+    @if (required) {
+    <span class="required-asterisk">*</span>
+    }
+  </label>
+  }
+
+  <div class="select-wrapper" [class.error]="hasError()">
+    <div
+      class="select-trigger"
+      [class.error]="hasError()"
+      [class.disabled]="disabled"
+      [class.open]="isOpen()"
+      (click)="toggleDropdown()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-haspopup]="true"
+      [attr.aria-labelledby]="id"
+    >
+      <span class="select-value" [class.placeholder]="!value()">
+        @if (value() && displayMode === 'country' && getSelectedOption()) {
+          <span class="country-display">
+            <span class="flag-emoji">{{ getSelectedOption()!.flag || getFlagEmoji(getSelectedOption()!.code || '') }}</span>
+            <span class="dial-code">({{ getSelectedOption()!.dial_code }})</span>
+            <span class="country-name">{{ getSelectedLabel() }}</span>
+          </span>
+        } @else {
+          {{ value() ? getSelectedLabel() : placeholder }}
+        }
+      </span>
+
+      <div class="select-icons">
+        @if (value() && !disabled) {
+        <button
+          type="button"
+          class="clear-button"
+          (click)="clearSelection($event)"
+          aria-label="Clear selection"
+        >
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+        }
+        <svg
+          class="dropdown-icon"
+          [class.rotate]="isOpen()"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </div>
+    </div>
+
+    @if (isOpen()) {
+    <div class="dropdown-panel">
+      <div class="search-wrapper">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search..."
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+          (click)="$event.stopPropagation()"
+        />
+      </div>
+
+      <div class="options-list">
+        @if (filteredOptions().length === 0) {
+        <div class="no-options">No options found</div>
+        } @else { @for (option of filteredOptions(); track option.value) {
+        <div
+          class="option-item"
+          [class.selected]="value() === option.value"
+          [class.disabled]="option.disabled"
+          (click)="selectOption(option)"
+        >
+          @if (displayMode === 'country' && option.code) {
+            <span class="country-option">
+              <span class="flag-emoji">{{ option.flag || getFlagEmoji(option.code) }}</span>
+              <span class="dial-code">({{ option.dial_code }})</span>
+              <span class="option-label">{{ option.label }}</span>
+            </span>
+          } @else {
+            <span class="option-label">{{ option.label }}</span>
+          }
+          @if (value() === option.value) {
+          <svg class="check-icon" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          }
+        </div>
+        } }
+      </div>
+    </div>
+    }
+  </div>
+
+  @if (hasError()) {
+  <div class="error-message" [id]="id + '-error'" role="alert">
+    {{ errorMessage() }}
+  </div>
+  } @if (helpText && !hasError()) {
+  <div class="help-text">
+    {{ helpText }}
+  </div>
+  }
+</div>

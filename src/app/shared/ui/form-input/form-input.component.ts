@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
-  FormControl,
+  FormControl, ReactiveFormsModule,
 } from '@angular/forms';
 
 @Component({
   selector: 'app-form-input',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ReactiveFormsModule],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -36,11 +36,22 @@ export class FormInputComponent implements ControlValueAccessor, OnInit {
   errorMessage = signal('');
   touched = signal(false);
 
+  // Track the original type and current displayed type
+  private originalType = 'text';
+  currentType = signal('text');
+
   private onChange = (value: string) => {};
   private onTouched = () => {};
 
   ngOnInit() {
+    // Store the original type
+    this.originalType = this.type;
+    this.currentType.set(this.type);
+
     if (this.control) {
+      // Sync initial value from control to local state
+      this.value.set(this.control.value || '');
+
       // Subscribe to control value and validation state changes
       this.control.valueChanges.subscribe((value) => {
         this.value.set(value || '');
@@ -73,12 +84,23 @@ export class FormInputComponent implements ControlValueAccessor, OnInit {
     const value = target.value;
     this.value.set(value);
     this.onChange(value);
+
+    if (this.control) {
+      this.control.setValue(value, { emitEvent: true });
+      this.control.markAsDirty();
+    }
+
     this.updateErrorMessage();
   }
 
   onBlur(): void {
     this.touched.set(true);
     this.onTouched();
+
+    if (this.control) {
+      this.control.markAsTouched();
+    }
+
     this.updateErrorMessage();
   }
 
@@ -91,7 +113,7 @@ export class FormInputComponent implements ControlValueAccessor, OnInit {
 
   togglePasswordVisibility(): void {
     this.showPassword.update((show) => !show);
-    this.type = this.showPassword() ? 'text' : 'password';
+    this.currentType.set(this.showPassword() ? 'text' : 'password');
   }
 
   hasError(): boolean {
