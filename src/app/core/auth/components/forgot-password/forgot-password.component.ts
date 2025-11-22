@@ -1,5 +1,5 @@
 import { Component, signal, inject } from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import { NgOptimizedImage } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -17,7 +17,7 @@ interface ForgotPasswordState {
 @Component({
   selector: 'app-forgot-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, NgOptimizedImage],
+  imports: [ReactiveFormsModule, RouterModule, NgOptimizedImage],
   templateUrl: 'forgot-password.component.html',
   styleUrl: 'forgot-password.component.css'
 })

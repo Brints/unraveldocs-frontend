@@ -1,5 +1,5 @@
 import { Component, Input, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 export interface PasswordStrengthCriteria {
   minLength: boolean;
@@ -12,7 +12,7 @@ export interface PasswordStrengthCriteria {
 @Component({
   selector: 'app-password-strength',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: 'password-strength.component.html',
   styleUrls: ['password-strength.component.css'],
 })

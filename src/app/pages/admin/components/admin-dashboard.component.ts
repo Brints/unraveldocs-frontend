@@ -1,5 +1,5 @@
 import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ChartsService, ChartDataSets } from '../../../shared/services/charts.service';
@@ -64,13 +64,8 @@ interface QuickAdminAction {
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    // LineChartComponent,
-    // DonutChartComponent,
-    // BarChartComponent,
-    // AreaChartComponent
-  ],
+    RouterModule
+],
   templateUrl: './admin-dashboard.html',
   styleUrls: ['./admin-dashboard.css']
 })

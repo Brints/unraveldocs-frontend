@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ActivatedRoute, Router } from '@angular/router';
 import { GoogleAuthService } from '../../services/google-auth.service';
 import { GoogleSignupResponse, GoogleAuthError } from '../../models/google-auth.model';
@@ -7,7 +7,7 @@ import { GoogleSignupResponse, GoogleAuthError } from '../../models/google-auth.
 @Component({
   selector: 'app-google-callback',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: 'google-callback.component.html',
   styleUrl: 'google-callback.component.css'
 })

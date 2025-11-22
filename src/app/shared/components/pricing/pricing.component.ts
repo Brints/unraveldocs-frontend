@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 interface PricingPlan {
   id: string;
@@ -15,7 +15,7 @@ interface PricingPlan {
 @Component({
   selector: 'app-pricing',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './pricing.component.html',
   styleUrls: ['./pricing.component.css']
 })

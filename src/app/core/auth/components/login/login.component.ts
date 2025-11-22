@@ -1,5 +1,5 @@
 import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, Validators, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -35,14 +35,13 @@ interface LoginFormData {
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     GoogleSignupComponent,
     FooterComponent,
     FormInputComponent,
     ButtonComponent
-  ],
+],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })

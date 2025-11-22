@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, ViewChild, ElementRef, signal, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 
 Chart.register(...registerables);
@@ -20,7 +20,7 @@ export interface ChartData {
 @Component({
   selector: 'app-line-chart',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   template: `
     <div class="chart-container">
       <canvas #chartCanvas></canvas>

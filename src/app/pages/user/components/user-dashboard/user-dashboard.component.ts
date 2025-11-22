@@ -1,5 +1,5 @@
 import { Component, signal, computed, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { RouterModule } from '@angular/router';
 import {AuthService} from '../../../../core/auth/services/auth.service';
 import {User} from '../../../../core/auth/models/auth.model';
@@ -34,7 +34,7 @@ interface QuickAction {
 @Component({
   selector: 'app-user-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [RouterModule],
   templateUrl: './user-dashboard.html',
   styleUrls: ['./user-dashboard.css']
 })

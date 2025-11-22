@@ -1,11 +1,11 @@
 import { Component, Output, EventEmitter, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'app-password-generator',
   standalone: true,
-  imports: [CommonModule, ButtonComponent],
+  imports: [ButtonComponent],
   templateUrl: 'password-generator.component.html',
   styleUrls: ['password-generator.component.css'],
 })
