@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, forwardRef, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {
   ControlValueAccessor,
   NG_VALUE_ACCESSOR,
@@ -18,7 +18,7 @@ export interface SelectOption {
 @Component({
   selector: 'app-form-select',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

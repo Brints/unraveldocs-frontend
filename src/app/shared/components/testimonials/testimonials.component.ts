@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {Testimonials} from './testimonials';
 
 interface Testimonial {
@@ -13,7 +13,7 @@ interface Testimonial {
 @Component({
   selector: 'app-testimonials',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './testimonials.component.html',
   styleUrls: ['./testimonials.component.css']
 })

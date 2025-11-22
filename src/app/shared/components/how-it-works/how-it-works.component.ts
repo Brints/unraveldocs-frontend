@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, Input, Output, EventEmitter, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 interface Step {
   id: string;
@@ -15,7 +15,7 @@ interface Step {
 @Component({
   selector: 'app-how-it-works',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './how-it-works.component.html',
   styleUrls: ['./how-it-works.component.css']
 })

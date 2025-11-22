@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -27,11 +27,10 @@ export interface GoogleSignupConfig {
   selector: 'app-google-signup',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     ButtonComponent,
     FormInputComponent
-  ],
+],
   templateUrl: 'google-signup.component.html',
   styleUrls: ['./google-signup.component.css']
 })
