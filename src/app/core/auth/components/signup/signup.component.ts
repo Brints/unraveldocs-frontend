@@ -337,7 +337,6 @@ export class SignupComponent implements OnInit {
         confirmPassword: formValue.confirmPassword,
         acceptTerms: formValue.terms_accepted,
         subscribeToMarketing: formValue.marketing_opt_in,
-        dateOfBirth: dateOfBirthString,
         profession: formValue.profession?.trim() || undefined,
         organization: formValue.organization?.trim() || undefined,
         country: formValue.country,

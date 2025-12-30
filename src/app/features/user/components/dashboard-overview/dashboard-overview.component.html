@@ -1,0 +1,362 @@
+<!-- Dashboard Overview -->
+<div class="dashboard-overview">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="greeting-section">
+        @if (isLoading()) {
+          <div class="skeleton-loader">
+            <div class="skeleton-line w-48 h-8 mb-2"></div>
+            <div class="skeleton-line w-72 h-5"></div>
+          </div>
+        } @else {
+          <h1 class="page-title">
+            {{ greeting() }}, {{ profile()?.firstName || 'there' }}! 👋
+          </h1>
+          <p class="page-subtitle">
+            Here's what's happening with your documents today.
+          </p>
+        }
+      </div>
+
+      <div class="header-actions">
+        <!-- Time Range Selector -->
+        <div class="time-range-selector">
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '7d'"
+            (click)="onTimeRangeChange('7d')">
+            7 days
+          </button>
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '30d'"
+            (click)="onTimeRangeChange('30d')">
+            30 days
+          </button>
+          <button
+            type="button"
+            class="time-range-btn"
+            [class.active]="selectedTimeRange() === '90d'"
+            (click)="onTimeRangeChange('90d')">
+            90 days
+          </button>
+        </div>
+
+        <!-- Primary Action -->
+        <a routerLink="/documents/upload" class="primary-action-btn">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>Upload Document</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <section class="stats-section">
+    <div class="stats-grid">
+      @if (isLoading()) {
+        @for (i of [1,2,3,4]; track i) {
+          <div class="stat-card skeleton">
+            <div class="skeleton-icon"></div>
+            <div class="skeleton-content">
+              <div class="skeleton-line w-16 h-8 mb-2"></div>
+              <div class="skeleton-line w-24 h-4"></div>
+            </div>
+          </div>
+        }
+      } @else {
+        @for (stat of statCards(); track stat.id) {
+          <a [routerLink]="stat.link" class="stat-card group">
+            <div class="stat-icon" [class]="getStatColorClasses(stat.color).icon">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getStatIcon(stat.icon)"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <div class="stat-value">{{ stat.value }}</div>
+              <div class="stat-label">{{ stat.title }}</div>
+              @if (stat.change) {
+                <div class="stat-change" [class.positive]="stat.change.type === 'increase'" [class.negative]="stat.change.type === 'decrease'">
+                  @if (stat.change.type === 'increase') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                    </svg>
+                  } @else if (stat.change.type === 'decrease') {
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                    </svg>
+                  }
+                  <span>{{ stat.change.value }}</span>
+                </div>
+              }
+              @if (stat.subtitle) {
+                <div class="stat-subtitle">{{ stat.subtitle }}</div>
+              }
+            </div>
+            <div class="stat-arrow group-hover:translate-x-1">
+              <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </a>
+        }
+      }
+    </div>
+  </section>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Left Column -->
+    <div class="left-column">
+      <!-- Quick Actions -->
+      <section class="card quick-actions-card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+          <p class="card-subtitle">Common tasks to get started</p>
+        </div>
+        <div class="quick-actions-grid">
+          @for (action of quickActions(); track action.id) {
+            @if (action.route) {
+              <a
+                [routerLink]="action.route"
+                class="quick-action"
+                [class.disabled]="!action.enabled"
+                [class]="action.color">
+                <div class="action-icon-wrapper">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="action.iconPath"/>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <h3 class="action-title">{{ action.title }}</h3>
+                  <p class="action-description">{{ action.description }}</p>
+                </div>
+                <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            } @else {
+              <button
+                type="button"
+                (click)="executeQuickAction(action)"
+                class="quick-action"
+                [class.disabled]="!action.enabled"
+                [class]="action.color"
+                [disabled]="!action.enabled">
+                <div class="action-icon-wrapper">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="action.iconPath"/>
+                  </svg>
+                </div>
+                <div class="action-content">
+                  <h3 class="action-title">{{ action.title }}</h3>
+                  <p class="action-description">{{ action.description }}</p>
+                </div>
+                <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </button>
+            }
+          }
+        </div>
+      </section>
+
+      <!-- Recent Activity -->
+      <section class="card activity-card">
+        <div class="card-header">
+          <h2 class="card-title">Recent Activity</h2>
+          <a routerLink="/activity" class="view-all-link">
+            View all
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </a>
+        </div>
+        <div class="activity-list">
+          @if (isLoading()) {
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="activity-item skeleton">
+                <div class="skeleton-icon-sm"></div>
+                <div class="flex-1">
+                  <div class="skeleton-line w-48 h-4 mb-2"></div>
+                  <div class="skeleton-line w-32 h-3"></div>
+                </div>
+                <div class="skeleton-line w-16 h-3"></div>
+              </div>
+            }
+          } @else if (activities().length === 0) {
+            <div class="empty-state">
+              <div class="empty-icon">
+                <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                </svg>
+              </div>
+              <h3 class="empty-title">No activity yet</h3>
+              <p class="empty-description">Upload your first document to get started</p>
+              <a routerLink="/documents/upload" class="empty-action-btn">
+                Upload Document
+              </a>
+            </div>
+          } @else {
+            @for (activity of activities(); track activity.id) {
+              <div class="activity-item">
+                <div class="activity-icon" [class]="getActivityColor(activity.type)">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getActivityIcon(activity.type)"/>
+                  </svg>
+                </div>
+                <div class="activity-content">
+                  <p class="activity-title">{{ activity.title }}</p>
+                  <p class="activity-description">{{ activity.description }}</p>
+                </div>
+                <span class="activity-time">{{ formatTimeAgo(activity.timestamp) }}</span>
+              </div>
+            }
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      <!-- Subscription Card -->
+      <section class="card subscription-card">
+        <div class="card-header">
+          <h2 class="card-title">Subscription</h2>
+          <span class="plan-badge" [class]="subscription()?.planName?.toLowerCase()">
+            {{ subscription()?.planName || 'Free' }}
+          </span>
+        </div>
+        <div class="subscription-content">
+          @if (subscriptionStatus().isTrial && subscriptionStatus().daysRemaining) {
+            <div class="trial-banner">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>{{ subscriptionStatus().daysRemaining }} days left in trial</span>
+            </div>
+          }
+
+          <!-- Usage Progress -->
+          <div class="usage-section">
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">OCR Pages</span>
+                <span class="usage-value">{{ stats()?.ocrPagesUsed || 0 }} / {{ stats()?.ocrPagesLimit || 0 }}</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill ocr"
+                  [style.width.%]="ocrUsagePercentage()">
+                </div>
+              </div>
+            </div>
+
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">Storage</span>
+                <span class="usage-value">{{ stats()?.storageUsed || 0 }}GB / {{ stats()?.storageLimit || 0 }}GB</span>
+              </div>
+              <div class="progress-bar">
+                <div
+                  class="progress-fill storage"
+                  [class.warning]="storageStatus().status === 'warning'"
+                  [class.critical]="storageStatus().status === 'critical'"
+                  [style.width.%]="storagePercentage()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <a routerLink="/subscriptions/plans" class="upgrade-btn">
+            <span>Upgrade Plan</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+            </svg>
+          </a>
+        </div>
+      </section>
+
+      <!-- Storage Widget -->
+      <section class="card storage-card">
+        <div class="card-header">
+          <h2 class="card-title">Storage Overview</h2>
+        </div>
+        <div class="storage-content">
+          <div class="storage-visual">
+            <svg class="storage-ring" viewBox="0 0 120 120">
+              <!-- Background ring -->
+              <circle
+                cx="60" cy="60" r="52"
+                fill="none"
+                stroke="#e2e8f0"
+                stroke-width="12"
+              />
+              <!-- Progress ring -->
+              <circle
+                cx="60" cy="60" r="52"
+                fill="none"
+                [attr.stroke]="storageStatus().status === 'critical' ? '#ef4444' : storageStatus().status === 'warning' ? '#f59e0b' : '#10b981'"
+                stroke-width="12"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="2 * Math.PI * 52"
+                [attr.stroke-dashoffset]="2 * Math.PI * 52 * (1 - storagePercentage() / 100)"
+                transform="rotate(-90 60 60)"
+                class="progress-ring"
+              />
+            </svg>
+            <div class="storage-info">
+              <span class="storage-percentage">{{ storagePercentage() }}%</span>
+              <span class="storage-label">Used</span>
+            </div>
+          </div>
+          <div class="storage-details">
+            <div class="storage-stat">
+              <span class="stat-dot used"></span>
+              <span class="stat-label">Used</span>
+              <span class="stat-value">{{ stats()?.storageUsed || 0 }}GB</span>
+            </div>
+            <div class="storage-stat">
+              <span class="stat-dot available"></span>
+              <span class="stat-label">Available</span>
+              <span class="stat-value">{{ (stats()?.storageLimit || 0) - (stats()?.storageUsed || 0) }}GB</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tips Card -->
+      <section class="card tips-card">
+        <div class="card-header">
+          <h2 class="card-title">💡 Pro Tips</h2>
+        </div>
+        <div class="tips-list">
+          <div class="tip-item">
+            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>Organize documents into collections for faster access</p>
+          </div>
+          <div class="tip-item">
+            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>Use batch upload to process multiple files at once</p>
+          </div>
+          <div class="tip-item">
+            <svg class="w-5 h-5 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>Export OCR results as Word documents</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+

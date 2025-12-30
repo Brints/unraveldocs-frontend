@@ -1,0 +1,369 @@
+<!-- Security Settings Page -->
+<div class="settings-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Security Settings</h1>
+      <p class="page-subtitle">Manage your account security and authentication</p>
+    </div>
+  </div>
+
+  <!-- Password Change Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-icon">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="card-title">Change Password</h2>
+        <p class="card-description">Update your password regularly to keep your account secure</p>
+      </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (passwordSuccess()) {
+      <div class="alert alert-success mx-6 mt-4">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Password changed successfully!</span>
+      </div>
+    }
+
+    <!-- Error Message -->
+    @if (passwordError()) {
+      <div class="alert alert-error mx-6 mt-4">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ passwordError() }}</span>
+      </div>
+    }
+
+    <form [formGroup]="passwordForm" (ngSubmit)="onChangePassword()" class="card-content">
+      <div class="password-form">
+        <!-- Current Password -->
+        <div class="form-group">
+          <label for="currentPassword" class="form-label">Current Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showCurrentPassword() ? 'text' : 'password'"
+              id="currentPassword"
+              formControlName="currentPassword"
+              class="form-input"
+              [class.error]="hasError('currentPassword')"
+              placeholder="Enter current password"/>
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility('current')">
+              @if (showCurrentPassword()) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (hasError('currentPassword')) {
+            <span class="form-error">{{ getErrorMessage('currentPassword') }}</span>
+          }
+        </div>
+
+        <!-- New Password -->
+        <div class="form-group">
+          <label for="newPassword" class="form-label">New Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showNewPassword() ? 'text' : 'password'"
+              id="newPassword"
+              formControlName="newPassword"
+              class="form-input"
+              [class.error]="hasError('newPassword')"
+              placeholder="Enter new password"/>
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility('new')">
+              @if (showNewPassword()) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (hasError('newPassword')) {
+            <span class="form-error">{{ getErrorMessage('newPassword') }}</span>
+          }
+
+          <!-- Password Strength Indicator -->
+          <div class="password-strength">
+            <div class="strength-bar">
+              <div
+                class="strength-fill"
+                [class]="'strength-' + passwordStrength().color"
+                [style.width.%]="(passwordStrength().score / 7) * 100">
+              </div>
+            </div>
+            <span class="strength-label" [class]="'text-' + passwordStrength().color">
+              {{ passwordStrength().label }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirm New Password</label>
+          <div class="password-input-wrapper">
+            <input
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              id="confirmPassword"
+              formControlName="confirmPassword"
+              class="form-input"
+              [class.error]="hasError('confirmPassword') || hasFormError('passwordMismatch')"
+              placeholder="Confirm new password"/>
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="togglePasswordVisibility('confirm')">
+              @if (showConfirmPassword()) {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              }
+            </button>
+          </div>
+          @if (hasError('confirmPassword')) {
+            <span class="form-error">{{ getErrorMessage('confirmPassword') }}</span>
+          }
+          @if (hasFormError('passwordMismatch')) {
+            <span class="form-error">Passwords do not match</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="save-btn"
+          [disabled]="isChangingPassword() || passwordForm.invalid">
+          @if (isChangingPassword()) {
+            <span class="spinner small"></span>
+            <span>Updating...</span>
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Update Password</span>
+          }
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Two-Factor Authentication -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-icon">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="card-title">Two-Factor Authentication</h2>
+        <p class="card-description">Add an extra layer of security to your account</p>
+      </div>
+    </div>
+    <div class="card-content">
+      @if (twoFactorQRCode()) {
+        <!-- 2FA Setup Flow -->
+        <div class="two-factor-setup">
+          <div class="setup-step">
+            <span class="step-number">1</span>
+            <p>Scan the QR code with your authenticator app (Google Authenticator, Authy, etc.)</p>
+          </div>
+          <div class="qr-code-container">
+            <img [src]="twoFactorQRCode()" alt="2FA QR Code" class="qr-code"/>
+          </div>
+          <div class="setup-step">
+            <span class="step-number">2</span>
+            <p>Or enter this code manually: <code class="secret-code">{{ twoFactorSecret() }}</code></p>
+          </div>
+          <div class="setup-actions">
+            <button type="button" class="btn-secondary" (click)="cancel2FASetup()">Cancel</button>
+            <button type="button" class="btn-primary" (click)="confirm2FASetup()">
+              I've set up my authenticator
+            </button>
+          </div>
+        </div>
+      } @else {
+        <!-- 2FA Status -->
+        <div class="two-factor-status">
+          <div class="status-info">
+            @if (twoFactorEnabled()) {
+              <span class="status-badge enabled">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Enabled
+              </span>
+              <p>Your account is protected with two-factor authentication</p>
+            } @else {
+              <span class="status-badge disabled">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                Not Enabled
+              </span>
+              <p>Add an extra layer of security by enabling 2FA</p>
+            }
+          </div>
+          <button
+            type="button"
+            [class]="twoFactorEnabled() ? 'btn-danger' : 'btn-primary'"
+            [disabled]="isEnabling2FA()"
+            (click)="toggleTwoFactor()">
+            @if (isEnabling2FA()) {
+              <span class="spinner small"></span>
+            }
+            {{ twoFactorEnabled() ? 'Disable 2FA' : 'Enable 2FA' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Active Sessions -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-icon">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h2 class="card-title">Active Sessions</h2>
+        <p class="card-description">Manage your logged-in devices</p>
+      </div>
+      @if (activeSessions().length > 1) {
+        <button type="button" class="btn-text-danger" (click)="revokeAllOtherSessions()">
+          Sign out all other sessions
+        </button>
+      }
+    </div>
+    <div class="card-content p-0">
+      @if (isLoadingSessions()) {
+        <div class="sessions-loading">
+          @for (i of [1,2]; track i) {
+            <div class="session-skeleton">
+              <div class="skeleton-icon"></div>
+              <div class="skeleton-content">
+                <div class="skeleton-line w-32 h-4 mb-2"></div>
+                <div class="skeleton-line w-48 h-3"></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="sessions-list">
+          @for (session of activeSessions(); track session.id) {
+            <div class="session-item" [class.current]="session.isCurrent">
+              <div class="session-icon">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getDeviceIcon(session.device)"/>
+                </svg>
+              </div>
+              <div class="session-info">
+                <div class="session-device">
+                  {{ session.device }} · {{ session.browser }}
+                  @if (session.isCurrent) {
+                    <span class="current-badge">This device</span>
+                  }
+                </div>
+                <div class="session-details">
+                  <span>{{ session.location || 'Unknown location' }}</span>
+                  <span class="separator">·</span>
+                  <span>{{ session.ipAddress }}</span>
+                  <span class="separator">·</span>
+                  <span>{{ formatTimeAgo(session.lastActive) }}</span>
+                </div>
+              </div>
+              @if (!session.isCurrent) {
+                <button
+                  type="button"
+                  class="revoke-btn"
+                  (click)="revokeSession(session.id)">
+                  Sign out
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Login History -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-icon">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="card-title">Login History</h2>
+        <p class="card-description">Recent login activity on your account</p>
+      </div>
+    </div>
+    <div class="card-content p-0">
+      <div class="history-list">
+        @for (entry of loginHistory(); track entry.id) {
+          <div class="history-item" [class.failed]="entry.status === 'failed'">
+            <div class="history-status">
+              @if (entry.status === 'success') {
+                <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              } @else {
+                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              }
+            </div>
+            <div class="history-info">
+              <div class="history-device">
+                {{ entry.device }} · {{ entry.browser }}
+                <span class="history-status-text" [class]="entry.status">
+                  {{ entry.status === 'success' ? 'Successful' : 'Failed' }}
+                </span>
+              </div>
+              <div class="history-details">
+                <span>{{ entry.location || 'Unknown' }}</span>
+                <span class="separator">·</span>
+                <span>{{ entry.ipAddress }}</span>
+                <span class="separator">·</span>
+                <span>{{ formatTimeAgo(entry.timestamp) }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+

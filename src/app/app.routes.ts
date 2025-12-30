@@ -1,7 +1,5 @@
 import { Routes } from '@angular/router';
-import {UserDashboardComponent} from './pages/user/components/user-dashboard/user-dashboard.component';
-import {authGuard} from './core/auth/guards/auth.guard';
-import {LandingComponent} from './pages/landing-page/components/landing.component';
+import { LandingComponent } from './features/landing-page/components/landing.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -12,15 +10,15 @@ export const routes: Routes = [
   },
   {
     path: 'admin',
-    loadChildren: () => import('./pages/admin/admin.routes').then(m => m.adminRoutes)
+    loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)
   },
   {
     path: '',
-    loadChildren: () => import('./pages/privacy/privacy.routes').then(m => m.privacyRoutes)
+    loadChildren: () => import('./features/privacy/privacy.routes').then(m => m.privacyRoutes)
   },
   {
     path: '',
-    loadChildren: () => import('./pages/user/user.routes').then(m => m.userRoutes)
+    loadChildren: () => import('./features/user/user.routes').then(m => m.userRoutes)
   },
   { path: '**', redirectTo: '/home' }
 ];

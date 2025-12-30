@@ -410,27 +410,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     const error = this.loginError();
     if (!error) return '';
 
-    switch (error.code) {
-      case LoginErrorCodes.INVALID_CREDENTIALS:
-        return 'Invalid email or password. Please check your credentials and try again.';
-      case LoginErrorCodes.EMAIL_NOT_VERIFIED:
-        return 'Please verify your email address before logging in.';
-      case LoginErrorCodes.ACCOUNT_LOCKED:
-        return 'Your account has been temporarily locked. Please contact support.';
-      case LoginErrorCodes.TOO_MANY_ATTEMPTS:
-        const retry = this.retryAfter();
-        return retry > 0
-          ? `Too many failed attempts. Please try again in ${retry} seconds.`
-          : 'Too many failed attempts. Please try again later.';
-      case LoginErrorCodes.ACCOUNT_SUSPENDED:
-        return 'Your account has been suspended. Please contact support.';
-      case LoginErrorCodes.NETWORK_ERROR:
-        return 'Network error. Please check your connection and try again.';
-      case LoginErrorCodes.SERVER_ERROR:
-        return 'Server error. Please try again later.';
-      default:
-        return error.message || 'An unexpected error occurred. Please try again.';
+    // For most cases, use the backend message directly as it's more descriptive
+    // Only add retry timer info for TOO_MANY_ATTEMPTS if we have a countdown
+    if (error.code === LoginErrorCodes.TOO_MANY_ATTEMPTS) {
+      const retry = this.retryAfter();
+      if (retry > 0) {
+        return `${error.message} Please try again in ${retry} seconds.`;
+      }
     }
+
+    // Return the backend message directly - it's already descriptive
+    return error.message || 'An unexpected error occurred. Please try again.';
   }
 
   getGoogleErrorMessage(): string {
