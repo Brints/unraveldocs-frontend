@@ -1,0 +1,279 @@
+<!-- Profile Settings Page -->
+<div class="settings-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Profile Settings</h1>
+      <p class="page-subtitle">Manage your personal information and preferences</p>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  @if (saveSuccess()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>Profile updated successfully!</span>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (saveError()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ saveError() }}</span>
+      <button type="button" class="alert-close" (click)="saveError.set(null)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Profile Form -->
+  <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="settings-form">
+    <!-- Avatar Section -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h2 class="card-title">Profile Picture</h2>
+        <p class="card-description">Update your avatar image</p>
+      </div>
+      <div class="card-content">
+        <div class="avatar-section">
+          <div class="avatar-preview">
+            @if (isUploading()) {
+              <div class="avatar-loading">
+                <div class="spinner"></div>
+              </div>
+            } @else if (profile()?.profilePicture) {
+              <img [src]="profile()?.profilePicture" [alt]="fullName()" class="avatar-image"/>
+            } @else {
+              <span class="avatar-initials">{{ initials() }}</span>
+            }
+          </div>
+          <div class="avatar-actions">
+            <label class="upload-btn">
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                (change)="onAvatarChange($event)"
+                [disabled]="isUploading()"/>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span>Upload Photo</span>
+            </label>
+            @if (profile()?.profilePicture) {
+              <button
+                type="button"
+                class="remove-btn"
+                (click)="removeAvatar()"
+                [disabled]="isUploading()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                <span>Remove</span>
+              </button>
+            }
+          </div>
+          <p class="avatar-hint">Recommended: Square image, at least 256x256px. Max 5MB.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Personal Information -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h2 class="card-title">Personal Information</h2>
+        <p class="card-description">Update your personal details</p>
+      </div>
+      <div class="card-content">
+        <div class="form-grid">
+          <!-- First Name -->
+          <div class="form-group">
+            <label for="firstName" class="form-label">
+              First Name <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              class="form-input"
+              [class.error]="hasError('firstName')"
+              placeholder="Enter your first name"/>
+            @if (hasError('firstName')) {
+              <span class="form-error">{{ getErrorMessage('firstName') }}</span>
+            }
+          </div>
+
+          <!-- Last Name -->
+          <div class="form-group">
+            <label for="lastName" class="form-label">
+              Last Name <span class="required">*</span>
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              class="form-input"
+              [class.error]="hasError('lastName')"
+              placeholder="Enter your last name"/>
+            @if (hasError('lastName')) {
+              <span class="form-error">{{ getErrorMessage('lastName') }}</span>
+            }
+          </div>
+
+          <!-- Email (Read-only) -->
+          <div class="form-group">
+            <label for="email" class="form-label">
+              Email Address
+              <span class="badge verified" *ngIf="profile()?.isVerified">Verified</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-input readonly"
+              readonly/>
+            <span class="form-hint">Contact support to change your email address</span>
+          </div>
+
+          <!-- Phone Number -->
+          <div class="form-group">
+            <label for="phoneNumber" class="form-label">Phone Number</label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              formControlName="phoneNumber"
+              class="form-input"
+              [class.error]="hasError('phoneNumber')"
+              placeholder="+1 234 567 8900"/>
+            @if (hasError('phoneNumber')) {
+              <span class="form-error">{{ getErrorMessage('phoneNumber') }}</span>
+            }
+          </div>
+
+          <!-- Country -->
+          <div class="form-group">
+            <label for="country" class="form-label">Country</label>
+            <select
+              id="country"
+              formControlName="country"
+              class="form-select">
+              <option value="">Select your country</option>
+              @for (country of countries; track country.code) {
+                <option [value]="country.code">{{ country.flag }} {{ country.name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Profession -->
+          <div class="form-group">
+            <label for="profession" class="form-label">Profession</label>
+            <input
+              type="text"
+              id="profession"
+              formControlName="profession"
+              class="form-input"
+              [class.error]="hasError('profession')"
+              placeholder="e.g., Software Engineer"/>
+            @if (hasError('profession')) {
+              <span class="form-error">{{ getErrorMessage('profession') }}</span>
+            }
+          </div>
+
+          <!-- Organization -->
+          <div class="form-group full-width">
+            <label for="organization" class="form-label">Organization</label>
+            <input
+              type="text"
+              id="organization"
+              formControlName="organization"
+              class="form-input"
+              [class.error]="hasError('organization')"
+              placeholder="e.g., Acme Corporation"/>
+            @if (hasError('organization')) {
+              <span class="form-error">{{ getErrorMessage('organization') }}</span>
+            }
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button
+          type="submit"
+          class="save-btn"
+          [disabled]="isSaving() || profileForm.invalid">
+          @if (isSaving()) {
+            <span class="spinner small"></span>
+            <span>Saving...</span>
+          } @else {
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Save Changes</span>
+          }
+        </button>
+      </div>
+    </div>
+  </form>
+
+  <!-- Account Information (Read-only) -->
+  <div class="settings-card readonly-card">
+    <div class="card-header">
+      <h2 class="card-title">Account Information</h2>
+      <p class="card-description">Your account details</p>
+    </div>
+    <div class="card-content">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Account ID</span>
+          <span class="info-value monospace">{{ profile()?.id || '—' }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Role</span>
+          <span class="info-value">
+            <span class="role-badge">{{ profile()?.role || 'User' }}</span>
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Account Status</span>
+          <span class="info-value">
+            @if (profile()?.isActive) {
+              <span class="status-badge active">Active</span>
+            } @else {
+              <span class="status-badge inactive">Inactive</span>
+            }
+          </span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Member Since</span>
+          <span class="info-value">{{ profile()?.createdAt | date:'MMMM d, yyyy' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="settings-card danger-card">
+    <div class="card-header">
+      <h2 class="card-title danger">Danger Zone</h2>
+      <p class="card-description">Irreversible account actions</p>
+    </div>
+    <div class="card-content">
+      <div class="danger-action">
+        <div class="danger-info">
+          <h3>Delete Account</h3>
+          <p>Permanently delete your account and all associated data. This action cannot be undone.</p>
+        </div>
+        <button type="button" class="delete-btn">
+          Delete Account
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+

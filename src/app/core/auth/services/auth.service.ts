@@ -1,22 +1,21 @@
 import {Injectable} from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { firstValueFrom, BehaviorSubject, Observable, throwError, of } from 'rxjs';
-import { catchError} from 'rxjs/operators';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {BehaviorSubject, firstValueFrom, Observable, of, throwError} from 'rxjs';
+import {catchError} from 'rxjs/operators';
 import {
-  User,
-  SignupRequest,
-  LoginRequest,
-  AuthResponse,
-  LoginResponse,
-  PasswordResetRequest,
-  PasswordResetConfirm,
-  PasswordResetResponse,
-  PasswordResetValidation,
-  EmailVerificationRequest,
   AuthError,
   AuthErrorCodes,
+  EmailVerificationRequest,
+  LoginRequest,
+  LoginResponse,
+  PasswordResetConfirm,
+  PasswordResetRequest,
+  PasswordResetResponse,
+  PasswordResetValidation,
+  SignupRequest,
+  User,
 } from '../models/auth.model';
-import { environment } from '../../../../environments/environment';
+import {environment} from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root',
@@ -73,11 +72,6 @@ export class AuthService {
     let message = 'An error occurred';
     let code: AuthErrorCodes = AuthErrorCodes.UnknownError;
 
-    console.log('Transform Error - Full error object:', error);
-    console.log('Transform Error - error.error:', error.error);
-    console.log('Transform Error - error.status:', error.status);
-    console.log('Transform Error - error.message:', error.message);
-
     // Extract message from backend - try multiple paths
     if (error.error?.message) {
       // standard error response: { statusCode, error, message }
@@ -90,13 +84,14 @@ export class AuthService {
       message = error.message;
     }
 
-    console.log('Transform Error - Extracted message:', message);
-
     // Map status codes to error codes and check for specific patterns
     if (error.status === 400) {
       code = AuthErrorCodes.InvalidRequest;
-      // Check for specific token-related errors
-      if (message.toLowerCase().includes('token has expired') ||
+      // Check for specific error types
+      if (message.toLowerCase().includes('disabled') ||
+          message.toLowerCase().includes('account is disabled')) {
+        code = AuthErrorCodes.ACCOUNT_DISABLED;
+      } else if (message.toLowerCase().includes('token has expired') ||
           message.toLowerCase().includes('expired')) {
         code = AuthErrorCodes.TokenExpired;
       } else if (message.toLowerCase().includes('invalid') &&
@@ -106,7 +101,6 @@ export class AuthService {
     } else if (error.status === 401) {
       code = AuthErrorCodes.Unauthorized;
     } else if (error.status === 403) {
-      // Check if it's invalid credentials vs forbidden
       if (message.toLowerCase().includes('invalid credentials') ||
           message.toLowerCase().includes('attempts left')) {
         code = AuthErrorCodes.InvalidCredentials;
@@ -123,7 +117,6 @@ export class AuthService {
       code = AuthErrorCodes.ServerError;
     }
 
-    console.log('Transform Error - Final:', { message, code });
     return { message, code };
   }
 
@@ -134,8 +127,6 @@ export class AuthService {
           .post<any>(`${this.API_URL}/auth/login`, request)
           .pipe(catchError(this.handleError))
       );
-
-      console.log('Login response:', response); // Debug log
 
       // Handle the backend response structure which wraps data
       let loginData: any = null;
@@ -169,15 +160,13 @@ export class AuthService {
         this.setCurrentUser(user);
 
         // Return properly formatted response
-        const loginResponse: LoginResponse = {
+        return {
           user,
           accessToken,
           refreshToken,
           requiresTwoFactor: loginData.requiresTwoFactor,
           twoFactorMethods: loginData.twoFactorMethods
         };
-
-        return loginResponse;
       }
       throw new Error('Login failed');
     } catch (error) {
@@ -237,7 +226,7 @@ export class AuthService {
           plan: backendUser.plan
         };
 
-        // Store tokens if available (may not be present in signup response)
+        // Store tokens if available
         if (accessToken && refreshToken) {
           this.storeTokens(accessToken, refreshToken);
         }
@@ -245,10 +234,8 @@ export class AuthService {
         return user;
       }
 
-      console.error('Invalid signup response structure:', response);
       throw new Error('Signup failed: Invalid response from server');
     } catch (error) {
-      console.error('Signup error:', error);
       throw this.transformError(error);
     }
   }
@@ -275,7 +262,7 @@ export class AuthService {
       // Call logout endpoint to invalidate tokens server-side
       await firstValueFrom(
         this.http
-          .post(`${this.API_URL}/logout`, {})
+          .post(`${this.API_URL}/auth/logout`, {})
           .pipe(catchError(() => of(null)))
       );
     } catch (error) {
@@ -295,7 +282,7 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<{ accessToken: string }>(`${this.API_URL}/refresh`, {
+          .post<{ accessToken: string }>(`${this.API_URL}/auth/refresh-token`, {
             refreshToken,
           })
           .pipe(catchError(this.handleError))

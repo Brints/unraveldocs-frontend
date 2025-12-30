@@ -18,7 +18,6 @@ export interface SignupRequest {
   confirmPassword: string;
   acceptTerms: boolean;
   subscribeToMarketing?: boolean;
-  dateOfBirth?: string; // ISO date string format (YYYY-MM-DD)
   profession?: string;
   organization?: string;
   country: string;
@@ -65,7 +64,6 @@ export interface SocialAuthProvider {
 export enum AuthErrorCodes {
   InvalidCredentials = 'INVALID_CREDENTIALS',
   UserNotFound = 'USER_NOT_FOUND',
-  EmailAlreadyExists = 'EMAIL_ALREADY_EXISTS',
   InvalidToken = 'INVALID_TOKEN',
   TokenExpired = 'TOKEN_EXPIRED',
   InvalidRequest = 'INVALID_REQUEST',
@@ -74,12 +72,11 @@ export enum AuthErrorCodes {
   NotFound = 'NOT_FOUND',
   ServerError = 'SERVER_ERROR',
   UnknownError = 'UNKNOWN_ERROR',
-  PasswordTooWeak = 'PASSWORD_TOO_WEAK',
-  EmailNotVerified = 'EMAIL_NOT_VERIFIED',
   USER_EXISTS = 'EMAIL_ALREADY_EXISTS',
   WEAK_PASSWORD = 'PASSWORD_TOO_WEAK',
   RATE_LIMITED = 'RATE_LIMITED',
-  NETWORK_ERROR = 'NETWORK_ERROR'
+  NETWORK_ERROR = 'NETWORK_ERROR',
+  ACCOUNT_DISABLED = 'ACCOUNT_DISABLED'
 }
 
 export interface AuthError {
@@ -104,9 +101,7 @@ export enum LoginErrorCodes {
   INVALID_CREDENTIALS = 'INVALID_CREDENTIALS',
   EMAIL_NOT_VERIFIED = 'EMAIL_NOT_VERIFIED',
   ACCOUNT_LOCKED = 'ACCOUNT_LOCKED',
-  ACCOUNT_SUSPENDED = 'ACCOUNT_SUSPENDED',
   TOO_MANY_ATTEMPTS = 'TOO_MANY_ATTEMPTS',
-  NETWORK_ERROR = 'NETWORK_ERROR',
   SERVER_ERROR = 'SERVER_ERROR'
 }
 
@@ -115,4 +110,3 @@ export interface LoginError {
   message: string;
   retryAfter?: number;
 }
-
