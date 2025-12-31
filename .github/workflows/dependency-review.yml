@@ -1,3 +1,7 @@
+# Dependency Review
+# Note: This workflow requires Dependency graph and GitHub Advanced Security
+# For public repositories, this is free. For private repos, it requires GitHub Enterprise.
+
 name: Dependency Review
 
 on:
@@ -14,6 +18,8 @@ jobs:
   dependency-review:
     name: Review Dependencies
     runs-on: ubuntu-latest
+    # Skip if Advanced Security is not available
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -24,5 +30,4 @@ jobs:
         with:
           fail-on-severity: moderate
           comment-summary-in-pr: on-failure
-
 
