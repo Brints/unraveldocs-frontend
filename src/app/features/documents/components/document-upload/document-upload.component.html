@@ -1,0 +1,231 @@
+<!-- Document Upload Page -->
+<div class="upload-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <a routerLink="/documents" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      <span>Back to Documents</span>
+    </a>
+    <div class="header-content">
+      <h1 class="page-title">Upload Documents</h1>
+      <p class="page-subtitle">
+        Upload up to {{ maxFiles }} files at once. Supported formats: PDF, Images, Word documents.
+      </p>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="documentState.clearError()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Upload Area -->
+  <div class="upload-container">
+    <!-- Dropzone -->
+    <div
+      class="dropzone"
+      [class.drag-over]="isDragOver()"
+      [class.has-files]="selectedFiles().length > 0">
+
+      @if (isUploading()) {
+        <!-- Upload Progress -->
+        <div class="upload-progress-container">
+          <div class="progress-icon">
+            <svg class="w-12 h-12 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+          </div>
+          <h3 class="progress-title">Uploading {{ validFileCount }} files...</h3>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="overallProgress"></div>
+          </div>
+          <p class="progress-text">{{ overallProgress }}% complete</p>
+        </div>
+      } @else if (selectedFiles().length === 0) {
+        <!-- Empty State -->
+        <label class="dropzone-content">
+          <input
+            type="file"
+            class="hidden-input"
+            multiple
+            [accept]="supportedTypes.join(',')"
+            (change)="onFileSelect($event)"/>
+          <div class="dropzone-icon">
+            <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+          </div>
+          <h3 class="dropzone-title">Drop files here or click to upload</h3>
+          <p class="dropzone-subtitle">
+            PDF, Images (JPEG, PNG, GIF, WebP, TIFF), Word documents
+          </p>
+          <p class="dropzone-limit">
+            Maximum {{ maxFiles }} files, {{ formatFileSize(maxFileSize) }} each
+          </p>
+        </label>
+      } @else {
+        <!-- Files Selected -->
+        <div class="selected-files-container">
+          <div class="files-header">
+            <h3 class="files-title">
+              {{ validFileCount }} of {{ selectedFiles().length }} files ready
+            </h3>
+            <div class="files-actions">
+              <label class="btn-secondary-sm">
+                <input
+                  type="file"
+                  class="hidden-input"
+                  multiple
+                  [accept]="supportedTypes.join(',')"
+                  (change)="onFileSelect($event)"/>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add more
+              </label>
+              <button
+                type="button"
+                class="btn-text-danger"
+                (click)="clearAllFiles()">
+                Clear all
+              </button>
+            </div>
+          </div>
+
+          <div class="files-list">
+            @for (fileItem of selectedFiles(); track $index) {
+              <div class="file-item" [class.has-error]="fileItem.error">
+                <div class="file-preview">
+                  @if (fileItem.preview) {
+                    <img [src]="fileItem.preview" [alt]="fileItem.file.name" class="preview-image"/>
+                  } @else {
+                    <div class="file-icon" [class]="'type-' + getFileTypeLabel(fileItem.file.type).toLowerCase()">
+                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(fileItem.file.type)"/>
+                      </svg>
+                    </div>
+                  }
+                </div>
+                <div class="file-info">
+                  <p class="file-name">{{ fileItem.file.name }}</p>
+                  <div class="file-meta">
+                    <span class="file-type">{{ getFileTypeLabel(fileItem.file.type) }}</span>
+                    <span class="separator">·</span>
+                    <span class="file-size">{{ formatFileSize(fileItem.file.size) }}</span>
+                    @if (fileItem.error) {
+                      <span class="separator">·</span>
+                      <span class="file-error">{{ fileItem.error }}</span>
+                    }
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="remove-btn"
+                  (click)="removeFile($index)"
+                  title="Remove file">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Upload Options -->
+    @if (selectedFiles().length > 0 && !isUploading()) {
+      <div class="upload-options">
+        <label class="option-checkbox">
+          <input
+            type="checkbox"
+            [checked]="extractOcrOnUpload()"
+            (change)="extractOcrOnUpload.set(!extractOcrOnUpload())"/>
+          <span class="checkbox-mark"></span>
+          <span class="checkbox-label">
+            <strong>Extract text automatically (OCR)</strong>
+            <span class="checkbox-description">Process documents and extract text content after upload</span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Upload Button -->
+      <div class="upload-actions">
+        <button
+          type="button"
+          class="btn-primary-lg"
+          [disabled]="!hasValidFiles"
+          (click)="upload()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Upload {{ validFileCount }} {{ validFileCount === 1 ? 'file' : 'files' }}</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- Supported Formats Info -->
+  <div class="formats-info">
+    <h4 class="info-title">Supported Formats</h4>
+    <div class="formats-grid">
+      <div class="format-item">
+        <div class="format-icon pdf">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="format-info">
+          <span class="format-name">PDF</span>
+          <span class="format-ext">.pdf</span>
+        </div>
+      </div>
+      <div class="format-item">
+        <div class="format-icon image">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="format-info">
+          <span class="format-name">Images</span>
+          <span class="format-ext">.jpg, .png, .gif, .webp, .tiff</span>
+        </div>
+      </div>
+      <div class="format-item">
+        <div class="format-icon doc">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div class="format-info">
+          <span class="format-name">Word</span>
+          <span class="format-ext">.doc, .docx</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

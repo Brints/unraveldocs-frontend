@@ -20,5 +20,9 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/user/user.routes').then(m => m.userRoutes)
   },
+  {
+    path: '',
+    loadChildren: () => import('./features/documents/documents.routes').then(m => m.documentRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];
