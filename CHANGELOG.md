@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.1.0...v1.2.0) (2025-12-31)
+
+
+### Features
+
+* **teams:** implement comprehensive teams module ([1bae01d](https://github.com/Brints/unraveldocs-frontend/commit/1bae01d1d9d5f63b90444373c7d410905751a5d6))
+
 # [1.1.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.0.0...v1.1.0) (2025-12-31)
 
 
