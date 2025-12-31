@@ -50,7 +50,7 @@ jobs:
         run: pnpm install
 
       - name: Build application (Production)
-        run: pnpm run build -- --configuration production
+        run: pnpm exec ng build --configuration production
 
       - name: Run semantic-release
         env:

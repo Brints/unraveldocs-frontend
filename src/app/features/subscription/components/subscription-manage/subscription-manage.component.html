@@ -1,0 +1,450 @@
+<!-- Subscription Management Page -->
+<div class="manage-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Subscription</h1>
+      <p class="page-subtitle">Manage your subscription and billing</p>
+    </div>
+    <a routerLink="/subscription/plans" class="btn-outline">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Change Plan
+    </a>
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="subState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'overview'"
+      (click)="setActiveTab('overview')">
+      Overview
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'usage'"
+      (click)="setActiveTab('usage')">
+      Usage
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'billing'"
+      (click)="setActiveTab('billing')">
+      Payment Methods
+    </button>
+    <button
+      type="button"
+      class="tab-btn"
+      [class.active]="activeTab() === 'invoices'"
+      (click)="setActiveTab('invoices')">
+      Invoices
+    </button>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading subscription details...</p>
+    </div>
+  } @else {
+    <!-- Overview Tab -->
+    @if (activeTab() === 'overview') {
+      <div class="tab-content">
+        <!-- Current Plan Card -->
+        <div class="plan-card">
+          <div class="plan-info">
+            <div class="plan-badge" [class]="'tier-' + currentTier()">
+              {{ currentSubscription()?.planName || 'Free' }}
+            </div>
+            <h3 class="plan-title">{{ currentSubscription()?.planName || 'Free' }} Plan</h3>
+            <div class="plan-status">
+              <span class="status-badge" [class]="getStatusClass(currentSubscription()?.status || 'active')">
+                {{ getStatusLabel(currentSubscription()?.status || 'active') }}
+              </span>
+              @if (isCanceled()) {
+                <span class="cancel-notice">Ends {{ formatDate(currentSubscription()?.currentPeriodEnd) }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="plan-details">
+            @if (isTrialing()) {
+              <div class="detail-item trial">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span><strong>{{ trialDaysRemaining() }}</strong> days left in trial</span>
+              </div>
+            }
+            @if (!isCanceled()) {
+              <div class="detail-item">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                <span>Renews {{ formatDate(currentSubscription()?.currentPeriodEnd) }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="plan-actions">
+            @if (isCanceled()) {
+              <button type="button" class="btn-primary" (click)="resumeSubscription()" [disabled]="isProcessing()">
+                Resume Subscription
+              </button>
+            } @else if (isSubscribed()) {
+              <button type="button" class="btn-danger-outline" (click)="openCancelModal()">
+                Cancel Subscription
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon documents">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-label">Documents</span>
+              <span class="stat-value">
+                {{ usage()?.documentsUsed || 0 }} / {{ formatLimit(usage()?.documentsLimit || 0) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon ocr">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 010 2H6v3a1 1 0 01-2 0V5zm16 0a1 1 0 00-1-1h-4a1 1 0 100 2h3v3a1 1 0 102 0V5z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-label">OCR Pages</span>
+              <span class="stat-value">
+                {{ usage()?.ocrPagesUsed || 0 }} / {{ formatLimit(usage()?.ocrPagesLimit || 0) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon storage">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-label">Storage</span>
+              <span class="stat-value">
+                {{ formatBytes(usage()?.storageUsedBytes || 0) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon team">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-label">Team Members</span>
+              <span class="stat-value">
+                {{ usage()?.teamMembersUsed || 0 }} / {{ formatLimit(usage()?.teamMembersLimit || 0) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Usage Tab -->
+    @if (activeTab() === 'usage') {
+      <div class="tab-content">
+        <div class="usage-section">
+          <h3 class="section-title">Resource Usage</h3>
+          <p class="section-description">Your usage for the current billing period ({{ formatDate(usage()?.periodStart) }} - {{ formatDate(usage()?.periodEnd) }})</p>
+
+          <div class="usage-list">
+            <!-- Documents -->
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">Documents Processed</span>
+                <span class="usage-values">
+                  <strong>{{ usage()?.documentsUsed || 0 }}</strong>
+                  @if ((usage()?.documentsLimit || 0) > 0) {
+                    / {{ usage()?.documentsLimit }}
+                  } @else {
+                    <span class="unlimited">Unlimited</span>
+                  }
+                </span>
+              </div>
+              @if ((usage()?.documentsLimit || 0) > 0) {
+                <div class="usage-bar">
+                  <div
+                    class="usage-fill"
+                    [class]="getUsageBarClass(documentsUsagePercent())"
+                    [style.width.%]="documentsUsagePercent()">
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- OCR Pages -->
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">OCR Pages</span>
+                <span class="usage-values">
+                  <strong>{{ usage()?.ocrPagesUsed || 0 }}</strong>
+                  @if ((usage()?.ocrPagesLimit || 0) > 0) {
+                    / {{ usage()?.ocrPagesLimit }}
+                  } @else {
+                    <span class="unlimited">Unlimited</span>
+                  }
+                </span>
+              </div>
+              @if ((usage()?.ocrPagesLimit || 0) > 0) {
+                <div class="usage-bar">
+                  <div
+                    class="usage-fill"
+                    [class]="getUsageBarClass(ocrUsagePercent())"
+                    [style.width.%]="ocrUsagePercent()">
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Storage -->
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">Storage</span>
+                <span class="usage-values">
+                  <strong>{{ formatBytes(usage()?.storageUsedBytes || 0) }}</strong>
+                  @if ((usage()?.storageLimitBytes || 0) > 0) {
+                    / {{ formatBytes(usage()?.storageLimitBytes || 0) }}
+                  } @else {
+                    <span class="unlimited">Unlimited</span>
+                  }
+                </span>
+              </div>
+              @if ((usage()?.storageLimitBytes || 0) > 0) {
+                <div class="usage-bar">
+                  <div
+                    class="usage-fill"
+                    [class]="getUsageBarClass(storageUsagePercent())"
+                    [style.width.%]="storageUsagePercent()">
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- API Calls -->
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">API Calls (Today)</span>
+                <span class="usage-values">
+                  <strong>{{ usage()?.apiCallsUsed || 0 }}</strong>
+                  @if ((usage()?.apiCallsLimit || 0) > 0) {
+                    / {{ usage()?.apiCallsLimit }}
+                  } @else {
+                    <span class="unlimited">Unlimited</span>
+                  }
+                </span>
+              </div>
+            </div>
+
+            <!-- Team Members -->
+            <div class="usage-item">
+              <div class="usage-header">
+                <span class="usage-label">Team Members</span>
+                <span class="usage-values">
+                  <strong>{{ usage()?.teamMembersUsed || 0 }}</strong>
+                  @if ((usage()?.teamMembersLimit || 0) > 0) {
+                    / {{ usage()?.teamMembersLimit }}
+                  } @else {
+                    <span class="unlimited">Unlimited</span>
+                  }
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Billing Tab -->
+    @if (activeTab() === 'billing') {
+      <div class="tab-content">
+        <div class="billing-section">
+          <h3 class="section-title">Payment Methods</h3>
+
+          @if (paymentMethods().length === 0) {
+            <div class="empty-state">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              </svg>
+              <p>No payment methods added yet</p>
+              <button type="button" class="btn-primary">Add Payment Method</button>
+            </div>
+          } @else {
+            <div class="payment-methods-list">
+              @for (pm of paymentMethods(); track pm.id) {
+                <div class="payment-method-card" [class.default]="pm.isDefault">
+                  <div class="card-brand">{{ getCardIcon(pm.brand) }}</div>
+                  <div class="card-info">
+                    <span class="card-number">•••• •••• •••• {{ pm.last4 }}</span>
+                    @if (pm.expiryMonth && pm.expiryYear) {
+                      <span class="card-expiry">Expires {{ pm.expiryMonth }}/{{ pm.expiryYear }}</span>
+                    }
+                  </div>
+                  <div class="card-actions">
+                    @if (pm.isDefault) {
+                      <span class="default-badge">Default</span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="btn-text"
+                        (click)="setDefaultPaymentMethod(pm)">
+                        Set as default
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn-outline add-method-btn">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Add Payment Method
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Invoices Tab -->
+    @if (activeTab() === 'invoices') {
+      <div class="tab-content">
+        <div class="invoices-section">
+          <h3 class="section-title">Billing History</h3>
+
+          @if (invoices().length === 0) {
+            <div class="empty-state">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              <p>No invoices yet</p>
+            </div>
+          } @else {
+            <div class="invoices-table">
+              <div class="table-header">
+                <span>Invoice</span>
+                <span>Date</span>
+                <span>Amount</span>
+                <span>Status</span>
+                <span></span>
+              </div>
+              @for (invoice of invoices(); track invoice.id) {
+                <div class="table-row">
+                  <span class="invoice-number">{{ invoice.number }}</span>
+                  <span class="invoice-date">{{ formatDate(invoice.createdAt) }}</span>
+                  <span class="invoice-amount">{{ formatPrice(invoice.amount, invoice.currency) }}</span>
+                  <span class="invoice-status" [class]="getInvoiceStatusClass(invoice.status)">
+                    {{ invoice.status }}
+                  </span>
+                  <button
+                    type="button"
+                    class="btn-icon"
+                    title="Download"
+                    (click)="downloadInvoice(invoice)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Cancel Modal -->
+@if (showCancelModal()) {
+  <div class="modal-overlay" (click)="closeCancelModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon danger">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h3 class="modal-title">Cancel Subscription</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to cancel your subscription? You'll lose access to:</p>
+        <ul class="cancel-list">
+          <li>Premium document processing features</li>
+          <li>Higher OCR page limits</li>
+          <li>Priority support</li>
+          <li>Team collaboration features</li>
+        </ul>
+
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            [checked]="cancelImmediately()"
+            (change)="cancelImmediately.set(!cancelImmediately())"/>
+          <span>Cancel immediately (no refund)</span>
+        </label>
+
+        @if (!cancelImmediately()) {
+          <p class="cancel-note">
+            Your subscription will remain active until {{ formatDate(currentSubscription()?.currentPeriodEnd) }}
+          </p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeCancelModal()">Keep Subscription</button>
+        <button type="button" class="btn-danger" (click)="confirmCancel()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            Processing...
+          } @else {
+            Cancel Subscription
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
