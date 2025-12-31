@@ -1,0 +1,50 @@
+# Auto-labeler configuration for PRs
+# Labels are applied based on file paths
+
+'area: auth':
+  - 'src/app/core/auth/**/*'
+  - 'src/app/features/auth/**/*'
+
+'area: dashboard':
+  - 'src/app/features/user/**/*'
+  - 'src/app/features/admin/**/*'
+
+'area: landing':
+  - 'src/app/features/landing-page/**/*'
+
+'area: shared':
+  - 'src/app/shared/**/*'
+
+'type: documentation':
+  - 'docs/**/*'
+  - '**/*.md'
+  - 'README.md'
+
+'type: tests':
+  - '**/*.spec.ts'
+  - '**/*.test.ts'
+
+'type: styles':
+  - '**/*.css'
+  - '**/*.scss'
+  - '**/*.sass'
+
+'type: config':
+  - '*.json'
+  - '*.yml'
+  - '*.yaml'
+  - '.github/**/*'
+  - 'angular.json'
+  - 'tsconfig*.json'
+
+'type: dependencies':
+  - 'package.json'
+  - 'pnpm-lock.yaml'
+
+'priority: critical':
+  - 'src/app/core/**/*'
+
+'ui: components':
+  - 'src/app/shared/ui/**/*'
+  - 'src/app/shared/components/**/*'
+
