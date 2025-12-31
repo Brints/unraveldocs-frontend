@@ -2,12 +2,18 @@ name: PR Checks
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   conventional-commits:
     name: Check Conventional Commits
     runs-on: ubuntu-latest
+    # Continue even if this fails - helpful for first-time contributors
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -19,6 +25,7 @@ jobs:
         uses: wagoid/commitlint-github-action@v6
         with:
           configFile: .commitlintrc.json
+          failOnWarnings: false
 
   pr-title:
     name: Check PR Title

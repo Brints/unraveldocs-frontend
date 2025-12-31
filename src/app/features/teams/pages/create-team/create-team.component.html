@@ -1,0 +1,362 @@
+<!-- Create Team Wizard -->
+<div class="create-team-page">
+  <!-- Header -->
+  <div class="page-header">
+    <a routerLink="/teams" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Teams
+    </a>
+    <h1 class="page-title">Create a Team</h1>
+    <p class="page-subtitle">Set up your team subscription and start collaborating</p>
+  </div>
+
+  <!-- Progress Steps -->
+  <div class="progress-steps">
+    <div class="step" [class.active]="wizardState().step >= 1" [class.completed]="wizardState().step > 1">
+      <div class="step-number">
+        @if (wizardState().step > 1) {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        } @else {
+          1
+        }
+      </div>
+      <span class="step-label">Team Details</span>
+    </div>
+    <div class="step-line" [class.completed]="wizardState().step > 1"></div>
+    <div class="step" [class.active]="wizardState().step >= 2" [class.completed]="wizardState().step > 2">
+      <div class="step-number">
+        @if (wizardState().step > 2) {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        } @else {
+          2
+        }
+      </div>
+      <span class="step-label">Subscription</span>
+    </div>
+    <div class="step-line" [class.completed]="wizardState().step > 2"></div>
+    <div class="step" [class.active]="wizardState().step >= 3" [class.completed]="wizardState().step > 3">
+      <div class="step-number">
+        @if (wizardState().step > 3) {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        } @else {
+          3
+        }
+      </div>
+      <span class="step-label">Payment</span>
+    </div>
+    <div class="step-line" [class.completed]="wizardState().step > 3"></div>
+    <div class="step" [class.active]="wizardState().step >= 4">
+      <div class="step-number">4</div>
+      <span class="step-label">Verify</span>
+    </div>
+  </div>
+
+  <!-- Error/Success Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Step Content -->
+  <div class="wizard-content">
+    <!-- Step 1: Team Details -->
+    @if (wizardState().step === 1) {
+      <div class="step-content">
+        <div class="step-header">
+          <h2>Team Details</h2>
+          <p>Enter your team's basic information</p>
+        </div>
+        <form (ngSubmit)="setTeamDetails()" class="form">
+          <div class="form-group">
+            <label for="teamName">Team Name <span class="required">*</span></label>
+            <input
+              type="text"
+              id="teamName"
+              [(ngModel)]="teamName"
+              name="teamName"
+              placeholder="e.g., Acme Corporation"
+              required
+              minlength="2"
+              maxlength="100"
+              class="form-input"
+            />
+            <span class="help-text">2-100 characters</span>
+          </div>
+          <div class="form-group">
+            <label for="teamDescription">Description (Optional)</label>
+            <textarea
+              id="teamDescription"
+              [(ngModel)]="teamDescription"
+              name="teamDescription"
+              placeholder="Describe your team's purpose..."
+              maxlength="500"
+              rows="3"
+              class="form-textarea"
+            ></textarea>
+            <span class="help-text">{{ teamDescription.length }}/500 characters</span>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="!teamName.trim()">
+              Continue
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Step 2: Subscription Selection -->
+    @if (wizardState().step === 2) {
+      <div class="step-content">
+        <div class="step-header">
+          <h2>Choose Your Plan</h2>
+          <p>Select the subscription that fits your team's needs</p>
+        </div>
+
+        <!-- Billing Cycle Toggle -->
+        <div class="billing-toggle">
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="wizardState().billingCycle === 'MONTHLY'"
+            (click)="setBillingCycle('MONTHLY')"
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            class="toggle-btn"
+            [class.active]="wizardState().billingCycle === 'YEARLY'"
+            (click)="setBillingCycle('YEARLY')"
+          >
+            Yearly
+            <span class="savings-badge">Save 17%</span>
+          </button>
+        </div>
+
+        <!-- Plan Cards -->
+        <div class="plans-grid">
+          @for (tier of subscriptionTiers(); track tier.type) {
+            <div
+              class="plan-card"
+              [class.selected]="wizardState().subscriptionType === tier.type"
+              [class.enterprise]="tier.type === 'ENTERPRISE'"
+              (click)="selectSubscription(tier.type)"
+            >
+              @if (tier.type === 'ENTERPRISE') {
+                <div class="recommended-badge">Recommended</div>
+              }
+              <h3 class="plan-name">{{ tier.name }}</h3>
+              <div class="plan-price">
+                <span class="price">
+                  {{ formatPrice(wizardState().billingCycle === 'MONTHLY' ? tier.monthlyPrice : tier.yearlyPrice) }}
+                </span>
+                <span class="period">/{{ wizardState().billingCycle === 'MONTHLY' ? 'month' : 'year' }}</span>
+              </div>
+              @if (wizardState().billingCycle === 'YEARLY') {
+                <p class="yearly-savings">Save {{ formatPrice(getYearlySavings(tier)) }}/year</p>
+              }
+              <ul class="plan-features">
+                @for (feature of tier.features; track feature) {
+                  <li>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ feature }}
+                  </li>
+                }
+                @if (tier.enterpriseFeatures) {
+                  @for (feature of tier.enterpriseFeatures; track feature) {
+                    <li class="enterprise-feature">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      </svg>
+                      {{ feature }}
+                    </li>
+                  }
+                }
+              </ul>
+              <div class="select-indicator">
+                @if (wizardState().subscriptionType === tier.type) {
+                  <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                } @else {
+                  <div class="circle"></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="goBack()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back
+          </button>
+          <button type="button" class="btn-primary" (click)="confirmSubscription()">
+            Continue
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Step 3: Payment -->
+    @if (wizardState().step === 3) {
+      <div class="step-content">
+        <div class="step-header">
+          <h2>Payment Method</h2>
+          <p>Choose your payment gateway. You'll be charged after the 10-day trial.</p>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+          <h3>Order Summary</h3>
+          <div class="summary-row">
+            <span>Team Name</span>
+            <span class="value">{{ wizardState().name }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Plan</span>
+            <span class="value">{{ selectedTier()?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <span>Billing</span>
+            <span class="value">{{ wizardState().billingCycle === 'MONTHLY' ? 'Monthly' : 'Yearly' }}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Total (after trial)</span>
+            <span class="value">{{ formatPrice(selectedPrice()) }}</span>
+          </div>
+          <div class="trial-notice">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>10-day free trial included. Cancel anytime.</span>
+          </div>
+        </div>
+
+        <!-- Payment Gateway Selection -->
+        <div class="payment-gateways">
+          <button
+            type="button"
+            class="gateway-btn"
+            [class.selected]="wizardState().paymentGateway === 'stripe'"
+            (click)="selectPaymentGateway('stripe')"
+          >
+            <div class="gateway-icon stripe">Stripe</div>
+            <span>Credit/Debit Card</span>
+            <p class="gateway-desc">Visa, Mastercard, Amex</p>
+          </button>
+          <button
+            type="button"
+            class="gateway-btn"
+            [class.selected]="wizardState().paymentGateway === 'paystack'"
+            (click)="selectPaymentGateway('paystack')"
+          >
+            <div class="gateway-icon paystack">Paystack</div>
+            <span>Local Payment</span>
+            <p class="gateway-desc">Cards, Bank Transfer, USSD</p>
+          </button>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="goBack()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back
+          </button>
+          <button type="button" class="btn-primary" (click)="proceedToVerification()" [disabled]="isProcessing()">
+            @if (isProcessing()) {
+              <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Processing...
+            } @else {
+              Continue to Verify
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Step 4: OTP Verification -->
+    @if (wizardState().step === 4) {
+      <div class="step-content">
+        <div class="step-header centered">
+          <div class="verification-icon">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <h2>Verify Your Email</h2>
+          <p>We've sent a 6-digit code to your email. Enter it below to create your team.</p>
+        </div>
+
+        <form (ngSubmit)="verifyOtp()" class="otp-form">
+          <div class="otp-input-container">
+            <input
+              type="text"
+              [(ngModel)]="otp"
+              name="otp"
+              placeholder="Enter 6-digit code"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              class="otp-input"
+              autocomplete="one-time-code"
+            />
+          </div>
+          <div class="form-actions centered">
+            <button type="submit" class="btn-primary" [disabled]="otp.length !== 6 || isProcessing()">
+              @if (isProcessing()) {
+                <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Creating Team...
+              } @else {
+                Create Team
+              }
+            </button>
+          </div>
+          <p class="resend-text">
+            Didn't receive the code? <button type="button" class="resend-btn" (click)="teamState.initiateTeamCreation()">Resend</button>
+          </p>
+        </form>
+      </div>
+    }
+  </div>
+</div>
+

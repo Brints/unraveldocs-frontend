@@ -1,0 +1,260 @@
+<!-- Team Dashboard -->
+<div class="team-dashboard">
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Loading team details...</p>
+    </div>
+  } @else if (team()) {
+    <!-- Header -->
+    <div class="page-header">
+      <a routerLink="/teams" class="back-link">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        All Teams
+      </a>
+      <div class="header-content">
+        <div class="team-avatar large">
+          {{ team()!.name.charAt(0).toUpperCase() }}
+        </div>
+        <div class="team-info">
+          <h1 class="team-name">{{ team()!.name }}</h1>
+          <div class="team-meta">
+            <span class="team-code">{{ team()!.teamCode }}</span>
+            <span class="status-badge" [class]="getStatusClass(team()!.subscriptionStatus)">
+              {{ getStatusLabel(team()!.subscriptionStatus) }}
+            </span>
+            @if (team()!.isOwner) {
+              <span class="owner-badge">Owner</span>
+            }
+          </div>
+        </div>
+      </div>
+      @if (isOwner()) {
+        <div class="header-actions">
+          <a [routerLink]="['/teams', team()!.id, 'settings']" class="btn-outline">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Settings
+          </a>
+        </div>
+      }
+    </div>
+
+    <!-- Alerts -->
+    @if (error()) {
+      <div class="alert alert-error">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ error() }}</span>
+        <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+      </div>
+    }
+
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ successMessage() }}</span>
+      </div>
+    }
+
+    <!-- Trial Banner -->
+    @if (isTrialing() && trialDaysRemaining() !== null) {
+      <div class="trial-banner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>
+          <strong>{{ trialDaysRemaining() }} days left</strong> in your free trial.
+          @if (isOwner()) {
+            <a [routerLink]="['/teams', team()!.id, 'settings']">Upgrade now</a> to continue after trial.
+          }
+        </span>
+      </div>
+    }
+
+    <!-- Cancelled Banner -->
+    @if (isCancelled()) {
+      <div class="cancelled-banner">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <span>
+          Subscription cancelled. Access until {{ formatDate(team()!.subscriptionEndsAt) }}.
+          @if (isOwner()) {
+            <a [routerLink]="['/teams', team()!.id, 'settings']">Reactivate</a>
+          }
+        </span>
+      </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon members">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ team()!.currentMemberCount }}</span>
+          <span class="stat-label">Members</span>
+        </div>
+        <span class="stat-limit">/ {{ team()!.maxMembers }} max</span>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon documents">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">
+            @if (team()!.monthlyDocumentLimit < 0) {
+              ∞
+            } @else {
+              {{ team()!.monthlyDocumentLimit }}
+            }
+          </span>
+          <span class="stat-label">Docs/Month</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon billing">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatCurrency(team()!.subscriptionPrice, team()!.currency) }}</span>
+          <span class="stat-label">{{ team()!.billingCycle === 'MONTHLY' ? '/month' : '/year' }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon renewal">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="stat-content">
+          <span class="stat-value">{{ formatDate(team()!.nextBillingDate) }}</span>
+          <span class="stat-label">Next Billing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a [routerLink]="['/teams', team()!.id, 'members']" class="action-card">
+        <div class="action-icon">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+        </div>
+        <div class="action-content">
+          <h3>Manage Members</h3>
+          <p>Add, remove, or manage team member roles</p>
+        </div>
+        <svg class="w-5 h-5 action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+
+      @if (isEnterprise()) {
+        <a [routerLink]="['/teams', team()!.id, 'invitations']" class="action-card">
+          <div class="action-icon enterprise">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="action-content">
+            <h3>Email Invitations</h3>
+            <p>Send invites to new team members</p>
+            <span class="enterprise-badge">Enterprise</span>
+          </div>
+          <svg class="w-5 h-5 action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      }
+
+      @if (isOwner()) {
+        <a [routerLink]="['/teams', team()!.id, 'settings']" class="action-card">
+          <div class="action-icon">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <div class="action-content">
+            <h3>Team Settings</h3>
+            <p>Manage subscription and team details</p>
+          </div>
+          <svg class="w-5 h-5 action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      }
+    </div>
+
+    <!-- Team Members Preview -->
+    <div class="members-section">
+      <div class="section-header">
+        <h2>Team Members</h2>
+        <a [routerLink]="['/teams', team()!.id, 'members']" class="view-all-link">
+          View All
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+
+      @if (isLoadingMembers()) {
+        <div class="members-loading">
+          <div class="spinner small"></div>
+        </div>
+      } @else {
+        <div class="members-grid">
+          @for (member of members().slice(0, 6); track member.id) {
+            <div class="member-card">
+              <div class="member-avatar">
+                {{ member.firstName.charAt(0) }}{{ member.lastName.charAt(0) }}
+              </div>
+              <div class="member-info">
+                <span class="member-name">{{ member.firstName }} {{ member.lastName }}</span>
+                <span class="member-email">{{ member.email }}</span>
+              </div>
+              <span class="role-badge" [class]="getRoleClass(member.role)">
+                {{ member.role }}
+              </span>
+            </div>
+          }
+        </div>
+        @if (members().length > 6) {
+          <a [routerLink]="['/teams', team()!.id, 'members']" class="see-more">
+            +{{ members().length - 6 }} more members
+          </a>
+        }
+      }
+    </div>
+
+    <!-- Team Description -->
+    @if (team()!.description) {
+      <div class="description-section">
+        <h3>About</h3>
+        <p>{{ team()!.description }}</p>
+      </div>
+    }
+  }
+</div>
+

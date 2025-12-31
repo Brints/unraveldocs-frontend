@@ -1,0 +1,250 @@
+<!-- Team Members Page -->
+<div class="team-members-page">
+  <!-- Header -->
+  <div class="page-header">
+    <a [routerLink]="['/teams', team()?.id]" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Team
+    </a>
+    <div class="header-content">
+      <h1 class="page-title">Team Members</h1>
+      <p class="page-subtitle">
+        {{ members().length }} members · {{ remainingSlots() }} slots remaining
+      </p>
+    </div>
+    @if (isOwner() && canAddMembers()) {
+      <button type="button" class="btn-primary" (click)="openAddModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+        </svg>
+        Add Member
+      </button>
+    }
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Search & Actions -->
+  <div class="toolbar">
+    <div class="search-box">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search members..."
+        class="search-input"
+      />
+    </div>
+    @if (selectedMembers().length > 0 && isOwner()) {
+      <button type="button" class="btn-danger" (click)="removeSelected()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Remove {{ selectedMembers().length }} selected
+      </button>
+    }
+  </div>
+
+  <!-- Members List -->
+  @if (isLoading()) {
+    <div class="members-list">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="member-row skeleton">
+          <div class="skeleton-avatar"></div>
+          <div class="skeleton-content"></div>
+        </div>
+      }
+    </div>
+  } @else if (filteredMembers.length === 0) {
+    <div class="empty-state">
+      <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+      </svg>
+      <h3>No members found</h3>
+      <p>{{ searchQuery ? 'Try a different search term' : 'Add members to your team' }}</p>
+    </div>
+  } @else {
+    <div class="members-list">
+      @for (member of filteredMembers; track member.id) {
+        <div class="member-row" [class.selected]="isSelected(member.id)">
+          @if (canModifyMember(member)) {
+            <input
+              type="checkbox"
+              [checked]="isSelected(member.id)"
+              (change)="toggleSelectMember(member.id)"
+              class="member-checkbox"
+            />
+          } @else {
+            <div class="checkbox-placeholder"></div>
+          }
+          <div class="member-avatar">
+            {{ member.firstName.charAt(0) }}{{ member.lastName.charAt(0) }}
+          </div>
+          <div class="member-info">
+            <span class="member-name">{{ member.firstName }} {{ member.lastName }}</span>
+            <span class="member-email">{{ member.email }}</span>
+          </div>
+          <span class="role-badge" [class]="getRoleClass(member.role)">
+            {{ member.role }}
+          </span>
+          <span class="joined-date">Joined {{ formatDate(member.joinedAt) }}</span>
+
+          @if (canModifyMember(member)) {
+            <div class="member-actions">
+              @if (canPromote(member)) {
+                <button
+                  type="button"
+                  class="action-btn"
+                  title="Promote to Admin"
+                  (click)="promoteMember(member)"
+                  [disabled]="isProcessing()"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+                  </svg>
+                </button>
+              }
+              @if (canDemote(member)) {
+                <button
+                  type="button"
+                  class="action-btn"
+                  title="Demote to Member"
+                  (click)="demoteMember(member)"
+                  [disabled]="isProcessing()"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                  </svg>
+                </button>
+              }
+              <button
+                type="button"
+                class="action-btn danger"
+                title="Remove member"
+                (click)="confirmRemove(member)"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Enterprise Upgrade Banner -->
+  @if (!isEnterprise() && isOwner()) {
+    <div class="upgrade-banner">
+      <div class="banner-icon">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+      </div>
+      <div class="banner-content">
+        <h3>Upgrade to Enterprise</h3>
+        <p>Get admin roles, email invitations, and up to 15 team members</p>
+      </div>
+      <a [routerLink]="['/teams', team()?.id, 'settings']" class="btn-upgrade">Upgrade Now</a>
+    </div>
+  }
+</div>
+
+<!-- Add Member Modal -->
+@if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Team Member</h3>
+        <button type="button" class="modal-close" (click)="closeAddModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <form (ngSubmit)="addMember()" class="modal-body">
+        <p class="modal-description">
+          Enter the email address of an existing UnravelDocs user to add them to your team.
+        </p>
+        <div class="form-group">
+          <label for="memberEmail">Email Address</label>
+          <input
+            type="email"
+            id="memberEmail"
+            [(ngModel)]="newMemberEmail"
+            name="memberEmail"
+            placeholder="colleague@company.com"
+            required
+            class="form-input"
+          />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" (click)="closeAddModal()">Cancel</button>
+          <button type="submit" class="btn-primary" [disabled]="!newMemberEmail.trim() || isProcessing()">
+            @if (isProcessing()) {
+              Adding...
+            } @else {
+              Add Member
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Remove Confirmation Modal -->
+@if (showRemoveModal() && memberToRemove()) {
+  <div class="modal-overlay" (click)="closeRemoveModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header danger">
+        <h3>Remove Member</h3>
+        <button type="button" class="modal-close" (click)="closeRemoveModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-description">
+          Are you sure you want to remove <strong>{{ memberToRemove()!.firstName }} {{ memberToRemove()!.lastName }}</strong> from this team?
+          They will lose access to all team documents and resources.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeRemoveModal()">Cancel</button>
+        <button type="button" class="btn-danger" (click)="removeMember()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            Removing...
+          } @else {
+            Remove Member
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

@@ -1,50 +1,93 @@
 # Auto-labeler configuration for PRs
 # Labels are applied based on file paths
+# Format for actions/labeler@v5
 
 'area: auth':
-  - 'src/app/core/auth/**/*'
-  - 'src/app/features/auth/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/core/auth/**/*'
+          - 'src/app/features/auth/**/*'
 
 'area: dashboard':
-  - 'src/app/features/user/**/*'
-  - 'src/app/features/admin/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/user/**/*'
+          - 'src/app/features/admin/**/*'
 
 'area: landing':
-  - 'src/app/features/landing-page/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/landing-page/**/*'
 
 'area: shared':
-  - 'src/app/shared/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/shared/**/*'
+
+'area: teams':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/teams/**/*'
+
+'area: payments':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/payments/**/*'
+
+'area: subscriptions':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/subscription/**/*'
+
+'area: documents':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/documents/**/*'
+
+'area: ocr':
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/features/ocr/**/*'
 
 'type: documentation':
-  - 'docs/**/*'
-  - '**/*.md'
-  - 'README.md'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docs/**/*'
+          - '**/*.md'
 
 'type: tests':
-  - '**/*.spec.ts'
-  - '**/*.test.ts'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.spec.ts'
+          - '**/*.test.ts'
 
 'type: styles':
-  - '**/*.css'
-  - '**/*.scss'
-  - '**/*.sass'
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.css'
+          - '**/*.scss'
 
 'type: config':
-  - '*.json'
-  - '*.yml'
-  - '*.yaml'
-  - '.github/**/*'
-  - 'angular.json'
-  - 'tsconfig*.json'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'angular.json'
+          - 'tsconfig*.json'
+          - '.github/**/*'
 
 'type: dependencies':
-  - 'package.json'
-  - 'pnpm-lock.yaml'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'package.json'
+          - 'pnpm-lock.yaml'
 
 'priority: critical':
-  - 'src/app/core/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/core/**/*'
 
 'ui: components':
-  - 'src/app/shared/ui/**/*'
-  - 'src/app/shared/components/**/*'
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'src/app/shared/ui/**/*'
+          - 'src/app/shared/components/**/*'
 
