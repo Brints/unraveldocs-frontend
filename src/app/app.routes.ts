@@ -32,5 +32,9 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/subscription/subscription.routes').then(m => m.subscriptionRoutes)
   },
+  {
+    path: '',
+    loadChildren: () => import('./features/payments/payments.routes').then(m => m.paymentRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];

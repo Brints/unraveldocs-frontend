@@ -1,0 +1,317 @@
+<!-- Plans Comparison Page -->
+<div class="plans-comparison-page">
+  <!-- Header -->
+  <div class="page-header">
+    <a routerLink="/subscriptions" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Subscription
+    </a>
+    <h1 class="page-title">Choose Your Plan</h1>
+    <p class="page-subtitle">Select the perfect plan for your document processing needs</p>
+
+    <!-- Billing Toggle -->
+    <div class="billing-toggle">
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'monthly'"
+        (click)="setBillingInterval('monthly')">
+        Monthly
+      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'yearly'"
+        (click)="setBillingInterval('yearly')">
+        Yearly
+        <span class="savings-badge">Save 20%</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="subState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Plans Grid -->
+  @if (isLoading()) {
+    <div class="plans-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="plan-card skeleton">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-price"></div>
+          <div class="skeleton-features"></div>
+          <div class="skeleton-button"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <div
+          class="plan-card"
+          [class.popular]="plan.isPopular"
+          [class.current]="isCurrentPlan(plan)">
+
+          <!-- Badges -->
+          @if (plan.isPopular && !isCurrentPlan(plan)) {
+            <div class="popular-badge">Most Popular</div>
+          }
+          @if (isCurrentPlan(plan)) {
+            <div class="current-badge">Current Plan</div>
+          }
+
+          <!-- Plan Header -->
+          <div class="plan-header">
+            <div class="plan-icon" [class]="'tier-' + plan.tier">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getTierIcon(plan.tier)"/>
+              </svg>
+            </div>
+            <h3 class="plan-name">{{ plan.name }}</h3>
+            <p class="plan-description">{{ plan.description }}</p>
+          </div>
+
+          <!-- Pricing -->
+          <div class="plan-pricing">
+            @if (plan.price === 0) {
+              <span class="price-amount">Free</span>
+            } @else {
+              <span class="price-amount">
+                {{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(plan) / 12 : plan.price, plan.currency) }}
+              </span>
+              <span class="price-period">/month</span>
+            }
+            @if (plan.price > 0 && billingInterval() === 'yearly') {
+              <div class="yearly-total">
+                {{ formatPrice(getYearlyPrice(plan), plan.currency) }}/year
+                <span class="yearly-savings">Save {{ formatPrice(getYearlySavings(plan), plan.currency) }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Features -->
+          <ul class="plan-features">
+            @for (feature of plan.features; track feature.id) {
+              <li class="feature-item" [class.excluded]="!feature.included">
+                @if (feature.included) {
+                  <svg class="feature-icon included" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                } @else {
+                  <svg class="feature-icon excluded" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                }
+                <span>{{ feature.name }}</span>
+              </li>
+            }
+          </ul>
+
+          <!-- CTA Button -->
+          <button
+            type="button"
+            [class]="getButtonClass(plan)"
+            [disabled]="isCurrentPlan(plan) || isProcessing()"
+            (click)="selectPlan(plan)">
+            @if (isProcessing() && selectedPlanForCheckout()?.id === plan.id) {
+              <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            }
+            {{ getButtonText(plan) }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Feature Comparison Table -->
+  <div class="comparison-section">
+    <h2 class="section-title">Compare All Features</h2>
+
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th class="feature-column">Feature</th>
+            <th>Free</th>
+            <th>Starter</th>
+            <th class="highlight">Pro</th>
+            <th>Enterprise</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feature-name">Documents per month</td>
+            <td>50</td>
+            <td>200</td>
+            <td class="highlight">Unlimited</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <td class="feature-name">OCR pages per month</td>
+            <td>100</td>
+            <td>500</td>
+            <td class="highlight">2,000</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <td class="feature-name">Storage</td>
+            <td>1 GB</td>
+            <td>5 GB</td>
+            <td class="highlight">50 GB</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <td class="feature-name">Team members</td>
+            <td>1</td>
+            <td>1</td>
+            <td class="highlight">10</td>
+            <td>Unlimited</td>
+          </tr>
+          <tr>
+            <td class="feature-name">API access</td>
+            <td>
+              <svg class="w-5 h-5 text-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </td>
+            <td>
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </td>
+            <td class="highlight">
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </td>
+            <td>
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-name">Priority processing</td>
+            <td>
+              <svg class="w-5 h-5 text-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </td>
+            <td>
+              <svg class="w-5 h-5 text-gray" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </td>
+            <td class="highlight">
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </td>
+            <td>
+              <svg class="w-5 h-5 text-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </td>
+          </tr>
+          <tr>
+            <td class="feature-name">Support</td>
+            <td>Community</td>
+            <td>Email</td>
+            <td class="highlight">Priority</td>
+            <td>24/7 Dedicated</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h3 class="faq-question">Can I change my plan later?</h3>
+        <p class="faq-answer">Yes, you can upgrade or downgrade at any time. Changes take effect immediately for upgrades.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">What payment methods do you accept?</h3>
+        <p class="faq-answer">We accept all major credit cards via Stripe, and Paystack for African payments.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">Is there a free trial?</h3>
+        <p class="faq-answer">Yes! All paid plans come with a 14-day free trial. No credit card required.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">What happens when I reach my limits?</h3>
+        <p class="faq-answer">You'll receive notifications as you approach limits. Upgrade anytime for more capacity.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+@if (showConfirmModal() && selectedPlanForCheckout()) {
+  <div class="modal-overlay" (click)="closeConfirmModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Plan Change</h3>
+        <button type="button" class="modal-close" (click)="closeConfirmModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>You're about to {{ isUpgrade(selectedPlanForCheckout()!) ? 'upgrade' : 'switch' }} to:</p>
+
+        <div class="plan-summary">
+          <div class="summary-plan">{{ selectedPlanForCheckout()?.name }} Plan</div>
+          <div class="summary-price">
+            {{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(selectedPlanForCheckout()!) / 12 : selectedPlanForCheckout()!.price, selectedPlanForCheckout()!.currency) }}/month
+          </div>
+        </div>
+
+        @if (selectedPlanForCheckout()?.trialDays) {
+          <p class="trial-note">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ selectedPlanForCheckout()?.trialDays }}-day free trial included
+          </p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeConfirmModal()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="confirmSubscription()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            Processing...
+          } @else {
+            Continue to Checkout
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+

@@ -3,33 +3,33 @@ import { authGuard } from '../../core/auth/guards/auth.guard';
 
 export const subscriptionRoutes: Routes = [
   {
-    path: 'subscription',
+    path: 'subscriptions',
     canActivate: [authGuard],
     children: [
       {
         path: '',
-        redirectTo: 'manage',
-        pathMatch: 'full'
+        loadComponent: () => import('./pages/subscription-overview/subscription-overview.component')
+          .then(m => m.SubscriptionOverviewComponent),
+        title: 'Subscription Overview - UnravelDocs'
       },
       {
         path: 'plans',
-        loadComponent: () => import('./components/subscription-plans/subscription-plans.component')
-          .then(m => m.SubscriptionPlansComponent),
-        title: 'Subscription Plans - UnravelDocs'
+        loadComponent: () => import('./pages/plans-comparison/plans-comparison.component')
+          .then(m => m.PlansComparisonComponent),
+        title: 'Compare Plans - UnravelDocs'
       },
       {
-        path: 'manage',
-        loadComponent: () => import('./components/subscription-manage/subscription-manage.component')
-          .then(m => m.SubscriptionManageComponent),
-        title: 'Manage Subscription - UnravelDocs'
-      },
-      {
-        path: 'success',
-        loadComponent: () => import('./components/subscription-plans/subscription-plans.component')
-          .then(m => m.SubscriptionPlansComponent),
-        title: 'Subscription Success - UnravelDocs'
+        path: 'upgrade',
+        loadComponent: () => import('./pages/upgrade-plan/upgrade-plan.component')
+          .then(m => m.UpgradePlanComponent),
+        title: 'Upgrade Plan - UnravelDocs'
       }
     ]
+  },
+  // Keep old routes for backward compatibility
+  {
+    path: 'subscription',
+    redirectTo: 'subscriptions',
+    pathMatch: 'full'
   }
 ];
-

@@ -1,0 +1,285 @@
+<!-- Payment History Page -->
+<div class="payment-history-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Payment History</h1>
+      <p class="page-subtitle">View all your transactions and payment records</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/payments/methods" class="btn-outline">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+        Payment Methods
+      </a>
+      <a routerLink="/payments/receipts" class="btn-primary">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        View Receipts
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon total">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ totalPayments() }}</span>
+        <span class="stat-label">Total Transactions</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon success">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ successfulPayments().length }}</span>
+        <span class="stat-label">Successful</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon failed">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ failedPayments().length }}</span>
+        <span class="stat-label">Failed</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon amount">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatAmount(totalAmount(), 'USD') }}</span>
+        <span class="stat-label">Total Paid</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+      </svg>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search by receipt number..."
+        [value]="searchQuery()"
+        (input)="onSearch($event)"/>
+    </div>
+
+    <select class="filter-select" [value]="statusFilter()" (change)="onStatusFilter($any($event.target).value)">
+      <option value="">All Status</option>
+      <option value="succeeded">Succeeded</option>
+      <option value="pending">Pending</option>
+      <option value="processing">Processing</option>
+      <option value="failed">Failed</option>
+      <option value="refunded">Refunded</option>
+    </select>
+
+    <select class="filter-select" [value]="providerFilter()" (change)="onProviderFilter($any($event.target).value)">
+      <option value="">All Providers</option>
+      <option value="stripe">Stripe</option>
+      <option value="paystack">Paystack</option>
+    </select>
+
+    @if (searchQuery() || statusFilter() || providerFilter()) {
+      <button type="button" class="btn-text" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="paymentState.clearError()">×</button>
+    </div>
+  }
+
+  <!-- Payment Table -->
+  @if (isLoading()) {
+    <div class="table-container">
+      <div class="table-skeleton">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="skeleton-row"></div>
+        }
+      </div>
+    </div>
+  } @else if (filteredPayments().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+      </div>
+      <h3>No payments found</h3>
+      <p>Your payment history will appear here once you make a transaction.</p>
+    </div>
+  } @else {
+    <div class="table-container">
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Payment Method</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (payment of filteredPayments(); track payment.id) {
+            <tr class="payment-row" (click)="viewPaymentDetail(payment)">
+              <td class="date-cell">
+                <span class="date-text">{{ formatDate(payment.createdAt) }}</span>
+              </td>
+              <td class="description-cell">
+                <div class="description-content">
+                  <span class="description-text">{{ payment.description || 'Payment' }}</span>
+                  <span class="receipt-number">{{ payment.receiptNumber }}</span>
+                </div>
+              </td>
+              <td class="method-cell">
+                <div class="method-content">
+                  <span class="card-brand">{{ getCardBrandIcon(payment.paymentMethodBrand) }}</span>
+                  <span class="card-last4">•••• {{ payment.paymentMethodLast4 }}</span>
+                </div>
+              </td>
+              <td class="amount-cell">
+                <span class="amount-text" [class.refunded]="payment.status === 'refunded'">
+                  {{ formatAmount(payment.amount, payment.currency) }}
+                </span>
+                @if (payment.refundedAmount) {
+                  <span class="refund-amount">
+                    -{{ formatAmount(payment.refundedAmount, payment.currency) }} refunded
+                  </span>
+                }
+              </td>
+              <td class="status-cell">
+                <span class="status-badge" [class]="getStatusClass(payment.status)">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getStatusIcon(payment.status)"/>
+                  </svg>
+                  {{ payment.status }}
+                </span>
+              </td>
+              <td class="actions-cell">
+                @if (payment.receiptNumber) {
+                  <button
+                    type="button"
+                    class="action-btn"
+                    title="View Receipt"
+                    (click)="viewReceipt(payment.receiptNumber); $event.stopPropagation()">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Payment Detail Modal -->
+@if (showDetailModal() && selectedPayment()) {
+  <div class="modal-overlay" (click)="closeDetailModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Payment Details</h3>
+        <button type="button" class="modal-close" (click)="closeDetailModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-header">
+          <div class="detail-amount">
+            {{ formatAmount(selectedPayment()!.amount, selectedPayment()!.currency) }}
+          </div>
+          <span class="status-badge large" [class]="getStatusClass(selectedPayment()!.status)">
+            {{ selectedPayment()!.status }}
+          </span>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Receipt Number</span>
+            <span class="detail-value">{{ selectedPayment()!.receiptNumber || '—' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Date</span>
+            <span class="detail-value">{{ formatDate(selectedPayment()!.createdAt) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Provider</span>
+            <span class="detail-value provider-badge">{{ getProviderIcon(selectedPayment()!.provider) }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Payment Method</span>
+            <span class="detail-value">
+              {{ getCardBrandIcon(selectedPayment()!.paymentMethodBrand) }} •••• {{ selectedPayment()!.paymentMethodLast4 }}
+            </span>
+          </div>
+          <div class="detail-item full-width">
+            <span class="detail-label">Description</span>
+            <span class="detail-value">{{ selectedPayment()!.description || '—' }}</span>
+          </div>
+          @if (selectedPayment()!.refundedAmount) {
+            <div class="detail-item full-width">
+              <span class="detail-label">Refunded Amount</span>
+              <span class="detail-value refund">
+                {{ formatAmount(selectedPayment()!.refundedAmount!, selectedPayment()!.currency) }}
+              </span>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="modal-footer">
+        @if (selectedPayment()!.receiptNumber) {
+          <button
+            type="button"
+            class="btn-primary"
+            (click)="viewReceipt(selectedPayment()!.receiptNumber!)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            </svg>
+            Download Receipt
+          </button>
+        }
+        <button type="button" class="btn-secondary" (click)="closeDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+}
+
