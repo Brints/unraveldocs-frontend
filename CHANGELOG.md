@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.0.0...v1.1.0) (2025-12-31)
+
+
+### Features
+
+* implement payments module and restructure subscriptions ([7cbe674](https://github.com/Brints/unraveldocs-frontend/commit/7cbe674000de6d209890bd313e2536045b159773))
+
 # 1.0.0 (2025-12-31)
 
 
