@@ -1,0 +1,300 @@
+<!-- Billing Settings Page -->
+<div class="settings-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1 class="page-title">Billing & Subscription</h1>
+    <p class="page-subtitle">Manage your subscription, payment methods, and billing history</p>
+  </div>
+
+  <!-- Current Plan Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Current Plan</h2>
+        <p class="card-description">Your subscription details and usage</p>
+      </div>
+      <a routerLink="/subscriptions/plans" class="btn-primary">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+        </svg>
+        Upgrade Plan
+      </a>
+    </div>
+    <div class="card-body">
+      <div class="current-plan-display">
+        <div class="plan-badge" [class]="'plan-' + (subscription()?.planName?.toLowerCase() || 'free')">
+          {{ subscription()?.planName || 'Free' }}
+        </div>
+        <div class="plan-details">
+          <div class="plan-name">{{ getCurrentPlan().name }} Plan</div>
+          <div class="plan-price">
+            @if (getCurrentPlan().monthlyPrice === 0) {
+              <span class="price">Free</span>
+            } @else {
+              <span class="price">{{ formatCurrency(getCurrentPlan().monthlyPrice) }}</span>
+              <span class="period">/month</span>
+            }
+          </div>
+        </div>
+        <div class="plan-status">
+          @if (subscriptionStatus().isActive && !subscriptionStatus().isTrial) {
+            <span class="status-badge active">
+              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Active
+            </span>
+          } @else if (subscriptionStatus().isTrial) {
+            <span class="status-badge trial">
+              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Trial
+            </span>
+          } @else if (!subscriptionStatus().isActive) {
+            <span class="status-badge inactive">
+              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Inactive
+            </span>
+          } @else {
+            <span class="status-badge inactive">Inactive</span>
+          }
+        </div>
+      </div>
+
+      <!-- Plan Features -->
+      <div class="plan-features-grid">
+        @for (feature of getCurrentPlan().features; track feature) {
+          <div class="feature-item">
+            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>{{ feature }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Quick Links -->
+      <div class="quick-links">
+        <a routerLink="/subscriptions" class="quick-link">
+          <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          View Usage
+        </a>
+        <a routerLink="/subscriptions/plans" class="quick-link">
+          <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+          Compare Plans
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Methods Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Payment Methods</h2>
+        <p class="card-description">Manage your saved payment methods</p>
+      </div>
+      <a routerLink="/payments/methods" class="btn-outline">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        Add New
+      </a>
+    </div>
+    <div class="card-body">
+      @if (isLoadingPayments()) {
+        <div class="loading-skeleton">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      } @else if (paymentMethods().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          <h3>No payment methods</h3>
+          <p>Add a payment method to subscribe to a plan</p>
+          <a routerLink="/payments/methods" class="btn-primary small">Add Payment Method</a>
+        </div>
+      } @else {
+        <div class="payment-methods-list">
+          @for (method of paymentMethods(); track method.id) {
+            <div class="payment-method-card" [class.default]="method.isDefault">
+              <div class="card-icon" [class]="'brand-' + (method.brand || 'default')">
+                {{ getCardBrandName(method.brand || 'card').slice(0, 4).toUpperCase() }}
+              </div>
+              <div class="card-info">
+                <span class="card-number">{{ getCardBrandName(method.brand || 'card') }} •••• {{ method.last4 }}</span>
+                <span class="card-expiry">Expires {{ method.expiryMonth }}/{{ method.expiryYear }}</span>
+              </div>
+              <div class="card-actions">
+                @if (method.isDefault) {
+                  <span class="default-badge">Default</span>
+                } @else {
+                  <button type="button" class="action-btn" (click)="setDefaultPaymentMethod(method.id)">
+                    Set Default
+                  </button>
+                }
+                <button type="button" class="action-btn danger" (click)="removePaymentMethod(method.id)">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+        <a routerLink="/payments/methods" class="view-all-link">
+          Manage all payment methods
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- Billing History Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Billing History</h2>
+        <p class="card-description">View your past invoices and receipts</p>
+      </div>
+      <a routerLink="/payments/receipts" class="btn-outline">
+        View All
+      </a>
+    </div>
+    <div class="card-body">
+      @if (isLoadingInvoices()) {
+        <div class="loading-skeleton">
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+          <div class="skeleton-row"></div>
+        </div>
+      } @else if (invoices().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <h3>No invoices yet</h3>
+          <p>Your billing history will appear here</p>
+        </div>
+      } @else {
+        <div class="invoices-table">
+          <div class="table-header">
+            <span>Invoice</span>
+            <span>Date</span>
+            <span>Amount</span>
+            <span>Status</span>
+            <span></span>
+          </div>
+          @for (invoice of invoices(); track invoice.id) {
+            <div class="table-row">
+              <span class="invoice-number">{{ invoice.number }}</span>
+              <span class="invoice-date">{{ formatDate(invoice.date) }}</span>
+              <span class="invoice-amount">{{ formatCurrency(invoice.amount, invoice.currency) }}</span>
+              <span class="invoice-status" [class]="'status-' + invoice.status">
+                {{ invoice.status }}
+              </span>
+              <a [href]="invoice.pdfUrl" target="_blank" class="download-btn" title="Download">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+              </a>
+            </div>
+          }
+        </div>
+        <a routerLink="/payments/history" class="view-all-link">
+          View complete payment history
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      }
+    </div>
+  </div>
+
+  <!-- Available Plans Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Available Plans</h2>
+        <p class="card-description">Choose the plan that best fits your needs</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="plans-grid">
+        @for (plan of plans; track plan.id) {
+          <div class="plan-card" [class.current]="isCurrentPlan(plan.id)" [class.popular]="plan.popular">
+            @if (plan.popular) {
+              <div class="popular-badge">Most Popular</div>
+            }
+            @if (isCurrentPlan(plan.id)) {
+              <div class="current-badge">Current</div>
+            }
+            <h3 class="plan-title">{{ plan.name }}</h3>
+            <div class="plan-pricing">
+              @if (plan.monthlyPrice === 0) {
+                <span class="price">Free</span>
+              } @else {
+                <span class="price">{{ formatCurrency(plan.monthlyPrice) }}</span>
+                <span class="period">/mo</span>
+              }
+            </div>
+            <ul class="plan-feature-list">
+              @for (feature of plan.features; track feature) {
+                <li>
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
+            @if (isCurrentPlan(plan.id)) {
+              <button type="button" class="plan-btn current" disabled>Current Plan</button>
+            } @else if (canUpgrade(plan.id)) {
+              <a routerLink="/subscriptions/plans" class="plan-btn upgrade">Upgrade</a>
+            } @else {
+              <a routerLink="/subscriptions/plans" class="plan-btn switch">Switch</a>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="settings-card danger">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Cancel Subscription</h2>
+        <p class="card-description">Cancel your subscription and downgrade to the free plan</p>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="danger-content">
+        <p>
+          If you cancel your subscription, you'll lose access to premium features at the end of your billing period.
+          Your documents and data will be preserved, but some features may become unavailable.
+        </p>
+        <a routerLink="/subscriptions" class="btn-danger-outline">
+          Manage Subscription
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -40,7 +40,12 @@
         "changelogFile": "CHANGELOG.md"
       }
     ],
-    "@semantic-release/npm",
+    [
+      "@semantic-release/npm",
+      {
+        "npmPublish": false
+      }
+    ],
     [
       "@semantic-release/git",
       {
@@ -51,14 +56,9 @@
     [
       "@semantic-release/github",
       {
-        "assets": [
-          {
-            "path": "dist/**/*",
-            "label": "Distribution"
-          }
-        ]
+        "successComment": "🎉 This issue has been resolved in version ${nextRelease.version}",
+        "releasedLabels": ["released"]
       }
     ]
   ]
 }
-

@@ -1,0 +1,219 @@
+<!-- Payment Methods Page -->
+<div class="payment-methods-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <a routerLink="/payments/history" class="back-link">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Back to Payments
+      </a>
+      <h1 class="page-title">Payment Methods</h1>
+      <p class="page-subtitle">Manage your saved payment methods</p>
+    </div>
+    <button type="button" class="btn-primary" (click)="openAddModal()">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Add Payment Method
+    </button>
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="paymentState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Payment Methods List -->
+  @if (isLoading()) {
+    <div class="methods-grid">
+      @for (i of [1, 2]; track i) {
+        <div class="method-card skeleton">
+          <div class="skeleton-brand"></div>
+          <div class="skeleton-number"></div>
+          <div class="skeleton-expiry"></div>
+        </div>
+      }
+    </div>
+  } @else if (paymentMethods().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </svg>
+      </div>
+      <h3>No payment methods</h3>
+      <p>Add a payment method to start making payments</p>
+      <button type="button" class="btn-primary" (click)="openAddModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Payment Method
+      </button>
+    </div>
+  } @else {
+    <div class="methods-grid">
+      @for (method of paymentMethods(); track method.id) {
+        <div class="method-card" [class.default]="method.isDefault" [class.expired]="isExpired(method.expiryMonth, method.expiryYear)">
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="card-brand" [class]="getCardBrandClass(method.brand)">
+              {{ getCardBrandName(method.brand) }}
+            </div>
+            @if (method.isDefault) {
+              <span class="default-badge">Default</span>
+            }
+            @if (isExpired(method.expiryMonth, method.expiryYear)) {
+              <span class="expired-badge">Expired</span>
+            } @else if (isExpiringSoon(method.expiryMonth, method.expiryYear)) {
+              <span class="expiring-badge">Expiring Soon</span>
+            }
+          </div>
+
+          <!-- Card Number -->
+          <div class="card-number">
+            <span class="dots">•••• •••• ••••</span>
+            <span class="last4">{{ method.last4 }}</span>
+          </div>
+
+          <!-- Card Details -->
+          <div class="card-details">
+            <div class="detail-item">
+              <span class="detail-label">Expires</span>
+              <span class="detail-value">{{ formatExpiry(method.expiryMonth, method.expiryYear) }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Provider</span>
+              <span class="detail-value">{{ method.provider | titlecase }}</span>
+            </div>
+          </div>
+
+          <!-- Card Actions -->
+          <div class="card-actions">
+            @if (!method.isDefault && !isExpired(method.expiryMonth, method.expiryYear)) {
+              <button
+                type="button"
+                class="action-btn set-default"
+                [disabled]="isProcessing()"
+                (click)="setAsDefault(method)">
+                Set as Default
+              </button>
+            }
+            <button
+              type="button"
+              class="action-btn delete"
+              [disabled]="isProcessing()"
+              (click)="confirmDelete(method)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- Add New Card -->
+      <button type="button" class="add-card-button" (click)="openAddModal()">
+        <div class="add-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+        </div>
+        <span>Add New Card</span>
+      </button>
+    </div>
+  }
+
+  <!-- Security Notice -->
+  <div class="security-notice">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+    </svg>
+    <div>
+      <strong>Secure Payment Processing</strong>
+      <p>Your payment information is encrypted and securely stored by Stripe. We never store your full card details.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Add Payment Method Modal -->
+@if (showAddModal()) {
+  <div class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Payment Method</h3>
+        <button type="button" class="modal-close" (click)="closeAddModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="stripe-notice">
+          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+          </svg>
+          <p>Stripe Elements will be integrated here for secure card input.</p>
+          <p class="note">This requires the Stripe.js library and a Stripe publishable key.</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeAddModal()">Cancel</button>
+        <button type="button" class="btn-primary" disabled>
+          Add Card
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal() && methodToDelete()) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-content small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon danger">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </div>
+        <h3 class="modal-title">Remove Payment Method</h3>
+      </div>
+      <div class="modal-body center">
+        <p>Are you sure you want to remove this payment method?</p>
+        <div class="method-preview">
+          <span class="card-brand-small">{{ getCardBrandName(methodToDelete()?.brand) }}</span>
+          <span>•••• {{ methodToDelete()?.last4 }}</span>
+        </div>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn-danger" (click)="deleteMethod()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            Removing...
+          } @else {
+            Remove
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
