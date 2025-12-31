@@ -28,5 +28,9 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/ocr/ocr.routes').then(m => m.ocrRoutes)
   },
+  {
+    path: '',
+    loadChildren: () => import('./features/subscription/subscription.routes').then(m => m.subscriptionRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];

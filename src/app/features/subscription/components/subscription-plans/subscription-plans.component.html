@@ -1,0 +1,229 @@
+<!-- Subscription Plans Page -->
+<div class="plans-page">
+  <!-- Header -->
+  <div class="page-header">
+    <h1 class="page-title">Choose Your Plan</h1>
+    <p class="page-subtitle">Select the perfect plan for your document processing needs</p>
+
+    <!-- Billing Toggle -->
+    <div class="billing-toggle">
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'monthly'"
+        (click)="setBillingInterval('monthly')">
+        Monthly
+      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'yearly'"
+        (click)="setBillingInterval('yearly')">
+        Yearly
+        <span class="savings-badge">Save 20%</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="subState.clearError()">×</button>
+    </div>
+  }
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Plans Grid -->
+  @if (isLoading()) {
+    <div class="plans-grid">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="plan-card skeleton">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-price"></div>
+          <div class="skeleton-features"></div>
+          <div class="skeleton-button"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="plans-grid">
+      @for (plan of plans(); track plan.id) {
+        <div
+          class="plan-card"
+          [class.popular]="plan.isPopular"
+          [class.current]="isCurrentPlan(plan)">
+
+          <!-- Popular Badge -->
+          @if (plan.isPopular) {
+            <div class="popular-badge">Most Popular</div>
+          }
+
+          <!-- Current Badge -->
+          @if (isCurrentPlan(plan)) {
+            <div class="current-badge">Current Plan</div>
+          }
+
+          <!-- Plan Header -->
+          <div class="plan-header">
+            <div class="plan-icon" [class]="'tier-' + plan.tier">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getTierIcon(plan.tier)"/>
+              </svg>
+            </div>
+            <h3 class="plan-name">{{ plan.name }}</h3>
+            <p class="plan-description">{{ plan.description }}</p>
+          </div>
+
+          <!-- Pricing -->
+          <div class="plan-pricing">
+            @if (plan.price === 0) {
+              <span class="price-amount">Free</span>
+            } @else {
+              <span class="price-amount">{{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(plan) / 12 : plan.price, plan.currency) }}</span>
+              <span class="price-period">/month</span>
+            }
+            @if (plan.price > 0 && billingInterval() === 'yearly') {
+              <div class="yearly-total">
+                {{ formatPrice(getYearlyPrice(plan), plan.currency) }}/year
+                <span class="yearly-savings">Save {{ formatPrice(getYearlySavings(plan), plan.currency) }}</span>
+              </div>
+            }
+          </div>
+
+          <!-- Features -->
+          <ul class="plan-features">
+            @for (feature of plan.features; track feature.id) {
+              <li class="feature-item" [class.excluded]="!feature.included">
+                @if (feature.included) {
+                  <svg class="feature-icon included" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                } @else {
+                  <svg class="feature-icon excluded" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                }
+                <span>{{ feature.name }}</span>
+              </li>
+            }
+          </ul>
+
+          <!-- CTA Button -->
+          <button
+            type="button"
+            [class]="getButtonClass(plan)"
+            [disabled]="isCurrentPlan(plan) || isProcessing()"
+            (click)="selectPlan(plan)">
+            @if (isProcessing() && selectedPlanForCheckout()?.id === plan.id) {
+              <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              Processing...
+            } @else {
+              {{ getButtonText(plan) }}
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- FAQ Section -->
+  <div class="faq-section">
+    <h2 class="faq-title">Frequently Asked Questions</h2>
+    <div class="faq-grid">
+      <div class="faq-item">
+        <h3 class="faq-question">Can I change my plan later?</h3>
+        <p class="faq-answer">Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately for upgrades, or at the end of your billing period for downgrades.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">What payment methods do you accept?</h3>
+        <p class="faq-answer">We accept all major credit cards (Visa, MasterCard, American Express) through Stripe. For African countries, we also support Paystack payments.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">Is there a free trial?</h3>
+        <p class="faq-answer">Yes! All paid plans come with a 14-day free trial. No credit card required to start. Cancel anytime during the trial.</p>
+      </div>
+      <div class="faq-item">
+        <h3 class="faq-question">What happens when I reach my limits?</h3>
+        <p class="faq-answer">You'll receive notifications as you approach your limits. You can upgrade to a higher plan anytime, or wait until your limits reset at the start of the next billing period.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Enterprise CTA -->
+  <div class="enterprise-cta">
+    <div class="cta-content">
+      <h3 class="cta-title">Need a custom solution?</h3>
+      <p class="cta-description">Our Enterprise plan can be customized to meet your organization's specific requirements.</p>
+    </div>
+    <a href="mailto:sales@unraveldocs.com" class="cta-button">Contact Sales</a>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+@if (showConfirmModal() && selectedPlanForCheckout()) {
+  <div class="modal-overlay" (click)="closeConfirmModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Subscription Change</h3>
+        <button type="button" class="modal-close" (click)="closeConfirmModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>You are about to {{ isUpgrade(selectedPlanForCheckout()!) ? 'upgrade' : 'switch' }} to the <strong>{{ selectedPlanForCheckout()?.name }}</strong> plan.</p>
+
+        <div class="plan-summary">
+          <div class="summary-row">
+            <span>Plan</span>
+            <strong>{{ selectedPlanForCheckout()?.name }}</strong>
+          </div>
+          <div class="summary-row">
+            <span>Price</span>
+            <strong>{{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(selectedPlanForCheckout()!) / 12 : selectedPlanForCheckout()!.price, selectedPlanForCheckout()!.currency) }}/month</strong>
+          </div>
+          <div class="summary-row">
+            <span>Billing</span>
+            <strong>{{ billingInterval() === 'yearly' ? 'Annual' : 'Monthly' }}</strong>
+          </div>
+        </div>
+
+        @if (selectedPlanForCheckout()?.trialDays) {
+          <p class="trial-note">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            You'll have a {{ selectedPlanForCheckout()?.trialDays }}-day free trial before being charged.
+          </p>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeConfirmModal()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="confirmSubscription()" [disabled]="isProcessing()">
+          @if (isProcessing()) {
+            Processing...
+          } @else {
+            Continue to Checkout
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
