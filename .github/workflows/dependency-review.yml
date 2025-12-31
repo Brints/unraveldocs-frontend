@@ -1,27 +1,28 @@
 name: Dependency Review
-          comment-summary-in-pr: on-failure
-          fail-on-severity: moderate
-        with:
-        uses: actions/dependency-review-action@v4
-      - name: Dependency Review
 
-        uses: actions/checkout@v4
-      - name: Checkout code
-    steps:
-
-    runs-on: ubuntu-latest
-    name: Review Dependencies
-  dependency-review:
-jobs:
-
-  pull-requests: write
-  contents: read
-permissions:
-
-      - develop
-      - main
-    branches:
-  pull_request:
 on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    name: Review Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: moderate
+          comment-summary-in-pr: on-failure
 
 
