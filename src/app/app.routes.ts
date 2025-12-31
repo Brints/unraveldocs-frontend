@@ -36,5 +36,9 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/payments/payments.routes').then(m => m.paymentRoutes)
   },
+  {
+    path: '',
+    loadChildren: () => import('./features/teams/teams.routes').then(m => m.teamRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];

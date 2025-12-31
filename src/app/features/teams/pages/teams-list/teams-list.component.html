@@ -1,0 +1,241 @@
+<!-- Teams List Page -->
+<div class="teams-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">My Teams</h1>
+      <p class="page-subtitle">Manage your team subscriptions and collaborate with others</p>
+    </div>
+    <a routerLink="/teams/create" class="btn-primary">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      Create Team
+    </a>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="teams-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="team-card skeleton">
+          <div class="skeleton-header"></div>
+          <div class="skeleton-body"></div>
+          <div class="skeleton-footer"></div>
+        </div>
+      }
+    </div>
+  } @else if (!hasTeams()) {
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+        </svg>
+      </div>
+      <h3>No teams yet</h3>
+      <p>Create a team to collaborate with others on document processing</p>
+      <a routerLink="/teams/create" class="btn-primary">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Create Your First Team
+      </a>
+    </div>
+  } @else {
+    <!-- Owned Teams Section -->
+    @if (ownedTeams().length > 0) {
+      <div class="teams-section">
+        <h2 class="section-title">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+          </svg>
+          Teams You Own
+        </h2>
+        <div class="teams-grid">
+          @for (team of ownedTeams(); track team.id) {
+            <a [routerLink]="['/teams', team.id]" class="team-card owned">
+              <div class="card-header">
+                <div class="team-avatar">
+                  {{ team.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="team-info">
+                  <h3 class="team-name">{{ team.name }}</h3>
+                  <span class="team-code">{{ team.teamCode }}</span>
+                </div>
+                <span class="owner-badge">Owner</span>
+              </div>
+              <div class="card-body">
+                <div class="team-stats">
+                  <div class="stat">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span>{{ team.currentMemberCount }}/{{ team.maxMembers }} members</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <span class="subscription-badge" [class]="getSubscriptionClass(team.subscriptionType)">
+                  {{ getSubscriptionLabel(team.subscriptionType) }}
+                </span>
+                <span class="status-badge" [class]="getStatusClass(team.subscriptionStatus)">
+                  {{ getStatusLabel(team.subscriptionStatus) }}
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Member Teams Section -->
+    @if (memberTeams().length > 0) {
+      <div class="teams-section">
+        <h2 class="section-title">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          Teams You've Joined
+        </h2>
+        <div class="teams-grid">
+          @for (team of memberTeams(); track team.id) {
+            <a [routerLink]="['/teams', team.id]" class="team-card member">
+              <div class="card-header">
+                <div class="team-avatar">
+                  {{ team.name.charAt(0).toUpperCase() }}
+                </div>
+                <div class="team-info">
+                  <h3 class="team-name">{{ team.name }}</h3>
+                  <span class="team-code">{{ team.teamCode }}</span>
+                </div>
+                <span class="member-badge">Member</span>
+              </div>
+              <div class="card-body">
+                <div class="team-stats">
+                  <div class="stat">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                    </svg>
+                    <span>{{ team.currentMemberCount }} members</span>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer">
+                <span class="subscription-badge" [class]="getSubscriptionClass(team.subscriptionType)">
+                  {{ getSubscriptionLabel(team.subscriptionType) }}
+                </span>
+                <span class="status-badge" [class]="getStatusClass(team.subscriptionStatus)">
+                  {{ getStatusLabel(team.subscriptionStatus) }}
+                </span>
+              </div>
+            </a>
+          }
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Subscription Tiers Info -->
+  <div class="subscription-info">
+    <h2 class="section-title">Team Subscription Plans</h2>
+    <div class="tiers-grid">
+      <!-- Premium Tier -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <h3>Team Premium</h3>
+          <div class="tier-price">
+            <span class="price">$29</span>
+            <span class="period">/month</span>
+          </div>
+          <p class="yearly-price">or $290/year (save $58)</p>
+        </div>
+        <ul class="tier-features">
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Up to 10 team members
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            200 documents/month
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Shared document library
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            10-day free trial
+          </li>
+        </ul>
+        <a routerLink="/teams/create" class="tier-btn">Get Started</a>
+      </div>
+
+      <!-- Enterprise Tier -->
+      <div class="tier-card enterprise">
+        <div class="popular-badge">Recommended</div>
+        <div class="tier-header">
+          <h3>Team Enterprise</h3>
+          <div class="tier-price">
+            <span class="price">$79</span>
+            <span class="period">/month</span>
+          </div>
+          <p class="yearly-price">or $790/year (save $158)</p>
+        </div>
+        <ul class="tier-features">
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Up to 15 team members
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Unlimited documents
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Admin role promotion
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Email invitations
+          </li>
+          <li>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Priority support
+          </li>
+        </ul>
+        <a routerLink="/teams/create" class="tier-btn enterprise">Get Started</a>
+      </div>
+    </div>
+  </div>
+</div>
+

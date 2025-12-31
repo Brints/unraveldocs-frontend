@@ -1,0 +1,211 @@
+<!-- Team Settings Page -->
+<div class="team-settings-page">
+  <div class="page-header">
+    <a [routerLink]="['/teams', team()?.id]" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Team
+    </a>
+    <h1 class="page-title">Team Settings</h1>
+    <p class="page-subtitle">Manage your team details and subscription</p>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+    </div>
+  }
+
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+
+  @if (team()) {
+    <!-- Team Details Section -->
+    <div class="settings-section">
+      <h2>Team Details</h2>
+      <form (ngSubmit)="updateTeamDetails()" class="settings-form">
+        <div class="form-group">
+          <label for="teamName">Team Name</label>
+          <input
+            type="text"
+            id="teamName"
+            [(ngModel)]="teamName"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Team name"
+            class="form-input"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="teamDescription">Description</label>
+          <textarea
+            id="teamDescription"
+            [(ngModel)]="teamDescription"
+            [ngModelOptions]="{standalone: true}"
+            placeholder="Describe your team..."
+            rows="3"
+            class="form-textarea"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label>Team Code</label>
+          <div class="readonly-field">
+            <span>{{ team()!.teamCode }}</span>
+            <span class="help-text">Share this code for members to find your team</span>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="!teamName.trim() || isProcessing()">
+          @if (isProcessing()) {
+            Saving...
+          } @else {
+            Save Changes
+          }
+        </button>
+      </form>
+    </div>
+
+    <!-- Subscription Section -->
+    <div class="settings-section">
+      <h2>Subscription</h2>
+      <div class="subscription-card">
+        <div class="subscription-header">
+          <div class="plan-info">
+            <span class="plan-badge" [class.enterprise]="isEnterprise()">
+              {{ getCurrentTier()?.name }}
+            </span>
+            <span class="plan-price">
+              {{ formatCurrency(team()!.subscriptionPrice) }}/{{ team()!.billingCycle === 'MONTHLY' ? 'month' : 'year' }}
+            </span>
+          </div>
+          <div class="subscription-status" [class]="'status-' + team()!.subscriptionStatus.toLowerCase()">
+            {{ team()!.subscriptionStatus }}
+          </div>
+        </div>
+        <div class="subscription-details">
+          <div class="detail-row">
+            <span>Next Billing Date</span>
+            <span>{{ formatDate(team()!.nextBillingDate) }}</span>
+          </div>
+          <div class="detail-row">
+            <span>Auto-Renewal</span>
+            <span>{{ team()!.autoRenew ? 'Enabled' : 'Disabled' }}</span>
+          </div>
+          <div class="detail-row">
+            <span>Member Limit</span>
+            <span>{{ team()!.currentMemberCount }} / {{ team()!.maxMembers }}</span>
+          </div>
+          <div class="detail-row">
+            <span>Document Limit</span>
+            <span>
+              @if (team()!.monthlyDocumentLimit < 0) {
+                Unlimited
+              } @else {
+                {{ team()!.monthlyDocumentLimit }}/month
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upgrade Section -->
+      @if (!isEnterprise()) {
+        <div class="upgrade-card">
+          <div class="upgrade-content">
+            <h3>Upgrade to Enterprise</h3>
+            <p>Get more features: 15 members, unlimited documents, admin roles, email invitations.</p>
+            <ul class="upgrade-features">
+              @for (feature of getUpgradeTier()?.enterpriseFeatures || []; track feature) {
+                <li>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
+          </div>
+          <div class="upgrade-price">
+            <span class="price">{{ formatCurrency(getUpgradeTier()?.monthlyPrice || 79) }}</span>
+            <span class="period">/month</span>
+          </div>
+          <button type="button" class="btn-upgrade" [disabled]="isProcessing()">
+            Upgrade Now
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Danger Zone -->
+    <div class="settings-section danger">
+      <h2>Danger Zone</h2>
+
+      @if (!isCancelled()) {
+        <div class="danger-action">
+          <div class="action-info">
+            <h4>Cancel Subscription</h4>
+            <p>Your team will continue until the end of the billing period, then be downgraded.</p>
+          </div>
+          <button type="button" class="btn-danger-outline" (click)="showCancelModal.set(true)">
+            Cancel Subscription
+          </button>
+        </div>
+      } @else {
+        <div class="danger-action">
+          <div class="action-info">
+            <h4>Subscription Cancelled</h4>
+            <p>Your subscription ends on {{ formatDate(team()!.subscriptionEndsAt) }}. Reactivate to continue.</p>
+          </div>
+          <button type="button" class="btn-primary" (click)="reactivateTeam()" [disabled]="isProcessing()">
+            Reactivate
+          </button>
+        </div>
+      }
+
+      <div class="danger-action severe">
+        <div class="action-info">
+          <h4>Close Team</h4>
+          <p>Permanently close this team. Members will lose access immediately.</p>
+        </div>
+        <button type="button" class="btn-danger" (click)="showCloseModal.set(true)">
+          Close Team
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Cancel Subscription Modal -->
+@if (showCancelModal()) {
+  <div class="modal-overlay" (click)="showCancelModal.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Cancel Subscription?</h3>
+      <p>Your team will continue until {{ formatDate(team()!.nextBillingDate) }}. After that, members will lose access to premium features.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="showCancelModal.set(false)">Keep Subscription</button>
+        <button type="button" class="btn-danger" (click)="cancelSubscription()" [disabled]="isProcessing()">
+          Cancel Subscription
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Close Team Modal -->
+@if (showCloseModal()) {
+  <div class="modal-overlay" (click)="showCloseModal.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h3>Close Team Permanently?</h3>
+      <p>This action cannot be undone. All members will immediately lose access to team resources.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="showCloseModal.set(false)">Cancel</button>
+        <button type="button" class="btn-danger" (click)="closeTeam()" [disabled]="isProcessing()">
+          Close Team Forever
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
