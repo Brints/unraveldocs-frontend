@@ -24,5 +24,9 @@ export const routes: Routes = [
     path: '',
     loadChildren: () => import('./features/documents/documents.routes').then(m => m.documentRoutes)
   },
+  {
+    path: '',
+    loadChildren: () => import('./features/ocr/ocr.routes').then(m => m.ocrRoutes)
+  },
   { path: '**', redirectTo: '/home' }
 ];
