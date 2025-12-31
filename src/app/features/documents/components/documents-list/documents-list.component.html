@@ -1,0 +1,211 @@
+<!-- Documents List Page -->
+<div class="documents-page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-info">
+        <h1 class="page-title">My Documents</h1>
+        <p class="page-subtitle">
+          {{ totalCollections() }} collections · {{ totalDocuments() }} documents
+        </p>
+      </div>
+      <div class="header-actions">
+        <a routerLink="/documents/upload" class="btn-primary">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Upload</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success Message -->
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  <!-- Error Message -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button type="button" class="alert-close" (click)="documentState.clearError()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+  }
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <!-- Search -->
+      <div class="search-box">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search collections..."
+          [value]="searchQuery()"
+          (input)="onSearch($event)"/>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'grid'"
+          (click)="setViewMode('grid')"
+          title="Grid view">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="view-btn"
+          [class.active]="viewMode() === 'list'"
+          (click)="setViewMode('list')"
+          title="List view">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  @if (isLoading()) {
+    <!-- Loading State -->
+    <div class="collections-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+        <div class="collection-card skeleton">
+          <div class="skeleton-icon"></div>
+          <div class="skeleton-content">
+            <div class="skeleton-line w-32 h-5 mb-2"></div>
+            <div class="skeleton-line w-24 h-4"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (filteredCollections().length === 0) {
+    <!-- Empty State -->
+    <div class="empty-state">
+      @if (searchQuery()) {
+        <div class="empty-icon">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <h3 class="empty-title">No results found</h3>
+        <p class="empty-description">No collections match "{{ searchQuery() }}"</p>
+        <button type="button" class="btn-secondary" (click)="searchQuery.set('')">
+          Clear search
+        </button>
+      } @else {
+        <div class="empty-icon">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <h3 class="empty-title">No documents yet</h3>
+        <p class="empty-description">Upload your first documents to get started</p>
+        <a routerLink="/documents/upload" class="btn-primary">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+          <span>Upload Documents</span>
+        </a>
+      }
+    </div>
+  } @else {
+    <!-- Collections Grid -->
+    <div [class]="viewMode() === 'grid' ? 'collections-grid' : 'collections-list'">
+      @for (collection of filteredCollections(); track collection.collectionId) {
+        <div class="collection-card" [class.list-view]="viewMode() === 'list'">
+          <a [routerLink]="['/documents/collection', collection.collectionId]" class="card-link">
+            <div class="card-icon">
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">Collection</h3>
+              <p class="card-id">{{ collection.collectionId.substring(0, 8) }}...</p>
+              <div class="card-meta">
+                <span class="file-count">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  {{ collection.fileCount }} files
+                </span>
+                <span class="separator">·</span>
+                <span class="created-at">{{ getRelativeTime(collection.createdAt) }}</span>
+              </div>
+            </div>
+          </a>
+          <div class="card-actions">
+            <button
+              type="button"
+              class="action-btn"
+              title="View collection"
+              [routerLink]="['/documents/collection', collection.collectionId]">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              class="action-btn danger"
+              title="Delete collection"
+              (click)="confirmDeleteCollection(collection); $event.preventDefault(); $event.stopPropagation()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (showDeleteModal()) {
+  <div class="modal-overlay" (click)="closeDeleteModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon danger">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+        </div>
+        <h3 class="modal-title">Delete Collection</h3>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this collection? This will permanently delete all {{ collectionToDelete()?.fileCount || 0 }} documents in this collection.</p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+        <button type="button" class="btn-danger" (click)="deleteCollection()">Delete Collection</button>
+      </div>
+    </div>
+  </div>
+}
+

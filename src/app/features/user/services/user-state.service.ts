@@ -2,6 +2,8 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { UserApiService } from './user-api.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
+import { User } from '../../../core/auth/models/auth.model';
 import {
   UserProfile,
   DashboardStats,
@@ -10,7 +12,6 @@ import {
   Subscription,
   Team,
   DocumentSummary,
-  DashboardState,
   UpdateProfileRequest,
   StatCard,
   QuickAction,
@@ -21,6 +22,7 @@ import {
 })
 export class UserStateService {
   private readonly api = inject(UserApiService);
+  private readonly authService = inject(AuthService);
 
   // ==================== Core State Signals ====================
 
@@ -213,26 +215,28 @@ export class UserStateService {
     this._isLoading.set(true);
     this._error.set(null);
 
+    // Load user profile from auth service
+    const currentUser = this.authService.getCurrentUser();
+    if (currentUser) {
+      this.setProfileFromUser(currentUser);
+    }
+
+    // Subscribe to auth changes
+    this.authService.currentUser$.subscribe(user => {
+      if (user) {
+        this.setProfileFromUser(user);
+      }
+    });
+
     forkJoin({
-      profile: this.api.getProfile().pipe(catchError(() => of(null))),
-      // Stats endpoint may not exist yet, use mock data
-      // stats: this.api.getDashboardStats().pipe(catchError(() => of(null))),
-      // activities: this.api.getActivities().pipe(catchError(() => of({ items: [] }))),
-      // notifications: this.api.getNotifications().pipe(catchError(() => of({ items: [] }))),
-      // subscription: this.api.getSubscription().pipe(catchError(() => of(null))),
+      // Load collections/documents
+      collections: this.api.getCollections().pipe(catchError(() => of([]))),
       teams: this.api.getTeams().pipe(catchError(() => of([]))),
-      // documents: this.api.getDocumentSummary().pipe(catchError(() => of(null))),
     }).pipe(
       tap(data => {
-        if (data.profile) this._profile.set(data.profile);
-        // if (data.stats) this._stats.set(data.stats);
-        // if (data.activities?.items) this._activities.set(data.activities.items);
-        // if (data.notifications?.items) this._notifications.set(data.notifications.items);
-        // if (data.subscription) this._subscription.set(data.subscription);
         if (data.teams) this._teams.set(data.teams);
-        // if (data.documents) this._documents.set(data.documents);
 
-        // Load mock stats for now
+        // Load mock stats for now (until API endpoints are ready)
         this.loadMockStats();
         this.loadMockActivities();
         this.loadMockSubscription();
@@ -246,6 +250,30 @@ export class UserStateService {
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
+  }
+
+  /**
+   * Set profile from User object
+   */
+  private setProfileFromUser(user: User): void {
+    const profile: UserProfile = {
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profilePicture: user.profilePicture,
+      phoneNumber: user.phoneNumber,
+      country: user.country,
+      profession: user.profession,
+      organization: user.organization,
+      role: (user.role?.toUpperCase() as UserProfile['role']) || 'USER',
+      isVerified: user.isVerified ?? user.emailVerified ?? false,
+      isActive: user.isActive ?? true,
+      lastLogin: user.lastLogin,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
+    this._profile.set(profile);
   }
 
   /**
