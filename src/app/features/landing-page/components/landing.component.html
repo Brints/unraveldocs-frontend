@@ -94,11 +94,10 @@
     <section id="pricing"
              class="section pricing-section"
              [class.visible]="getSectionVisibility('pricing')">
-      <app-pricing
-        [highlightPopular]="true"
-        (planSelected)="onCtaClick('pricing-' + $event)"
-        (signupCompleted)="onSignupComplete()">
-      </app-pricing>
+      <app-plan-pricing
+        [showIndividual]="true"
+        [showTeam]="true">
+      </app-plan-pricing>
     </section>
 
     <!-- FAQ Section -->

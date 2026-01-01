@@ -17,7 +17,7 @@ import { BlogPreviewComponent } from '../../../shared/components/blog-preview/bl
 import { NewsletterComponent } from '../../../shared/components/newsletter/newsletter.component';
 import { HowItWorksComponent } from '../../../shared/components/how-it-works/how-it-works.component';
 import { TestimonialsComponent } from '../../../shared/components/testimonials/testimonials.component';
-import { PricingComponent } from '../../../shared/components/pricing/pricing.component';
+import { PlanPricingComponent } from '../../../shared/components/plan-pricing/plan-pricing.component';
 import { FeaturesComponent } from '../../../shared/components/features/features.component';
 
 interface LandingPageSection {
@@ -44,7 +44,7 @@ interface LandingPageAnalytics {
     HeroComponent,
     HowItWorksComponent,
     TestimonialsComponent,
-    PricingComponent,
+    PlanPricingComponent,
     FooterComponent,
     StatsComponent,
     CtaComponent,

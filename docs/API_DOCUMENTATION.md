@@ -9,20 +9,21 @@ This document provides a comprehensive overview of all API endpoints available i
 ## Table of Contents
 
 1. [Root](#root)
-2. [Authentication](#authentication)
-3. [User Management](#user-management)
-4. [Team Management](#team-management)
-5. [Organization Management](#organization-management)
-6. [Admin Management](#admin-management)
-7. [Documents](#documents)
-8. [OCR Processing](#ocr-processing)
-9. [Word Export](#word-export)
-10. [Payments - Stripe](#payments---stripe)
-11. [Payments - Paystack](#payments---paystack)
-12. [Receipts](#receipts)
-13. [Subscription Management](#subscription-management)
-14. [Search - Elasticsearch](#search---elasticsearch)
-15. [Webhooks](#webhooks)
+2. [Plan Pricing](#plan-pricing)
+3. [Authentication](#authentication)
+4. [User Management](#user-management)
+5. [Team Management](#team-management)
+6. [Organization Management](#organization-management)
+7. [Admin Management](#admin-management)
+8. [Documents](#documents)
+9. [OCR Processing](#ocr-processing)
+10. [Word Export](#word-export)
+11. [Payments - Stripe](#payments---stripe)
+12. [Payments - Paystack](#payments---paystack)
+13. [Receipts](#receipts)
+14. [Subscription Management](#subscription-management)
+15. [Search - Elasticsearch](#search---elasticsearch)
+16. [Webhooks](#webhooks)
 
 ---
 
@@ -42,6 +43,136 @@ This document provides a comprehensive overview of all API endpoints available i
   "status": "success",
   "message": "UnravelDocs API is running",
   "data": "Current server time: 2024-01-01T12:00:00Z"
+}
+```
+
+---
+
+## Plan Pricing
+
+Base path: `/api/v1/plans`
+
+> **Note:** These endpoints are public and do not require authentication. They are designed for use on marketing/pricing pages to display subscription plan prices in the user's preferred currency.
+
+### Supported Currencies
+
+The system supports 69 currencies for price conversion including:
+
+| Region       | Currencies                                                 |
+|--------------|------------------------------------------------------------|
+| Americas     | USD, CAD, BRL, MXN, ARS, CLP, COP, PEN                     |
+| Europe       | EUR, GBP, CHF, SEK, NOK, DKK, PLN, CZK, HUF, RON           |
+| Asia Pacific | JPY, CNY, INR, KRW, SGD, HKD, TWD, THB, IDR, MYR, PHP, VND |
+| Middle East  | AED, TRY, ILS, QAR, KWD, BHD, JOD, OMR                     |
+| Africa       | NGN, ZAR, GHS, KES, EGP, MAD                               |
+
+### Get All Plans with Pricing
+
+| **Method** | **Endpoint** | **Auth Required** |
+|------------|--------------|-------------------|
+| `GET`      | `/plans`     | No                |
+
+**Query Parameters:**
+
+| Parameter  | Type   | Required | Default | Description                                              |
+|------------|--------|----------|---------|----------------------------------------------------------|
+| `currency` | String | No       | USD     | Currency code for price conversion (e.g., NGN, EUR, GBP) |
+
+**Response:**
+
+```json
+{
+  "individualPlans": [
+    {
+      "planId": "uuid",
+      "planName": "PRO_MONTHLY",
+      "displayName": "Pro Monthly",
+      "billingInterval": "MONTH",
+      "price": {
+        "originalAmountUsd": 29.99,
+        "convertedAmount": 46484.50,
+        "currency": "NGN",
+        "formattedPrice": "₦46,484.50",
+        "exchangeRate": 1550.00,
+        "rateTimestamp": "2024-12-31T12:00:00Z"
+      },
+      "documentUploadLimit": 500,
+      "ocrPageLimit": 2000,
+      "isActive": true,
+      "features": [
+        "Advanced document processing",
+        "High OCR page limit",
+        "Priority support"
+      ]
+    }
+  ],
+  "teamPlans": [
+    {
+      "planId": "uuid",
+      "planName": "TEAM_PREMIUM",
+      "displayName": "Team Premium",
+      "description": "Premium team plan",
+      "monthlyPrice": {
+        "originalAmountUsd": 29.00,
+        "convertedAmount": 44950.00,
+        "currency": "NGN",
+        "formattedPrice": "₦44,950.00",
+        "exchangeRate": 1550.00,
+        "rateTimestamp": "2024-12-31T12:00:00Z"
+      },
+      "yearlyPrice": {
+        "originalAmountUsd": 290.00,
+        "convertedAmount": 449500.00,
+        "currency": "NGN",
+        "formattedPrice": "₦449,500.00",
+        "exchangeRate": 1550.00,
+        "rateTimestamp": "2024-12-31T12:00:00Z"
+      },
+      "maxMembers": 10,
+      "monthlyDocumentLimit": 200,
+      "hasAdminPromotion": false,
+      "hasEmailInvitations": false,
+      "trialDays": 10,
+      "isActive": true,
+      "features": [
+        "Up to 10 team members",
+        "200 documents per month",
+        "10-day free trial"
+      ]
+    }
+  ],
+  "displayCurrency": "NGN",
+  "exchangeRateTimestamp": "2024-12-31T12:00:00Z"
+}
+```
+
+---
+
+### Get Supported Currencies
+
+| **Method** | **Endpoint**        | **Auth Required** |
+|------------|---------------------|-------------------|
+| `GET`      | `/plans/currencies` | No                |
+
+Returns all supported currencies for the pricing dropdown.
+
+**Response:**
+
+```json
+{
+  "currencies": [
+    {
+      "code": "USD",
+      "symbol": "$",
+      "name": "United States Dollar"
+    },
+    {
+      "code": "NGN",
+      "symbol": "₦",
+      "name": "Nigerian Naira"
+    }
+  ],
+  "totalCount": 69
 }
 ```
 

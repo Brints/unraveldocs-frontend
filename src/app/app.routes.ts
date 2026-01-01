@@ -5,6 +5,11 @@ export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'home', component: LandingComponent },
   {
+    path: 'pricing',
+    loadComponent: () => import('./pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
+    title: 'Pricing - UnravelDocs'
+  },
+  {
     path: 'auth',
     loadChildren: () => import('./core/auth/auth.routes').then(m => m.authRoutes)
   },

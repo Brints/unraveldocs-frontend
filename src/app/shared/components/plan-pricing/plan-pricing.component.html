@@ -1,0 +1,274 @@
+<!-- Plan Pricing Section -->
+<section class="pricing-section" [class.compact]="compact()">
+  <!-- Section Header -->
+  <div class="section-header">
+    <h2 class="section-title">Simple, Transparent Pricing</h2>
+    <p class="section-subtitle">Choose the plan that fits your needs. All plans include a free trial.</p>
+  </div>
+
+  <!-- Controls Bar -->
+  <div class="controls-bar">
+    <!-- Billing Toggle -->
+    <div class="billing-toggle">
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'monthly'"
+        (click)="setBillingInterval('monthly')"
+      >
+        Monthly
+      </button>
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="billingInterval() === 'yearly'"
+        (click)="setBillingInterval('yearly')"
+      >
+        Yearly
+        <span class="save-badge">Save 17%</span>
+      </button>
+    </div>
+
+    <!-- Currency Selector -->
+    <div class="currency-selector" (clickOutside)="closeDropdown()">
+      <button type="button" class="currency-btn" (click)="toggleDropdown()">
+        <span class="currency-symbol">{{ selectedCurrencyInfo().symbol }}</span>
+        <span class="currency-code">{{ selectedCurrency() }}</span>
+        <svg class="dropdown-arrow" [class.open]="showCurrencyDropdown()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+
+      @if (showCurrencyDropdown()) {
+        <div class="currency-dropdown">
+          <div class="dropdown-search">
+            <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input
+              type="text"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+              placeholder="Search currency..."
+              class="search-input"
+              autocomplete="off"
+            />
+          </div>
+          <div class="currency-list">
+            @for (currency of filteredCurrencies; track currency.code) {
+              <button
+                type="button"
+                class="currency-option"
+                [class.selected]="currency.code === selectedCurrency()"
+                (click)="selectCurrency(currency)"
+              >
+                <span class="option-symbol">{{ currency.symbol }}</span>
+                <span class="option-code">{{ currency.code }}</span>
+                <span class="option-name">{{ currency.name }}</span>
+                @if (currency.code === selectedCurrency()) {
+                  <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                }
+              </button>
+            }
+            @if (filteredCurrencies.length === 0) {
+              <div class="no-results">No currencies found</div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (isLoading()) {
+    <div class="pricing-loading">
+      <div class="loading-grid">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="skeleton-card">
+            <div class="skeleton-header"></div>
+            <div class="skeleton-price"></div>
+            <div class="skeleton-features"></div>
+            <div class="skeleton-button"></div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (error()) {
+    <div class="pricing-error">
+      <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <p>{{ error() }}</p>
+      <button type="button" class="retry-btn" (click)="pricingService.loadPlans(selectedCurrency())">
+        Try Again
+      </button>
+    </div>
+  } @else {
+    <!-- Individual Plans -->
+    @if (showIndividual() && getIndividualPlans().length > 0) {
+      <div class="plans-section">
+        <h3 class="plans-title">
+          <svg class="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+          Individual Plans
+        </h3>
+        <div class="plans-grid">
+          @for (plan of getIndividualPlans(); track plan.planId) {
+            <div class="plan-card" [class]="'tier-' + getPlanTier(plan.planName)" [class.popular]="isPopularPlan(plan.planName)">
+              @if (isPopularPlan(plan.planName)) {
+                <div class="popular-badge">Most Popular</div>
+              }
+              <div class="plan-header">
+                <h4 class="plan-name">{{ plan.displayName }}</h4>
+                <div class="plan-price">
+                  <span class="price-amount">{{ plan.price.formattedPrice }}</span>
+                  <span class="price-period">/{{ plan.billingInterval === 'MONTH' ? 'month' : 'year' }}</span>
+                </div>
+                @if (plan.price.currency !== 'USD') {
+                  <div class="original-price">
+                    <span>≈ ${{ plan.price.originalAmountUsd | number:'1.0-2' }} USD</span>
+                  </div>
+                }
+              </div>
+              <div class="plan-limits">
+                <div class="limit-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <span>{{ plan.documentUploadLimit }} documents</span>
+                </div>
+                <div class="limit-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  <span>{{ plan.ocrPageLimit }} OCR pages</span>
+                </div>
+              </div>
+              <ul class="plan-features">
+                @for (feature of plan.features; track feature) {
+                  <li>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ feature }}
+                  </li>
+                }
+              </ul>
+              <a routerLink="/auth/signup" class="plan-cta" [class.primary]="isPopularPlan(plan.planName)">
+                Get Started
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Team Plans -->
+    @if (showTeam() && teamPlans().length > 0) {
+      <div class="plans-section team-plans">
+        <h3 class="plans-title">
+          <svg class="title-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+          Team Plans
+        </h3>
+        <div class="plans-grid">
+          @for (plan of teamPlans(); track plan.planId) {
+            <div class="plan-card" [class]="'tier-' + getPlanTier(plan.planName)" [class.popular]="plan.planName.includes('ENTERPRISE')">
+              @if (plan.planName.includes('ENTERPRISE')) {
+                <div class="popular-badge">Recommended</div>
+              }
+              <div class="plan-header">
+                <h4 class="plan-name">{{ plan.displayName }}</h4>
+                @if (plan.description) {
+                  <p class="plan-description">{{ plan.description }}</p>
+                }
+                <div class="plan-price">
+                  <span class="price-amount">{{ getTeamPrice(plan).formattedPrice }}</span>
+                  <span class="price-period">/{{ billingInterval() === 'monthly' ? 'month' : 'year' }}</span>
+                </div>
+                @if (getTeamPrice(plan).currency !== 'USD') {
+                  <div class="original-price">
+                    <span>≈ ${{ getTeamPrice(plan).originalAmountUsd | number:'1.0-2' }} USD</span>
+                  </div>
+                }
+              </div>
+              <div class="plan-limits">
+                <div class="limit-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                  </svg>
+                  <span>Up to {{ plan.maxMembers }} members</span>
+                </div>
+                <div class="limit-item">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                  </svg>
+                  <span>
+                    @if (plan.monthlyDocumentLimit < 0) {
+                      Unlimited documents
+                    } @else {
+                      {{ plan.monthlyDocumentLimit }} docs/month
+                    }
+                  </span>
+                </div>
+                @if (plan.trialDays > 0) {
+                  <div class="limit-item trial">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span>{{ plan.trialDays }}-day free trial</span>
+                  </div>
+                }
+              </div>
+              <ul class="plan-features">
+                @for (feature of plan.features; track feature) {
+                  <li>
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ feature }}
+                  </li>
+                }
+                @if (plan.hasAdminPromotion) {
+                  <li class="enterprise-feature">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Admin role promotion
+                  </li>
+                }
+                @if (plan.hasEmailInvitations) {
+                  <li class="enterprise-feature">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Email invitations
+                  </li>
+                }
+              </ul>
+              <a routerLink="/teams/create" class="plan-cta" [class.primary]="plan.planName.includes('ENTERPRISE')">
+                Start Free Trial
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Exchange Rate Info -->
+    @if (selectedCurrency() !== 'USD' && exchangeRateTimestamp()) {
+      <div class="exchange-info">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>Prices shown in {{ selectedCurrencyInfo().name }}. Exchange rates updated {{ formatLastUpdated() }}.</span>
+      </div>
+    }
+  }
+</section>
+
