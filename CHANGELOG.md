@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/Brints/unraveldocs-frontend/compare/v1.3.0...v1.3.1) (2026-01-03)
+
+
+### Bug Fixes
+
+* **profile:** profile picture was not loading when the profile page loaded. ([d288dcf](https://github.com/Brints/unraveldocs-frontend/commit/d288dcfddb8a3814ba24070c394e7e9966305cac))
+
 # [1.3.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.2.0...v1.3.0) (2026-01-01)
 
 
