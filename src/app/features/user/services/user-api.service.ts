@@ -34,16 +34,39 @@ export class UserApiService {
    * Get current user profile
    */
   getProfile(): Observable<UserProfile> {
-    return this.http.get<ApiResponse<UserProfile>>(`${this.apiUrl}/user/me`)
-      .pipe(map(response => response.data));
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/user/me`)
+      .pipe(map(response => this.mapToUserProfile(response.data)));
+  }
+
+  /**
+   * Map backend response to UserProfile model
+   */
+  private mapToUserProfile(data: any): UserProfile {
+    return {
+      id: data.id,
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      profilePicture: data.profilePicture || undefined,
+      phoneNumber: data.phoneNumber || undefined,
+      country: data.country || undefined,
+      profession: data.profession || undefined,
+      organization: data.organization || undefined,
+      role: (data.role?.toUpperCase() as UserProfile['role']) || 'USER',
+      isVerified: data.verified ?? data.isVerified ?? false,
+      isActive: data.isActive ?? true,
+      lastLogin: data.lastLogin,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    };
   }
 
   /**
    * Update user profile
    */
   updateProfile(userId: string, data: UpdateProfileRequest): Observable<UserProfile> {
-    return this.http.put<ApiResponse<UserProfile>>(`${this.apiUrl}/user/profile/${userId}`, data)
-      .pipe(map(response => response.data));
+    return this.http.put<ApiResponse<any>>(`${this.apiUrl}/user/profile/${userId}`, data)
+      .pipe(map(response => this.mapToUserProfile(response.data)));
   }
 
   /**

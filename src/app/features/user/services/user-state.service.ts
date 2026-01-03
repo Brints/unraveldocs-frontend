@@ -215,7 +215,7 @@ export class UserStateService {
     this._isLoading.set(true);
     this._error.set(null);
 
-    // Load user profile from auth service
+    // Load user profile from auth service as initial data
     const currentUser = this.authService.getCurrentUser();
     if (currentUser) {
       this.setProfileFromUser(currentUser);
@@ -227,6 +227,9 @@ export class UserStateService {
         this.setProfileFromUser(user);
       }
     });
+
+    // Fetch fresh profile data from API (includes profilePicture)
+    this.refreshProfile();
 
     forkJoin({
       // Load collections/documents

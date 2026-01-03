@@ -294,15 +294,22 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<{ accessToken: string }>(`${this.API_URL}/auth/refresh-token`, {
+          .post<any>(`${this.API_URL}/auth/refresh-token`, {
             refreshToken,
           })
           .pipe(catchError(this.handleError))
       );
 
-      if (response) {
-        localStorage.setItem('accessToken', response.accessToken);
-        return response.accessToken;
+      // Handle wrapped response structure: { statusCode, status, message, data: { accessToken, refreshToken, ... } }
+      const tokenData = response?.data || response;
+
+      if (tokenData && tokenData.accessToken) {
+        localStorage.setItem('accessToken', tokenData.accessToken);
+        // Also update refresh token if a new one is provided
+        if (tokenData.refreshToken) {
+          localStorage.setItem('refreshToken', tokenData.refreshToken);
+        }
+        return tokenData.accessToken;
       }
       throw new Error('Token refresh failed');
     } catch (error) {

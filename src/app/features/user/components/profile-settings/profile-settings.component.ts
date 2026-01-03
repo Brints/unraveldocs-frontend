@@ -1,15 +1,11 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { UserStateService } from '../../services/user-state.service';
 import { UserApiService } from '../../services/user-api.service';
 import { UpdateProfileRequest } from '../../models/user.model';
-
-interface CountryOption {
-  code: string;
-  name: string;
-  flag: string;
-}
+import { Countries, Country } from '../../../../shared/ui/form-select/data/countries';
+import { Professions } from '../../../../shared/ui/form-select/data/professions';
 
 @Component({
   selector: 'app-profile-settings',
@@ -37,33 +33,29 @@ export class ProfileSettingsComponent implements OnInit {
   saveSuccess = signal(false);
   saveError = signal<string | null>(null);
 
-  // Countries list
-  readonly countries: CountryOption[] = [
-    { code: 'US', name: 'United States', flag: '🇺🇸' },
-    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
-    { code: 'CA', name: 'Canada', flag: '🇨🇦' },
-    { code: 'AU', name: 'Australia', flag: '🇦🇺' },
-    { code: 'DE', name: 'Germany', flag: '🇩🇪' },
-    { code: 'FR', name: 'France', flag: '🇫🇷' },
-    { code: 'NG', name: 'Nigeria', flag: '🇳🇬' },
-    { code: 'GH', name: 'Ghana', flag: '🇬🇭' },
-    { code: 'KE', name: 'Kenya', flag: '🇰🇪' },
-    { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
-    { code: 'IN', name: 'India', flag: '🇮🇳' },
-    { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
-    { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
-    { code: 'JP', name: 'Japan', flag: '🇯🇵' },
-    { code: 'CN', name: 'China', flag: '🇨🇳' },
-    { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
-    { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
-    { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
-    { code: 'ES', name: 'Spain', flag: '🇪🇸' },
-    { code: 'IT', name: 'Italy', flag: '🇮🇹' },
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  // Countries and Professions lists
+  readonly countries: Country[] = Countries.sort((a, b) => a.name.localeCompare(b.name));
+  readonly professions: string[] = Professions;
+
+  constructor() {
+    // React to profile changes and populate form
+    effect(() => {
+      const profile = this.profile();
+      if (profile && this.profileForm) {
+        this.populateForm(profile);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.initForm();
-    this.loadProfileData();
+    // Populate form with existing profile data if available
+    const currentProfile = this.profile();
+    if (currentProfile) {
+      this.populateForm(currentProfile);
+    }
+    // Call refreshProfile to ensure we have fresh data from API
+    this.userState.refreshProfile();
   }
 
   private initForm(): void {
@@ -78,19 +70,16 @@ export class ProfileSettingsComponent implements OnInit {
     });
   }
 
-  private loadProfileData(): void {
-    const profile = this.profile();
-    if (profile) {
-      this.profileForm.patchValue({
-        firstName: profile.firstName || '',
-        lastName: profile.lastName || '',
-        email: profile.email || '',
-        phoneNumber: profile.phoneNumber || '',
-        country: profile.country || '',
-        profession: profile.profession || '',
-        organization: profile.organization || '',
-      });
-    }
+  private populateForm(profile: NonNullable<ReturnType<typeof this.profile>>): void {
+    this.profileForm.patchValue({
+      firstName: profile.firstName || '',
+      lastName: profile.lastName || '',
+      email: profile.email || '',
+      phoneNumber: profile.phoneNumber || '',
+      country: profile.country || '',
+      profession: profile.profession || '',
+      organization: profile.organization || '',
+    });
   }
 
   onAvatarChange(event: Event): void {

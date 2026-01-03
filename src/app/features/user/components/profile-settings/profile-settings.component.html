@@ -174,13 +174,16 @@
           <!-- Profession -->
           <div class="form-group">
             <label for="profession" class="form-label">Profession</label>
-            <input
-              type="text"
+            <select
               id="profession"
               formControlName="profession"
-              class="form-input"
-              [class.error]="hasError('profession')"
-              placeholder="e.g., Software Engineer"/>
+              class="form-select"
+              [class.error]="hasError('profession')">
+              <option value="">Select profession</option>
+              @for (profession of professions; track profession) {
+                <option [value]="profession">{{ profession }}</option>
+              }
+            </select>
             @if (hasError('profession')) {
               <span class="form-error">{{ getErrorMessage('profession') }}</span>
             }
