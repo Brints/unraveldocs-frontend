@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.2.0...v1.3.0) (2026-01-01)
+
+
+### Features
+
+* **pricing:** implement dynamic plan pricing with multi-currency support ([0a708dd](https://github.com/Brints/unraveldocs-frontend/commit/0a708dd46d9237cbf162895a5d0a50a8d8e5fadf))
+
 # [1.2.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.1.0...v1.2.0) (2025-12-31)
 
 
