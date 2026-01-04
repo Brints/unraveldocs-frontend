@@ -177,7 +177,7 @@
 
           <!-- Document Info -->
           <div class="doc-info">
-            <h3 class="doc-name" [title]="document.fileName">{{ document.fileName }}</h3>
+            <h3 class="doc-name" [title]="document.originalFileName">{{ document.originalFileName }}</h3>
             <div class="doc-meta">
               <span class="doc-size">{{ formatFileSize(document.fileSize) }}</span>
               <span class="separator">·</span>
@@ -201,7 +201,7 @@
 
           <!-- Document Actions -->
           <div class="doc-actions">
-            @if (!document.ocrProcessed && document.status !== 'PROCESSING') {
+            @if (!document.ocrProcessed && document.status !== 'processing') {
               <button
                 type="button"
                 class="action-btn primary"
@@ -272,7 +272,7 @@
         <h3 class="modal-title">Delete File</h3>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to delete <strong>{{ documentToDelete()?.fileName }}</strong>?</p>
+        <p>Are you sure you want to delete <strong>{{ documentToDelete()?.originalFileName }}</strong>?</p>
         <p class="warning-text">This action cannot be undone.</p>
       </div>
       <div class="modal-footer">
@@ -294,7 +294,7 @@
           </svg>
         </div>
         <h3 class="modal-title">Extracted Text</h3>
-        <p class="modal-subtitle">{{ selectedDocument()?.fileName }}</p>
+        <p class="modal-subtitle">{{ selectedDocument()?.originalFileName }}</p>
       </div>
       <div class="modal-body">
         <div class="ocr-text-container">

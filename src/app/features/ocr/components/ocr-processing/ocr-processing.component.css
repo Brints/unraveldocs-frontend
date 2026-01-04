@@ -1,8 +1,9 @@
 /* OCR Processing Styles */
 .ocr-page {
-  max-width: 72rem;
+  max-width: 1200px;
   margin-left: auto;
   margin-right: auto;
+  padding: 1.5rem;
 }
 
 /* ==================== Buttons ==================== */
@@ -359,6 +360,77 @@
   font-family: inherit;
   line-height: 1.6;
   margin: 0;
+}
+
+/* ==================== Pagination ==================== */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f9fafb;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: linear-gradient(to right, #4f46e5, #7c3aed);
+  border-color: transparent;
+  color: white;
+}
+
+.pagination-btn.active:hover {
+  background: linear-gradient(to right, #4338ca, #6d28d9);
+}
+
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
 }
 
 /* ==================== Utilities ==================== */

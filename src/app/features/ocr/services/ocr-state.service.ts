@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { HttpEventType } from '@angular/common/http';
+import { HttpEventType, HttpResponse } from '@angular/common/http';
 import { catchError, of, tap, finalize } from 'rxjs';
 import { OcrApiService } from './ocr-api.service';
 import {
@@ -9,6 +9,7 @@ import {
   OcrFilterOptions,
   OcrData,
   SUPPORTED_LANGUAGES,
+  UploadExtractResponse,
 } from '../models/ocr.model';
 
 @Injectable({
@@ -29,6 +30,10 @@ export class OcrStateService {
   private readonly _successMessage = signal<string | null>(null);
   private readonly _filter = signal<OcrFilterOptions>({});
 
+  // Pagination state
+  private readonly _currentPage = signal(1);
+  private readonly _pageSize = signal(5);
+
   // ==================== Public Readonly Signals ====================
 
   readonly jobs = this._jobs.asReadonly();
@@ -40,6 +45,8 @@ export class OcrStateService {
   readonly error = this._error.asReadonly();
   readonly successMessage = this._successMessage.asReadonly();
   readonly filter = this._filter.asReadonly();
+  readonly currentPage = this._currentPage.asReadonly();
+  readonly pageSize = this._pageSize.asReadonly();
 
   // ==================== Computed Properties ====================
 
@@ -48,7 +55,8 @@ export class OcrStateService {
     const currentFilter = this._filter();
 
     if (currentFilter.status) {
-      jobs = jobs.filter(job => job.status === currentFilter.status);
+      const filterStatus = currentFilter.status.toUpperCase();
+      jobs = jobs.filter(job => job.status.toUpperCase() === filterStatus);
     }
 
     if (currentFilter.searchQuery) {
@@ -63,19 +71,19 @@ export class OcrStateService {
   });
 
   readonly processingJobs = computed(() =>
-    this._jobs().filter(job => job.status === 'PROCESSING')
+    this._jobs().filter(job => job.status.toUpperCase() === 'PROCESSING')
   );
 
   readonly pendingJobs = computed(() =>
-    this._jobs().filter(job => job.status === 'PENDING')
+    this._jobs().filter(job => job.status.toUpperCase() === 'PENDING')
   );
 
   readonly completedJobs = computed(() =>
-    this._jobs().filter(job => job.status === 'COMPLETED')
+    this._jobs().filter(job => job.status.toUpperCase() === 'COMPLETED')
   );
 
   readonly failedJobs = computed(() =>
-    this._jobs().filter(job => job.status === 'FAILED')
+    this._jobs().filter(job => job.status.toUpperCase() === 'FAILED')
   );
 
   readonly totalJobs = computed(() => this._jobs().length);
@@ -89,21 +97,116 @@ export class OcrStateService {
     return Math.round((total / completed.length) * 100);
   });
 
+  // Pagination computed properties
+  readonly totalPages = computed(() => {
+    const totalJobs = this.filteredJobs().length;
+    return Math.ceil(totalJobs / this._pageSize()) || 1;
+  });
+
+  readonly paginatedJobs = computed(() => {
+    const jobs = this.filteredJobs();
+    const page = this._currentPage();
+    const size = this._pageSize();
+    const start = (page - 1) * size;
+    return jobs.slice(start, start + size);
+  });
+
+  readonly hasPreviousPage = computed(() => this._currentPage() > 1);
+  readonly hasNextPage = computed(() => this._currentPage() < this.totalPages());
+
+  readonly pageNumbers = computed(() => {
+    const total = this.totalPages();
+    const current = this._currentPage();
+    const pages: (number | string)[] = [];
+
+    if (total <= 7) {
+      // Show all pages if 7 or less
+      for (let i = 1; i <= total; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show first, last, and pages around current
+      pages.push(1);
+
+      if (current > 3) {
+        pages.push('...');
+      }
+
+      for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+        if (!pages.includes(i)) {
+          pages.push(i);
+        }
+      }
+
+      if (current < total - 2) {
+        pages.push('...');
+      }
+
+      if (!pages.includes(total)) {
+        pages.push(total);
+      }
+    }
+
+    return pages;
+  });
+
   // ==================== Actions ====================
 
   /**
-   * Load OCR jobs (mock data for now until API endpoint exists)
+   * Load OCR jobs from all collections
    */
   loadJobs(): void {
     this._isLoading.set(true);
     this._error.set(null);
+    this._jobs.set([]);
 
-    // Simulate loading - replace with actual API call when available
-    setTimeout(() => {
-      this.loadMockJobs();
-      this.loadMockStats();
-      this._isLoading.set(false);
-    }, 800);
+    // Fetch all collections and get OCR results for each
+    this.api.getAllCollectionsWithOcrResults().pipe(
+      tap(jobs => {
+        this._jobs.set(jobs);
+        this.calculateStats();
+      }),
+      catchError(error => {
+        console.error('Failed to load OCR jobs:', error);
+        this._error.set('Failed to load OCR history');
+        return of([]);
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Calculate stats from current jobs
+   */
+  private calculateStats(): void {
+    const jobs = this._jobs();
+    const completed = jobs.filter(j => j.status.toUpperCase() === 'COMPLETED');
+    const failed = jobs.filter(j => j.status.toUpperCase() === 'FAILED');
+    const pending = jobs.filter(j =>
+      j.status.toUpperCase() === 'PENDING' || j.status.toUpperCase() === 'PROCESSING'
+    );
+
+    // Calculate today's processed
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const processedToday = completed.filter(j => {
+      const jobDate = new Date(j.completedAt || j.createdAt);
+      return jobDate >= today;
+    }).length;
+
+    const avgConfidence = completed.length > 0
+      ? Math.round(completed.reduce((sum, j) => sum + (j.confidence || 0.9), 0) / completed.length * 100)
+      : 0;
+
+    this._stats.set({
+      totalProcessed: completed.length,
+      totalPending: pending.length,
+      totalFailed: failed.length,
+      averageConfidence: avgConfidence,
+      pagesProcessedToday: processedToday,
+      pagesRemaining: 500 - completed.length, // This could come from a subscription/plan API
+      monthlyLimit: 500 // This could come from a subscription/plan API
+    });
   }
 
   /**
@@ -146,8 +249,7 @@ export class OcrStateService {
                   status: 'COMPLETED' as OcrStatus,
                   progress: 100,
                   extractedText: result.extractedText,
-                  confidence: result.confidence,
-                  language: result.language,
+                  error: result.errorMessage || undefined,
                   completedAt: new Date().toISOString()
                 }
               : j
@@ -187,7 +289,7 @@ export class OcrStateService {
     this._uploadProgress.set(0);
     this._error.set(null);
 
-    // Add jobs for each file
+    // Add jobs for each file with pending status
     const newJobs: OcrJob[] = files.map((file, index) => ({
       id: `ocr-${Date.now()}-${index}`,
       collectionId: '',
@@ -208,7 +310,7 @@ export class OcrStateService {
           const progress = Math.round((event.loaded / event.total) * 100);
           this._uploadProgress.set(progress);
 
-          // Update job progress
+          // Update job progress during upload
           this._jobs.update(jobs =>
             jobs.map(j =>
               newJobs.some(nj => nj.id === j.id)
@@ -217,15 +319,35 @@ export class OcrStateService {
             )
           );
         } else if (event.type === HttpEventType.Response) {
-          // Mark as completed
-          this._jobs.update(jobs =>
-            jobs.map(j =>
-              newJobs.some(nj => nj.id === j.id)
-                ? { ...j, progress: 100, status: 'COMPLETED' as OcrStatus, completedAt: new Date().toISOString() }
-                : j
-            )
-          );
-          this._successMessage.set(`${files.length} files processed successfully!`);
+          const response = event as HttpResponse<any>;
+          const data = response.body?.data as UploadExtractResponse;
+
+          if (data && data.collectionId) {
+            // Update jobs with collection and document IDs
+            this._jobs.update(jobs =>
+              jobs.map(j => {
+                if (newJobs.some(nj => nj.id === j.id)) {
+                  const fileData = data.files?.find(f => f.originalFileName === j.fileName);
+                  if (fileData) {
+                    return {
+                      ...j,
+                      collectionId: data.collectionId,
+                      documentId: fileData.documentId,
+                      fileUrl: fileData.fileUrl,
+                      progress: 75,
+                      status: (data.overallStatus === 'processing' ? 'PROCESSING' : 'COMPLETED') as OcrStatus
+                    };
+                  }
+                }
+                return j;
+              })
+            );
+
+            // Start polling for OCR results
+            this.pollOcrResults(data.collectionId, newJobs.map(j => j.id));
+          }
+
+          this._successMessage.set(`${files.length} file(s) uploaded and queued for processing!`);
           setTimeout(() => this._successMessage.set(null), 3000);
         }
       }),
@@ -233,7 +355,7 @@ export class OcrStateService {
         this._jobs.update(jobs =>
           jobs.map(j =>
             newJobs.some(nj => nj.id === j.id)
-              ? { ...j, status: 'FAILED' as OcrStatus, error: 'Processing failed' }
+              ? { ...j, status: 'FAILED' as OcrStatus, error: error.error?.message || 'Processing failed' }
               : j
           )
         );
@@ -242,10 +364,113 @@ export class OcrStateService {
         return of(null);
       }),
       finalize(() => {
-        this._isProcessing.set(false);
         this._uploadProgress.set(0);
       })
     ).subscribe();
+  }
+
+  /**
+   * Poll for OCR results until processing is complete
+   */
+  private pollOcrResults(collectionId: string, jobIds: string[]): void {
+    const pollInterval = 3000; // 3 seconds
+    const maxAttempts = 20; // Max 1 minute of polling
+    let attempts = 0;
+
+    const poll = () => {
+      attempts++;
+
+      this.api.getOcrResults(collectionId).pipe(
+        tap(results => {
+          // Update jobs with OCR results
+          this._jobs.update(jobs =>
+            jobs.map(j => {
+              if (jobIds.includes(j.id) && j.collectionId === collectionId) {
+                const fileResult = results.files?.find(f => f.documentId === j.documentId);
+                if (fileResult) {
+                  const status = this.mapStatus(fileResult.status);
+                  return {
+                    ...j,
+                    status,
+                    progress: status === 'COMPLETED' || status === 'FAILED' ? 100 : j.progress,
+                    extractedText: fileResult.extractedText || undefined,
+                    error: fileResult.errorMessage || undefined,
+                    completedAt: status === 'COMPLETED' || status === 'FAILED' ? new Date().toISOString() : undefined
+                  };
+                }
+              }
+              return j;
+            })
+          );
+
+          // Check if all jobs are complete
+          const allComplete = results.overallStatus === 'processed' ||
+                              results.overallStatus === 'failed_ocr' ||
+                              results.overallStatus === 'completed';
+
+          if (!allComplete && attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            this._isProcessing.set(false);
+            this.updateStatsFromJobs();
+          }
+        }),
+        catchError(error => {
+          console.error('Poll OCR results error:', error);
+          if (attempts < maxAttempts) {
+            setTimeout(poll, pollInterval);
+          } else {
+            this._isProcessing.set(false);
+          }
+          return of(null);
+        })
+      ).subscribe();
+    };
+
+    // Start polling after a short delay
+    setTimeout(poll, 2000);
+  }
+
+  /**
+   * Map API status to OcrStatus
+   */
+  private mapStatus(status: string): OcrStatus {
+    const statusUpper = status.toUpperCase();
+    switch (statusUpper) {
+      case 'SUCCESS':
+      case 'COMPLETED':
+        return 'COMPLETED';
+      case 'PROCESSING':
+        return 'PROCESSING';
+      case 'FAILED':
+        return 'FAILED';
+      default:
+        return 'PENDING';
+    }
+  }
+
+  /**
+   * Update stats based on current jobs
+   */
+  private updateStatsFromJobs(): void {
+    const jobs = this._jobs();
+    const completed = jobs.filter(j => j.status.toUpperCase() === 'COMPLETED');
+    const failed = jobs.filter(j => j.status.toUpperCase() === 'FAILED');
+    const pending = jobs.filter(j => j.status.toUpperCase() === 'PENDING' || j.status.toUpperCase() === 'PROCESSING');
+
+    const avgConfidence = completed.length > 0
+      ? Math.round(completed.reduce((sum, j) => sum + (j.confidence || 0.9), 0) / completed.length * 100)
+      : 0;
+
+    this._stats.update(current => ({
+      totalProcessed: (current?.totalProcessed || 0) + completed.length,
+      totalPending: pending.length,
+      totalFailed: failed.length,
+      averageConfidence: avgConfidence || current?.averageConfidence || 0,
+      pagesProcessedToday: (current?.pagesProcessedToday || 0) + completed.length,
+      pagesRemaining: current?.pagesRemaining || 500,
+      monthlyLimit: current?.monthlyLimit || 500
+    }));
   }
 
   /**
@@ -401,6 +626,37 @@ export class OcrStateService {
 
   clearFilter(): void {
     this._filter.set({});
+    this._currentPage.set(1); // Reset to first page when filter is cleared
+  }
+
+  // ==================== Pagination Actions ====================
+
+  setPage(page: number): void {
+    const total = this.totalPages();
+    if (page >= 1 && page <= total) {
+      this._currentPage.set(page);
+    }
+  }
+
+  nextPage(): void {
+    if (this.hasNextPage()) {
+      this._currentPage.update(p => p + 1);
+    }
+  }
+
+  previousPage(): void {
+    if (this.hasPreviousPage()) {
+      this._currentPage.update(p => p - 1);
+    }
+  }
+
+  setPageSize(size: number): void {
+    this._pageSize.set(size);
+    this._currentPage.set(1); // Reset to first page when page size changes
+  }
+
+  resetPagination(): void {
+    this._currentPage.set(1);
   }
 
   // ==================== Utility ====================
@@ -415,91 +671,6 @@ export class OcrStateService {
 
   getLanguageName(code: string): string {
     return SUPPORTED_LANGUAGES[code] || SUPPORTED_LANGUAGES['unknown'];
-  }
-
-  // ==================== Mock Data ====================
-
-  private loadMockJobs(): void {
-    const mockJobs: OcrJob[] = [
-      {
-        id: 'ocr-1',
-        collectionId: 'col-1',
-        documentId: 'doc-1',
-        fileName: 'invoice-2024-001.pdf',
-        fileSize: 245000,
-        mimeType: 'application/pdf',
-        status: 'COMPLETED',
-        progress: 100,
-        extractedText: 'INVOICE\n\nInvoice Number: INV-2024-001\nDate: December 15, 2024\n\nBill To:\nAcme Corporation\n123 Business Street\nNew York, NY 10001\n\nDescription: Professional Services\nAmount: $5,000.00\n\nSubtotal: $5,000.00\nTax (10%): $500.00\nTotal: $5,500.00\n\nPayment Terms: Net 30\nDue Date: January 14, 2025',
-        confidence: 0.96,
-        language: 'en',
-        createdAt: new Date(Date.now() - 3600000).toISOString(),
-        completedAt: new Date(Date.now() - 3500000).toISOString()
-      },
-      {
-        id: 'ocr-2',
-        collectionId: 'col-1',
-        documentId: 'doc-2',
-        fileName: 'contract-agreement.pdf',
-        fileSize: 890000,
-        mimeType: 'application/pdf',
-        status: 'COMPLETED',
-        progress: 100,
-        extractedText: 'SERVICE AGREEMENT\n\nThis Agreement is entered into as of December 1, 2024, by and between:\n\nParty A: UnravelDocs Inc.\nParty B: Client Company LLC\n\n1. SERVICES\nThe Service Provider agrees to provide document processing and OCR services as specified in Exhibit A.\n\n2. TERM\nThis Agreement shall commence on the Effective Date and continue for a period of twelve (12) months.\n\n3. COMPENSATION\nClient shall pay Service Provider according to the pricing schedule in Exhibit B.',
-        confidence: 0.94,
-        language: 'en',
-        createdAt: new Date(Date.now() - 7200000).toISOString(),
-        completedAt: new Date(Date.now() - 7100000).toISOString()
-      },
-      {
-        id: 'ocr-3',
-        collectionId: 'col-2',
-        documentId: 'doc-3',
-        fileName: 'receipt-scan.jpg',
-        fileSize: 156000,
-        mimeType: 'image/jpeg',
-        status: 'PROCESSING',
-        progress: 65,
-        createdAt: new Date(Date.now() - 60000).toISOString()
-      },
-      {
-        id: 'ocr-4',
-        collectionId: 'col-2',
-        documentId: 'doc-4',
-        fileName: 'handwritten-notes.png',
-        fileSize: 320000,
-        mimeType: 'image/png',
-        status: 'FAILED',
-        progress: 0,
-        error: 'Unable to extract text: Image quality too low',
-        createdAt: new Date(Date.now() - 1800000).toISOString()
-      },
-      {
-        id: 'ocr-5',
-        collectionId: 'col-3',
-        documentId: 'doc-5',
-        fileName: 'report-q4-2024.pdf',
-        fileSize: 1250000,
-        mimeType: 'application/pdf',
-        status: 'PENDING',
-        progress: 0,
-        createdAt: new Date().toISOString()
-      }
-    ];
-
-    this._jobs.set(mockJobs);
-  }
-
-  private loadMockStats(): void {
-    this._stats.set({
-      totalProcessed: 156,
-      totalPending: 3,
-      totalFailed: 2,
-      averageConfidence: 94,
-      pagesProcessedToday: 23,
-      pagesRemaining: 477,
-      monthlyLimit: 500
-    });
   }
 }
 

@@ -37,6 +37,14 @@ export class OcrProcessingComponent implements OnInit {
   readonly failedJobs = this.ocrState.failedJobs;
   readonly pendingJobs = this.ocrState.pendingJobs;
 
+  // Pagination
+  readonly paginatedJobs = this.ocrState.paginatedJobs;
+  readonly currentPage = this.ocrState.currentPage;
+  readonly totalPages = this.ocrState.totalPages;
+  readonly pageNumbers = this.ocrState.pageNumbers;
+  readonly hasPreviousPage = this.ocrState.hasPreviousPage;
+  readonly hasNextPage = this.ocrState.hasNextPage;
+
   ngOnInit(): void {
     this.ocrState.loadJobs();
   }
@@ -104,6 +112,7 @@ export class OcrProcessingComponent implements OnInit {
   // Tab management
   setActiveTab(tab: 'all' | 'processing' | 'completed' | 'failed'): void {
     this.activeTab.set(tab);
+    this.ocrState.resetPagination(); // Reset to page 1 when switching tabs
 
     if (tab === 'all') {
       this.ocrState.clearFilter();
@@ -118,17 +127,31 @@ export class OcrProcessingComponent implements OnInit {
   }
 
   getTabJobs(): OcrJob[] {
-    const tab = this.activeTab();
-    switch (tab) {
-      case 'processing':
-        return [...this.processingJobs(), ...this.pendingJobs()];
-      case 'completed':
-        return this.completedJobs();
-      case 'failed':
-        return this.failedJobs();
-      default:
-        return this.jobs();
+    // Use paginated jobs for display
+    return this.paginatedJobs();
+  }
+
+  // Pagination methods
+  goToPage(page: number | string): void {
+    if (typeof page === 'number') {
+      this.ocrState.setPage(page);
     }
+  }
+
+  nextPage(): void {
+    this.ocrState.nextPage();
+  }
+
+  previousPage(): void {
+    this.ocrState.previousPage();
+  }
+
+  getStartIndex(): number {
+    return (this.currentPage() - 1) * 5 + 1;
+  }
+
+  getEndIndex(): number {
+    return Math.min(this.currentPage() * 5, this.filteredJobs().length);
   }
 
   // Job actions
@@ -206,8 +229,10 @@ export class OcrProcessingComponent implements OnInit {
   }
 
   getStatusIcon(status: OcrStatus): string {
-    switch (status) {
+    const s = status.toUpperCase();
+    switch (s) {
       case 'COMPLETED':
+      case 'SUCCESS':
         return 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z';
       case 'PROCESSING':
         return 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15';
@@ -221,13 +246,51 @@ export class OcrProcessingComponent implements OnInit {
   }
 
   getStatusColor(status: OcrStatus): string {
-    switch (status) {
-      case 'COMPLETED': return 'text-green-600 bg-green-100';
-      case 'PROCESSING': return 'text-blue-600 bg-blue-100';
-      case 'FAILED': return 'text-red-600 bg-red-100';
-      case 'PENDING': return 'text-amber-600 bg-amber-100';
-      default: return 'text-gray-600 bg-gray-100';
+    const s = status.toUpperCase();
+    switch (s) {
+      case 'COMPLETED':
+      case 'SUCCESS':
+        return 'text-green-600 bg-green-100';
+      case 'PROCESSING':
+        return 'text-blue-600 bg-blue-100';
+      case 'FAILED':
+        return 'text-red-600 bg-red-100';
+      case 'PENDING':
+        return 'text-amber-600 bg-amber-100';
+      default:
+        return 'text-gray-600 bg-gray-100';
     }
+  }
+
+  getStatusLabel(status: OcrStatus): string {
+    const s = status.toUpperCase();
+    switch (s) {
+      case 'COMPLETED':
+      case 'SUCCESS':
+        return 'Completed';
+      case 'PROCESSING':
+        return 'Processing';
+      case 'FAILED':
+        return 'Failed';
+      case 'PENDING':
+        return 'Pending';
+      default:
+        return status;
+    }
+  }
+
+  isProcessingStatus(status: OcrStatus): boolean {
+    const s = status.toUpperCase();
+    return s === 'PROCESSING' || s === 'PENDING';
+  }
+
+  isCompletedStatus(status: OcrStatus): boolean {
+    const s = status.toUpperCase();
+    return s === 'COMPLETED' || s === 'SUCCESS';
+  }
+
+  isFailedStatus(status: OcrStatus): boolean {
+    return status.toUpperCase() === 'FAILED';
   }
 
   getConfidenceColor(confidence?: number): string {

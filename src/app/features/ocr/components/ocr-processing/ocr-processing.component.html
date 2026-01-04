@@ -208,7 +208,7 @@
   } @else {
     <div class="space-y-3">
       @for (job of getTabJobs(); track job.id) {
-        <div class="job-card" [class.processing]="job.status === 'PROCESSING'" [class.failed]="job.status === 'FAILED'">
+        <div class="job-card" [class.processing]="isProcessingStatus(job.status)" [class.failed]="isFailedStatus(job.status)">
           <!-- File Icon -->
           <div class="job-icon" [class]="getStatusColor(job.status)">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -221,7 +221,7 @@
             <div class="flex items-center gap-2">
               <h3 class="font-semibold text-gray-900 truncate">{{ job.fileName }}</h3>
               <span class="status-badge" [class]="getStatusColor(job.status)">
-                {{ job.status }}
+                {{ getStatusLabel(job.status) }}
               </span>
             </div>
             <div class="flex items-center gap-3 text-sm text-gray-500 mt-1">
@@ -241,12 +241,12 @@
             </div>
 
             <!-- Progress Bar -->
-            @if (job.status === 'PROCESSING' || job.status === 'PENDING') {
+            @if (isProcessingStatus(job.status)) {
               <div class="mt-2">
                 <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
                   <div
                     class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
-                    [class.animate-pulse]="job.status === 'PENDING'"
+                    [class.animate-pulse]="job.status.toUpperCase() === 'PENDING'"
                     [style.width.%]="job.progress">
                   </div>
                 </div>
@@ -261,7 +261,7 @@
 
           <!-- Actions -->
           <div class="job-actions">
-            @if (job.status === 'COMPLETED' && job.extractedText) {
+            @if (isCompletedStatus(job.status) && job.extractedText) {
               <button
                 type="button"
                 class="action-btn"
@@ -302,7 +302,7 @@
                 </button>
               }
             }
-            @if (job.status === 'FAILED') {
+            @if (isFailedStatus(job.status)) {
               <button
                 type="button"
                 class="action-btn text-amber-600 hover:bg-amber-50"
@@ -326,6 +326,52 @@
         </div>
       }
     </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <div class="pagination-info">
+          <span class="text-sm text-gray-500">
+            Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ filteredJobs().length }} results
+          </span>
+        </div>
+        <div class="pagination-controls">
+          <button
+            type="button"
+            class="pagination-btn"
+            [disabled]="!hasPreviousPage()"
+            (click)="previousPage()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </button>
+
+          @for (page of pageNumbers(); track page) {
+            @if (page === '...') {
+              <span class="pagination-ellipsis">...</span>
+            } @else {
+              <button
+                type="button"
+                class="pagination-btn"
+                [class.active]="page === currentPage()"
+                (click)="goToPage(page)">
+                {{ page }}
+              </button>
+            }
+          }
+
+          <button
+            type="button"
+            class="pagination-btn"
+            [disabled]="!hasNextPage()"
+            (click)="nextPage()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    }
   }
 </div>
 

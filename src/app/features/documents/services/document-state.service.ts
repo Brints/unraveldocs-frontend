@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { catchError, of, tap, finalize, switchMap } from 'rxjs';
+import { catchError, of, tap, finalize } from 'rxjs';
 import { DocumentApiService } from './document-api.service';
 import {
   DocumentCollection,
@@ -9,7 +9,7 @@ import {
   DocumentFilter,
   DocumentSort,
   ViewMode,
-  OcrResult,
+  FileStatus,
 } from '../models/document.model';
 
 @Injectable({
@@ -72,12 +72,13 @@ export class DocumentStateService {
     if (currentFilter.searchQuery) {
       const query = currentFilter.searchQuery.toLowerCase();
       documents = documents.filter(doc =>
-        doc.fileName.toLowerCase().includes(query)
+        doc.originalFileName.toLowerCase().includes(query)
       );
     }
 
     if (currentFilter.status) {
-      documents = documents.filter(doc => doc.status === currentFilter.status);
+      const statusFilter = currentFilter.status;
+      documents = documents.filter(doc => doc.status === statusFilter);
     }
 
     if (currentFilter.ocrProcessed !== undefined) {
@@ -90,7 +91,7 @@ export class DocumentStateService {
       let comparison = 0;
       switch (sortConfig.field) {
         case 'fileName':
-          comparison = a.fileName.localeCompare(b.fileName);
+          comparison = a.originalFileName.localeCompare(b.originalFileName);
           break;
         case 'createdAt':
           comparison = new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
@@ -223,9 +224,9 @@ export class DocumentStateService {
     this.api.deleteCollection(collectionId).pipe(
       tap(() => {
         this._collections.update(cols =>
-          cols.filter(c => c.collectionId !== collectionId)
+          cols.filter(c => c.id !== collectionId)
         );
-        if (this._currentCollection()?.collectionId === collectionId) {
+        if (this._currentCollection()?.id === collectionId) {
           this._currentCollection.set(null);
         }
         this._successMessage.set('Collection deleted successfully');
