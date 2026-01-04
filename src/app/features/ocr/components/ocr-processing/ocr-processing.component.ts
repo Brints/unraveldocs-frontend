@@ -44,6 +44,8 @@ export class OcrProcessingComponent implements OnInit {
   readonly pageNumbers = this.ocrState.pageNumbers;
   readonly hasPreviousPage = this.ocrState.hasPreviousPage;
   readonly hasNextPage = this.ocrState.hasNextPage;
+  readonly pageSize = this.ocrState.pageSize;
+  readonly pageSizeOptions = OcrStateService.PAGE_SIZE_OPTIONS;
 
   ngOnInit(): void {
     this.ocrState.loadJobs();
@@ -147,11 +149,19 @@ export class OcrProcessingComponent implements OnInit {
   }
 
   getStartIndex(): number {
-    return (this.currentPage() - 1) * 5 + 1;
+    const size = this.pageSize();
+    return (this.currentPage() - 1) * size + 1;
   }
 
   getEndIndex(): number {
-    return Math.min(this.currentPage() * 5, this.filteredJobs().length);
+    const size = this.pageSize();
+    return Math.min(this.currentPage() * size, this.filteredJobs().length);
+  }
+
+  onPageSizeChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const size = parseInt(select.value, 10);
+    this.ocrState.setPageSize(size);
   }
 
   // Job actions

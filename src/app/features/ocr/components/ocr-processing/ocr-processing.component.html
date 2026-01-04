@@ -328,48 +328,62 @@
     </div>
 
     <!-- Pagination -->
-    @if (totalPages() > 1) {
+    @if (totalPages() > 1 || filteredJobs().length > 0) {
       <div class="pagination">
         <div class="pagination-info">
           <span class="text-sm text-gray-500">
             Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ filteredJobs().length }} results
           </span>
+          <div class="page-size-selector">
+            <label class="text-sm text-gray-500">Show</label>
+            <select
+              class="page-size-select"
+              [value]="pageSize()"
+              (change)="onPageSizeChange($event)">
+              @for (size of pageSizeOptions; track size) {
+                <option [value]="size">{{ size }}</option>
+              }
+            </select>
+            <span class="text-sm text-gray-500">per page</span>
+          </div>
         </div>
-        <div class="pagination-controls">
-          <button
-            type="button"
-            class="pagination-btn"
-            [disabled]="!hasPreviousPage()"
-            (click)="previousPage()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-          </button>
+        @if (totalPages() > 1) {
+          <div class="pagination-controls">
+            <button
+              type="button"
+              class="pagination-btn"
+              [disabled]="!hasPreviousPage()"
+              (click)="previousPage()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
 
-          @for (page of pageNumbers(); track page) {
-            @if (page === '...') {
-              <span class="pagination-ellipsis">...</span>
-            } @else {
-              <button
-                type="button"
-                class="pagination-btn"
-                [class.active]="page === currentPage()"
-                (click)="goToPage(page)">
-                {{ page }}
-              </button>
+            @for (page of pageNumbers(); track page) {
+              @if (page === '...') {
+                <span class="pagination-ellipsis">...</span>
+              } @else {
+                <button
+                  type="button"
+                  class="pagination-btn"
+                  [class.active]="page === currentPage()"
+                  (click)="goToPage(page)">
+                  {{ page }}
+                </button>
+              }
             }
-          }
 
-          <button
-            type="button"
-            class="pagination-btn"
-            [disabled]="!hasNextPage()"
-            (click)="nextPage()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-            </svg>
-          </button>
-        </div>
+            <button
+              type="button"
+              class="pagination-btn"
+              [disabled]="!hasNextPage()"
+              (click)="nextPage()">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        }
       </div>
     }
   }
