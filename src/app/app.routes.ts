@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { LandingComponent } from './features/landing-page/components/landing.component';
+import { authGuard } from './core/auth/guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -44,6 +45,20 @@ export const routes: Routes = [
   {
     path: '',
     loadChildren: () => import('./features/teams/teams.routes').then(m => m.teamRoutes)
+  },
+  {
+    path: 'search',
+    loadComponent: () => import('./features/user/components/dashboard-layout/dashboard-layout.component')
+      .then(m => m.DashboardLayoutComponent),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./shared/components/search/search.component')
+          .then(m => m.SearchComponent),
+        title: 'Search - UnravelDocs'
+      }
+    ]
   },
   { path: '**', redirectTo: '/home' }
 ];

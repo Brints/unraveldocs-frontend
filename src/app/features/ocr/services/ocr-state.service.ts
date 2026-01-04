@@ -32,7 +32,10 @@ export class OcrStateService {
 
   // Pagination state
   private readonly _currentPage = signal(1);
-  private readonly _pageSize = signal(5);
+  private readonly _pageSize = signal(10); // Default 10 per page
+
+  // Page size options
+  static readonly PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
   // ==================== Public Readonly Signals ====================
 
