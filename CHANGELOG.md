@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.4.0...v1.5.0) (2026-01-04)
+
+
+### Features
+
+* **search:** users can search for documents in real-time ([8edb6b0](https://github.com/Brints/unraveldocs-frontend/commit/8edb6b073a96dd3d8d07a0de0656c36c1e683300))
+
 # [1.4.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.3.1...v1.4.0) (2026-01-04)
 
 
