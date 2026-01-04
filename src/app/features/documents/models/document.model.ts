@@ -5,26 +5,69 @@
 
 // ==================== Document Collection ====================
 
-export interface DocumentCollection {
-  collectionId: string;
+/**
+ * Collection as returned from GET /documents/my-collections
+ */
+export interface DocumentCollectionSummary {
+  id: string;
+  collectionStatus: CollectionStatus;
   fileCount: number;
   createdAt: string;
-  files?: DocumentFile[];
+  updatedAt: string;
+  uploadTimestamp: string;
 }
+
+/**
+ * Collection as returned from GET /documents/collection/{collectionId}
+ */
+export interface DocumentCollectionDetail {
+  id: string;
+  collectionStatus: CollectionStatus;
+  files: DocumentFile[];
+  createdAt: string;
+  updatedAt: string;
+  uploadTimestamp: string;
+  userId: string;
+}
+
+/**
+ * Unified collection interface for internal use
+ */
+export interface DocumentCollection {
+  id: string;
+  collectionStatus: CollectionStatus;
+  fileCount: number;
+  createdAt: string;
+  updatedAt?: string;
+  uploadTimestamp?: string;
+  files?: DocumentFile[];
+  userId?: string;
+}
+
+export type CollectionStatus =
+  | 'pending'
+  | 'processing'
+  | 'processed'
+  | 'completed'
+  | 'failed'
+  | 'failed_ocr';
 
 export interface DocumentFile {
   documentId: string;
-  fileName: string;
+  originalFileName: string;
   fileUrl: string;
-  fileSize?: number;
+  fileSize: number;
+  status: FileStatus;
   mimeType?: string;
-  status: DocumentStatus;
-  ocrProcessed: boolean;
+  ocrProcessed?: boolean;
   extractedText?: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
+export type FileStatus = 'success' | 'pending' | 'processing' | 'failed';
+
+// Legacy type alias for backward compatibility
 export type DocumentStatus =
   | 'UPLOADED'
   | 'PROCESSING'
@@ -37,13 +80,15 @@ export type DocumentStatus =
 export interface UploadResponse {
   collectionId: string;
   files: UploadedFile[];
+  overallStatus: string;
 }
 
 export interface UploadedFile {
   documentId: string;
-  fileName: string;
+  originalFileName: string;
+  fileSize: number;
   fileUrl: string;
-  status: DocumentStatus;
+  status: FileStatus;
 }
 
 export interface UploadProgress {
@@ -101,7 +146,7 @@ export interface DocumentsState {
 // ==================== Filter & Sort ====================
 
 export interface DocumentFilter {
-  status?: DocumentStatus;
+  status?: FileStatus;
   ocrProcessed?: boolean;
   searchQuery?: string;
   dateFrom?: string;

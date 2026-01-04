@@ -135,9 +135,9 @@
   } @else {
     <!-- Collections Grid -->
     <div [class]="viewMode() === 'grid' ? 'collections-grid' : 'collections-list'">
-      @for (collection of filteredCollections(); track collection.collectionId) {
+      @for (collection of filteredCollections(); track collection.id) {
         <div class="collection-card" [class.list-view]="viewMode() === 'list'">
-          <a [routerLink]="['/documents/collection', collection.collectionId]" class="card-link">
+          <a [routerLink]="['/documents/collection', collection.id]" class="card-link">
             <div class="card-icon">
               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
@@ -145,17 +145,20 @@
             </div>
             <div class="card-content">
               <h3 class="card-title">Collection</h3>
-              <p class="card-id">{{ collection.collectionId.substring(0, 8) }}...</p>
+              <p class="card-id">{{ collection.id.substring(0, 8) }}...</p>
               <div class="card-meta">
                 <span class="file-count">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                   </svg>
-                  {{ collection.fileCount }} files
+                  {{ collection.fileCount }} {{ collection.fileCount === 1 ? 'file' : 'files' }}
                 </span>
                 <span class="separator">·</span>
                 <span class="created-at">{{ getRelativeTime(collection.createdAt) }}</span>
               </div>
+              <span class="status-badge" [class]="'status-' + collection.collectionStatus">
+                {{ getStatusLabel(collection.collectionStatus) }}
+              </span>
             </div>
           </a>
           <div class="card-actions">
@@ -163,7 +166,7 @@
               type="button"
               class="action-btn"
               title="View collection"
-              [routerLink]="['/documents/collection', collection.collectionId]">
+              [routerLink]="['/documents/collection', collection.id]">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>

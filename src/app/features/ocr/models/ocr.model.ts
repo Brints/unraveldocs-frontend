@@ -6,12 +6,88 @@
 // ==================== OCR Status ====================
 
 export type OcrStatus =
+  | 'pending'
+  | 'processing'
+  | 'completed'
+  | 'failed'
   | 'PENDING'
   | 'PROCESSING'
   | 'COMPLETED'
   | 'FAILED';
 
-// ==================== OCR Job ====================
+export type OcrOverallStatus =
+  | 'processing'
+  | 'processed'
+  | 'failed_ocr'
+  | 'completed';
+
+// ==================== OCR Extraction Result ====================
+
+/**
+ * Response from POST /collections/{collectionId}/document/{documentId}/extract
+ */
+export interface OcrExtractionResult {
+  id: string;
+  documentId: string;
+  status: string;
+  extractedText: string;
+  errorMessage: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ==================== Upload and Extract All ====================
+
+/**
+ * Response from POST /collections/upload/extract-all
+ */
+export interface UploadExtractResponse {
+  collectionId: string;
+  files: UploadedOcrFile[];
+  overallStatus: string;
+}
+
+export interface UploadedOcrFile {
+  documentId: string;
+  originalFileName: string;
+  fileSize: number;
+  fileUrl: string;
+  status: string;
+}
+
+// ==================== OCR Collection Results ====================
+
+/**
+ * Response from GET /collections/{collectionId}/document/results
+ */
+export interface OcrCollectionResults {
+  collectionId: string;
+  files: OcrFileResult[];
+  overallStatus: OcrOverallStatus;
+}
+
+export interface OcrFileResult {
+  documentId: string;
+  originalFileName: string;
+  status: string;
+  extractedText: string | null;
+  errorMessage: string | null;
+  createdAt: string;
+}
+
+// ==================== OCR Data ====================
+
+/**
+ * Response from GET /collections/{collectionId}/document/{documentId}/ocr-data
+ */
+export interface OcrData {
+  documentId: string;
+  fileName: string;
+  extractedText: string;
+  confidence: number;
+}
+
+// ==================== OCR Job (Internal State) ====================
 
 export interface OcrJob {
   id: string;
@@ -30,49 +106,6 @@ export interface OcrJob {
   startedAt?: string;
   completedAt?: string;
   createdAt: string;
-}
-
-// ==================== OCR Result ====================
-
-export interface OcrExtractionResult {
-  documentId: string;
-  extractedText: string;
-  confidence: number;
-  language: string;
-}
-
-export interface OcrCollectionResults {
-  collectionId: string;
-  results: OcrDocumentResult[];
-}
-
-export interface OcrDocumentResult {
-  documentId: string;
-  fileName: string;
-  extractedText: string;
-  status: OcrStatus;
-  confidence?: number;
-}
-
-// ==================== OCR Data ====================
-
-export interface OcrData {
-  documentId: string;
-  fileName: string;
-  extractedText: string;
-  confidence: number;
-}
-
-// ==================== OCR Queue ====================
-
-export interface OcrQueueItem {
-  id: string;
-  collectionId: string;
-  documentId: string;
-  fileName: string;
-  status: OcrStatus;
-  progress: number;
-  addedAt: string;
 }
 
 // ==================== OCR Statistics ====================

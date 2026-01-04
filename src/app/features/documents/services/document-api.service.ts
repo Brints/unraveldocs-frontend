@@ -1,10 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpEvent, HttpEventType, HttpRequest } from '@angular/common/http';
-import { Observable, map, filter } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
   DocumentApiResponse,
   DocumentCollection,
+  DocumentCollectionSummary,
+  DocumentCollectionDetail,
   DocumentFile,
   UploadResponse,
   OcrResult,
@@ -58,19 +60,35 @@ export class DocumentApiService {
    * GET /documents/my-collections
    */
   getMyCollections(): Observable<DocumentCollection[]> {
-    return this.http.get<DocumentApiResponse<DocumentCollection[]>>(
+    return this.http.get<DocumentApiResponse<DocumentCollectionSummary[] | null>>(
       `${this.apiUrl}/documents/my-collections`
-    ).pipe(map(response => response.data));
+    ).pipe(
+      map(response => {
+        const data = response?.data;
+        if (!data || !Array.isArray(data)) {
+          return [];
+        }
+        return data.map(item => this.mapToDocumentCollection(item));
+      })
+    );
   }
 
   /**
    * Get collection by ID
    * GET /documents/collection/{collectionId}
    */
-  getCollection(collectionId: string): Observable<DocumentCollection> {
-    return this.http.get<DocumentApiResponse<DocumentCollection>>(
+  getCollection(collectionId: string): Observable<DocumentCollection | null> {
+    return this.http.get<DocumentApiResponse<DocumentCollectionDetail | null>>(
       `${this.apiUrl}/documents/collection/${collectionId}`
-    ).pipe(map(response => response.data));
+    ).pipe(
+      map(response => {
+        const data = response?.data;
+        if (!data) {
+          return null;
+        }
+        return this.mapDetailToDocumentCollection(data);
+      })
+    );
   }
 
   /**
@@ -97,10 +115,18 @@ export class DocumentApiService {
    * Get file from collection
    * GET /documents/collection/{collectionId}/document/{documentId}
    */
-  getDocument(collectionId: string, documentId: string): Observable<DocumentFile> {
-    return this.http.get<DocumentApiResponse<DocumentFile>>(
+  getDocument(collectionId: string, documentId: string): Observable<DocumentFile | null> {
+    return this.http.get<DocumentApiResponse<any>>(
       `${this.apiUrl}/documents/collection/${collectionId}/document/${documentId}`
-    ).pipe(map(response => response.data));
+    ).pipe(
+      map(response => {
+        const data = response?.data;
+        if (!data) {
+          return null;
+        }
+        return this.mapToDocumentFile(data);
+      })
+    );
   }
 
   /**
@@ -157,6 +183,56 @@ export class DocumentApiService {
       `${this.apiUrl}/collections/${collectionId}/documents/${documentId}/download/docx`,
       { responseType: 'blob' }
     );
+  }
+
+  // ==================== Mapping Methods ====================
+
+  /**
+   * Map API collection summary to unified DocumentCollection
+   */
+  private mapToDocumentCollection(data: DocumentCollectionSummary): DocumentCollection {
+    return {
+      id: data.id,
+      collectionStatus: data.collectionStatus || 'pending',
+      fileCount: data.fileCount || 0,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      uploadTimestamp: data.uploadTimestamp,
+    };
+  }
+
+  /**
+   * Map API collection detail to unified DocumentCollection
+   */
+  private mapDetailToDocumentCollection(data: DocumentCollectionDetail): DocumentCollection {
+    return {
+      id: data.id,
+      collectionStatus: data.collectionStatus || 'pending',
+      fileCount: data.files?.length || 0,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+      uploadTimestamp: data.uploadTimestamp,
+      files: (data.files || []).map(f => this.mapToDocumentFile(f)),
+      userId: data.userId,
+    };
+  }
+
+  /**
+   * Map API file to DocumentFile
+   */
+  private mapToDocumentFile(data: any): DocumentFile {
+    return {
+      documentId: data.documentId,
+      originalFileName: data.originalFileName || data.fileName || 'Unknown',
+      fileUrl: data.fileUrl || '',
+      fileSize: data.fileSize || 0,
+      status: data.status || 'pending',
+      mimeType: data.mimeType,
+      ocrProcessed: data.ocrProcessed || false,
+      extractedText: data.extractedText,
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    };
   }
 
   // ==================== Helper Methods ====================

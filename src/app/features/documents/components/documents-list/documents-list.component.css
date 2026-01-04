@@ -1,7 +1,8 @@
 /* Documents List Styles */
 .documents-page {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 1.5rem;
 }
 
 /* ==================== Page Header ==================== */
@@ -355,6 +356,41 @@
 
 .separator {
   color: #cbd5e1;
+}
+
+/* Status Badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  border-radius: 9999px;
+  margin-top: 0.75rem;
+}
+
+.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-processing {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-processed,
+.status-completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status-failed,
+.status-failed_ocr {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 /* Card Actions */

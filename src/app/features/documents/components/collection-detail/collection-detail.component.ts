@@ -92,7 +92,7 @@ export class CollectionDetailComponent implements OnInit {
     this.documentState.downloadAsDocx(
       this.collectionId(),
       document.documentId,
-      document.fileName
+      document.originalFileName
     );
   }
 
@@ -177,22 +177,23 @@ export class CollectionDetailComponent implements OnInit {
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'COMPLETED': return 'success';
-      case 'PROCESSING': return 'processing';
-      case 'FAILED': return 'error';
-      case 'PENDING': return 'pending';
+    switch (status.toLowerCase()) {
+      case 'success':
+      case 'completed': return 'success';
+      case 'processing': return 'processing';
+      case 'failed': return 'error';
+      case 'pending': return 'pending';
       default: return 'default';
     }
   }
 
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'COMPLETED': return 'Completed';
-      case 'PROCESSING': return 'Processing';
-      case 'FAILED': return 'Failed';
-      case 'PENDING': return 'Pending';
-      case 'UPLOADED': return 'Uploaded';
+    switch (status.toLowerCase()) {
+      case 'success': return 'Success';
+      case 'completed': return 'Completed';
+      case 'processing': return 'Processing';
+      case 'failed': return 'Failed';
+      case 'pending': return 'Pending';
       default: return status;
     }
   }

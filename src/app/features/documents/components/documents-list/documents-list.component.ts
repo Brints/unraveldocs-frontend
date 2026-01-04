@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentStateService } from '../../services/document-state.service';
-import { DocumentCollection, ViewMode, DocumentSort } from '../../models/document.model';
+import { DocumentCollection, ViewMode, DocumentSort, CollectionStatus } from '../../models/document.model';
 
 @Component({
   selector: 'app-documents-list',
@@ -34,7 +34,7 @@ export class DocumentsListComponent implements OnInit {
     const query = this.searchQuery().toLowerCase();
     if (!query) return this.collections();
     return this.collections().filter(col =>
-      col.collectionId.toLowerCase().includes(query)
+      col.id.toLowerCase().includes(query)
     );
   });
 
@@ -59,7 +59,7 @@ export class DocumentsListComponent implements OnInit {
   deleteCollection(): void {
     const collection = this.collectionToDelete();
     if (collection) {
-      this.documentState.deleteCollection(collection.collectionId);
+      this.documentState.deleteCollection(collection.id);
       this.closeDeleteModal();
     }
   }
@@ -89,6 +89,18 @@ export class DocumentsListComponent implements OnInit {
     if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
     if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
     return this.formatDate(dateString);
+  }
+
+  getStatusLabel(status: CollectionStatus): string {
+    const statusLabels: Record<CollectionStatus, string> = {
+      'pending': 'Pending',
+      'processing': 'Processing',
+      'processed': 'Processed',
+      'completed': 'Completed',
+      'failed': 'Failed',
+      'failed_ocr': 'OCR Failed'
+    };
+    return statusLabels[status] || status;
   }
 }
 
