@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.3.1...v1.4.0) (2026-01-04)
+
+
+### Features
+
+* **ocr:** adding pagination to ocr pages. ([f6d914d](https://github.com/Brints/unraveldocs-frontend/commit/f6d914d371f82f0e1f5d8dccc1f7ac48a0d3b42c))
+
 ## [1.3.1](https://github.com/Brints/unraveldocs-frontend/compare/v1.3.0...v1.3.1) (2026-01-03)
 
 
