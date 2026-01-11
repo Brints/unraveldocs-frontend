@@ -1,18 +1,24 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { UserApiService } from '../../services/user-api.service';
 import { NotificationPreferences } from '../../models/user.model';
+import { PushNotificationService } from '../../../notifications/services/push-notification.service';
+import { NotificationStateService } from '../../../notifications/services/notification-state.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-notification-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './notification-settings.component.html',
   styleUrls: ['./notification-settings.component.css']
 })
 export class NotificationSettingsComponent implements OnInit {
   private readonly userApi = inject(UserApiService);
+  readonly pushService = inject(PushNotificationService);
+  readonly notificationState = inject(NotificationStateService);
 
   // State
   isLoading = signal(true);
@@ -126,6 +132,7 @@ export class NotificationSettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPreferences();
+    this.pushService.checkSubscriptionStatus();
   }
 
   private loadPreferences(): void {
@@ -135,6 +142,15 @@ export class NotificationSettingsComponent implements OnInit {
     setTimeout(() => {
       this.isLoading.set(false);
     }, 800);
+  }
+
+  async enableBrowserPush(): Promise<void> {
+    const vapidKey = (environment as any).firebase?.vapidKey || '';
+    await this.pushService.subscribe(vapidKey);
+  }
+
+  async disableBrowserPush(): Promise<void> {
+    await this.pushService.unsubscribe();
   }
 
   toggleEmailNotification(key: string): void {

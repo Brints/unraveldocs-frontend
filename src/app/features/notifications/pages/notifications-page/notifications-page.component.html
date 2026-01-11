@@ -1,0 +1,59 @@
+<div class="notifications-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Notifications</h1>
+      <p class="subtitle">Stay updated with your document processing and account activity</p>
+    </div>
+    <div class="header-actions">
+      @if (notificationState.hasUnread()) {
+        <button
+          class="btn btn-secondary"
+          (click)="markAllAsRead()"
+          [disabled]="notificationState.isProcessing()">
+          Mark all as read
+        </button>
+      }
+      <a routerLink="/settings/notifications" class="btn btn-outline">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+        Settings
+      </a>
+    </div>
+  </div>
+
+  @if (notificationState.error()) {
+    <div class="alert alert-error">
+      {{ notificationState.error() }}
+      <button class="alert-close" (click)="notificationState.clearError()">×</button>
+    </div>
+  }
+
+  @if (notificationState.successMessage()) {
+    <div class="alert alert-success">
+      {{ notificationState.successMessage() }}
+    </div>
+  }
+
+  <div class="notifications-content">
+    <app-notification-filters
+      [selectedCategory]="notificationState.selectedCategory()"
+      [showUnreadOnly]="notificationState.showUnreadOnly()"
+      [unreadCount]="notificationState.unreadCount()"
+      (categoryChange)="onCategoryChange($event)"
+      (unreadOnlyChange)="onUnreadOnlyChange($event)">
+    </app-notification-filters>
+
+    <app-notification-list
+      [notifications]="notificationState.filteredNotifications()"
+      [isLoading]="notificationState.isLoading()"
+      [hasMore]="notificationState.hasMorePages()"
+      [isLoadingMore]="notificationState.isLoadingMore()"
+      (markAsRead)="onMarkAsRead($event)"
+      (delete)="onDelete($event)"
+      (loadMore)="onLoadMore()">
+    </app-notification-list>
+  </div>
+</div>
+

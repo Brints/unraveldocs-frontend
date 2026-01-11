@@ -1,0 +1,141 @@
+@if (isLoading) {
+  <div class="loading-state">
+    @for (i of skeletonItems; track i) {
+      <div class="skeleton-item">
+        <div class="skeleton-icon"></div>
+        <div class="skeleton-content">
+          <div class="skeleton-title"></div>
+          <div class="skeleton-message"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (notifications.length === 0) {
+  <div class="empty-state">
+    <div class="empty-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+      </svg>
+    </div>
+    <h3>No notifications</h3>
+    <p>You're all caught up! Check back later for updates.</p>
+  </div>
+} @else {
+  <div class="notification-list">
+    @for (notification of notifications; track notification.id) {
+      <div
+        class="notification-item"
+        [class.unread]="!notification.isRead"
+        (click)="onNotificationClick(notification)">
+        <div class="notification-icon" [class]="getCategoryClass(notification)">
+          @switch (getCategory(notification)) {
+            @case ('document') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            }
+            @case ('ocr') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                <path d="M5 12V5a2 2 0 0 1 2-2h7l5 5v4"/>
+                <path d="M5 18h1.5c.8 0 1.5-.7 1.5-1.5v0c0-.8-.7-1.5-1.5-1.5H5v4"/>
+                <path d="M17 18h2"/>
+                <path d="M20 15v6"/>
+                <path d="M11 15h2v4.5a1.5 1.5 0 0 1-3 0v0a1.5 1.5 0 0 1 1-1.5"/>
+              </svg>
+            }
+            @case ('payment') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="14" x="2" y="5" rx="2"/>
+                <line x1="2" x2="22" y1="10" y2="10"/>
+              </svg>
+            }
+            @case ('storage') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                <path d="M3 5V19A9 3 0 0 0 21 19V5"/>
+                <path d="M3 12A9 3 0 0 0 21 12"/>
+              </svg>
+            }
+            @case ('subscription') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            }
+            @case ('team') {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            }
+            @default {
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+              </svg>
+            }
+          }
+        </div>
+
+        <div class="notification-content">
+          <div class="notification-header">
+            <span class="notification-title">{{ notification.title }}</span>
+            <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+          </div>
+          <p class="notification-message">{{ notification.message }}</p>
+          <span class="notification-type">{{ notification.typeDisplayName }}</span>
+        </div>
+
+        <div class="notification-actions">
+          @if (!notification.isRead) {
+            <button
+              class="action-btn"
+              title="Mark as read"
+              (click)="onMarkAsRead($event, notification.id)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </button>
+          }
+          <button
+            class="action-btn action-delete"
+            title="Delete"
+            (click)="onDelete($event, notification.id)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+            </svg>
+          </button>
+        </div>
+
+        @if (!notification.isRead) {
+          <div class="unread-indicator"></div>
+        }
+      </div>
+    }
+
+    @if (hasMore) {
+      <div class="load-more">
+        <button
+          class="load-more-btn"
+          (click)="onLoadMore()"
+          [disabled]="isLoadingMore">
+          @if (isLoadingMore) {
+            <span class="spinner-sm"></span>
+            Loading...
+          } @else {
+            Load more notifications
+          }
+        </button>
+      </div>
+    }
+  </div>
+}
+

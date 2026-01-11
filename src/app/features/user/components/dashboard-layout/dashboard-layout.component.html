@@ -168,12 +168,13 @@
             type="button"
             class="action-btn"
             (click)="toggleNotifications()"
-            [class.active]="notificationsOpen()">
+            [class.active]="notificationsOpen()"
+            [class.has-unread]="unreadNotifications() > 0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
             </svg>
             @if (unreadNotifications() > 0) {
-              <span class="notification-badge">{{ unreadNotifications() }}</span>
+              <span class="notification-badge">{{ unreadNotifications() > 99 ? '99+' : unreadNotifications() }}</span>
             }
           </button>
 
@@ -183,13 +184,17 @@
               <div class="dropdown-header">
                 <h3>Notifications</h3>
                 @if (unreadNotifications() > 0) {
-                  <button type="button" class="mark-all-read" (click)="userState.markAllNotificationsAsRead()">
+                  <button type="button" class="mark-all-read" (click)="markAllNotificationsAsRead()">
                     Mark all as read
                   </button>
                 }
               </div>
               <div class="dropdown-content">
-                @if (notifications().length === 0) {
+                @if (notificationState.isLoading()) {
+                  <div class="loading-notifications">
+                    <div class="spinner"></div>
+                  </div>
+                } @else if (notifications().length === 0) {
                   <div class="empty-notifications">
                     <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
@@ -200,9 +205,9 @@
                   @for (notification of notifications(); track notification.id) {
                     <div
                       class="notification-item"
-                      [class.unread]="!notification.read"
-                      (click)="userState.markNotificationAsRead(notification.id)">
-                      <div class="notification-icon" [class]="getNotificationColor(notification.type)">
+                      [class.unread]="!notification.isRead"
+                      (click)="onNotificationClick(notification)">
+                      <div class="notification-icon" [class]="getNotificationCategory(notification.type)">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
                         </svg>
@@ -210,14 +215,17 @@
                       <div class="notification-content">
                         <p class="notification-title">{{ notification.title }}</p>
                         <p class="notification-message">{{ notification.message }}</p>
-                        <span class="notification-time">{{ formatTimeAgo(notification.timestamp) }}</span>
+                        <span class="notification-time">{{ formatTimeAgo(notification.createdAt) }}</span>
                       </div>
+                      @if (!notification.isRead) {
+                        <span class="unread-dot"></span>
+                      }
                     </div>
                   }
                 }
               </div>
               <div class="dropdown-footer">
-                <a routerLink="/settings/notifications" class="view-all-link" (click)="closeDropdowns()">
+                <a routerLink="/notifications" class="view-all-link" (click)="closeDropdowns()">
                   View all notifications
                 </a>
               </div>

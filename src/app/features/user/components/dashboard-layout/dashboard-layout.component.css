@@ -368,10 +368,22 @@
   color: #1e293b;
 }
 
+.action-btn.has-unread {
+  animation: bellShake 0.5s ease-in-out;
+}
+
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(15deg); }
+  40% { transform: rotate(-10deg); }
+  60% { transform: rotate(5deg); }
+  80% { transform: rotate(-5deg); }
+}
+
 .notification-badge {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 4px;
+  right: 4px;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
@@ -383,6 +395,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  animation: badgePulse 2s ease-in-out infinite;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
 }
 
 /* User Menu Button */
@@ -612,6 +631,15 @@
   justify-content: center;
 }
 
+/* Notification category colors */
+.notification-icon.notification-document { background: #dbeafe; color: #2563eb; }
+.notification-icon.notification-ocr { background: #fae8ff; color: #a855f7; }
+.notification-icon.notification-payment { background: #dcfce7; color: #16a34a; }
+.notification-icon.notification-storage { background: #fef3c7; color: #d97706; }
+.notification-icon.notification-subscription { background: #cffafe; color: #0891b2; }
+.notification-icon.notification-team { background: #fce7f3; color: #db2777; }
+.notification-icon.notification-system { background: #f1f5f9; color: #64748b; }
+
 .notification-content {
   flex: 1;
   min-width: 0;
@@ -637,6 +665,35 @@
 .notification-time {
   font-size: 0.75rem;
   color: #94a3b8;
+}
+
+.unread-dot {
+  width: 8px;
+  height: 8px;
+  background: #667eea;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+
+.loading-notifications {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+}
+
+.loading-notifications .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid #e2e8f0;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 .empty-notifications {

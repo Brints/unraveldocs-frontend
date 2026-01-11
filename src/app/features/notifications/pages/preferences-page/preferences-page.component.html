@@ -1,0 +1,368 @@
+<div class="preferences-page">
+  <div class="page-header">
+    <a routerLink="/notifications" class="back-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m15 18-6-6 6-6"/>
+      </svg>
+      Back to Notifications
+    </a>
+    <h1>Notification Preferences</h1>
+    <p class="subtitle">Manage how you receive notifications</p>
+  </div>
+
+  @if (notificationState.error()) {
+    <div class="alert alert-error">
+      {{ notificationState.error() }}
+      <button class="alert-close" (click)="notificationState.clearError()">×</button>
+    </div>
+  }
+
+  @if (notificationState.successMessage()) {
+    <div class="alert alert-success">
+      {{ notificationState.successMessage() }}
+    </div>
+  }
+
+  @if (pushService.error()) {
+    <div class="alert alert-error">
+      {{ pushService.error() }}
+      <button class="alert-close" (click)="pushService.clearError()">×</button>
+    </div>
+  }
+
+  @if (notificationState.isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading preferences...</p>
+    </div>
+  } @else {
+    <div class="preferences-content">
+      <!-- Push Notifications Section -->
+      <section class="preference-section">
+        <div class="section-header">
+          <h2>Push Notifications</h2>
+          <p>Receive real-time notifications in your browser</p>
+        </div>
+
+        <div class="push-status">
+          @if (!pushService.isSupported()) {
+            <div class="status-badge status-unsupported">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" x2="12" y1="8" y2="12"/>
+                <line x1="12" x2="12.01" y1="16" y2="16"/>
+              </svg>
+              Push notifications are not supported in this browser
+            </div>
+          } @else if (pushService.permissionState() === 'denied') {
+            <div class="status-badge status-denied">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" x2="9" y1="9" y2="15"/>
+                <line x1="9" x2="15" y1="9" y2="15"/>
+              </svg>
+              Push notifications are blocked. Please enable them in your browser settings.
+            </div>
+          } @else if (pushService.isSubscribed()) {
+            <div class="status-badge status-enabled">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              Push notifications enabled
+            </div>
+            <button
+              class="btn btn-outline btn-sm"
+              (click)="sendTestNotification()"
+              [disabled]="isSendingTest">
+              @if (isSendingTest) {
+                <span class="spinner-sm"></span>
+              }
+              Test Notification
+            </button>
+            <button
+              class="btn btn-outline btn-sm"
+              (click)="disablePushNotifications()"
+              [disabled]="pushService.isLoading()">
+              @if (pushService.isLoading()) {
+                <span class="spinner-sm"></span>
+              }
+              Disable
+            </button>
+          } @else {
+            <button
+              class="btn btn-primary"
+              (click)="enablePushNotifications()"
+              [disabled]="pushService.isLoading()">
+              @if (pushService.isLoading()) {
+                <span class="spinner-sm"></span>
+                Enabling...
+              } @else {
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+                </svg>
+                Enable Push Notifications
+              }
+            </button>
+          }
+        </div>
+
+        @if (preferences) {
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Push Notifications</label>
+              <span>Receive push notifications on this device</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.pushEnabled"
+                (change)="updatePreference('pushEnabled', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Email Notifications</label>
+              <span>Receive notifications via email</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.emailEnabled"
+                (change)="updatePreference('emailEnabled', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        }
+      </section>
+
+      <!-- Notification Types Section -->
+      @if (preferences) {
+        <section class="preference-section">
+          <div class="section-header">
+            <h2>Notification Types</h2>
+            <p>Choose which notifications you want to receive</p>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Document Notifications</label>
+              <span>Upload success, failures, and deletions</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.documentNotifications"
+                (change)="updatePreference('documentNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>OCR Notifications</label>
+              <span>Text extraction processing updates</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.ocrNotifications"
+                (change)="updatePreference('ocrNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Payment Notifications</label>
+              <span>Payment confirmations and refunds</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.paymentNotifications"
+                (change)="updatePreference('paymentNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Storage Notifications</label>
+              <span>Storage usage warnings</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.storageNotifications"
+                (change)="updatePreference('storageNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Subscription Notifications</label>
+              <span>Subscription expiry and renewal alerts</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.subscriptionNotifications"
+                (change)="updatePreference('subscriptionNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Team Notifications</label>
+              <span>Team invitations and member changes</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.teamNotifications"
+                (change)="updatePreference('teamNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+        </section>
+
+        <!-- Quiet Hours Section -->
+        <section class="preference-section">
+          <div class="section-header">
+            <h2>Quiet Hours</h2>
+            <p>Pause notifications during specific hours</p>
+          </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Enable Quiet Hours</label>
+              <span>Pause push notifications during set times</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.quietHoursEnabled"
+                (change)="updatePreference('quietHoursEnabled', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          @if (preferences.quietHoursEnabled) {
+            <div class="quiet-hours-times">
+              <div class="time-input">
+                <label>Start Time</label>
+                <input
+                  type="time"
+                  [value]="formatTimeForInput(preferences.quietHoursStart)"
+                  (change)="updateQuietHoursStart($any($event.target).value)"
+                  [disabled]="notificationState.isProcessing()">
+              </div>
+              <div class="time-input">
+                <label>End Time</label>
+                <input
+                  type="time"
+                  [value]="formatTimeForInput(preferences.quietHoursEnd)"
+                  (change)="updateQuietHoursEnd($any($event.target).value)"
+                  [disabled]="notificationState.isProcessing()">
+              </div>
+            </div>
+          }
+        </section>
+      }
+
+      <!-- Registered Devices Section -->
+      <section class="preference-section">
+        <div class="section-header">
+          <h2>Registered Devices</h2>
+          <p>Devices that receive push notifications</p>
+        </div>
+
+        @if (notificationState.devices().length === 0) {
+          <div class="empty-devices">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="14" x="2" y="3" rx="2"/>
+              <line x1="8" x2="16" y1="21" y2="21"/>
+              <line x1="12" x2="12" y1="17" y2="21"/>
+            </svg>
+            <p>No devices registered for push notifications</p>
+          </div>
+        } @else {
+          <div class="devices-list">
+            @for (device of notificationState.devices(); track device.id) {
+              <div class="device-item">
+                <div class="device-icon">
+                  @switch (device.deviceType) {
+                    @case ('WEB') {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="3" rx="2"/>
+                        <line x1="8" x2="16" y1="21" y2="21"/>
+                        <line x1="12" x2="12" y1="17" y2="21"/>
+                      </svg>
+                    }
+                    @case ('ANDROID') {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                        <path d="M12 18h.01"/>
+                      </svg>
+                    }
+                    @case ('IOS') {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="14" height="20" x="5" y="2" rx="2" ry="2"/>
+                        <path d="M12 18h.01"/>
+                      </svg>
+                    }
+                    @default {
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect width="20" height="14" x="2" y="3" rx="2"/>
+                        <line x1="8" x2="16" y1="21" y2="21"/>
+                        <line x1="12" x2="12" y1="17" y2="21"/>
+                      </svg>
+                    }
+                  }
+                </div>
+                <div class="device-info">
+                  <span class="device-name">{{ device.deviceName || 'Unknown Device' }}</span>
+                  <span class="device-meta">
+                    {{ device.deviceType }} •
+                    @if (device.lastUsedAt) {
+                      Last used {{ formatDate(device.lastUsedAt) }}
+                    } @else {
+                      Registered {{ formatDate(device.createdAt) }}
+                    }
+                  </span>
+                </div>
+                <button
+                  class="btn btn-ghost btn-sm"
+                  (click)="removeDevice(device.id)"
+                  [disabled]="notificationState.isProcessing()"
+                  title="Remove device">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"/>
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</div>
+
