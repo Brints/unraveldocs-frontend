@@ -122,12 +122,61 @@
         </div>
       </div>
       <div class="card-footer">
-        <div class="info-banner">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <p>Push notifications require browser permission. <button type="button" class="link-btn">Enable in browser</button></p>
-        </div>
+        @if (!pushService.isSupported()) {
+          <div class="info-banner warning">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <p>Push notifications are not supported in this browser.</p>
+          </div>
+        } @else if (pushService.permissionState() === 'denied') {
+          <div class="info-banner warning">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <p>Push notifications are blocked. Please enable them in your browser settings.</p>
+          </div>
+        } @else if (pushService.isSubscribed()) {
+          <div class="info-banner success">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <p>Push notifications are enabled.
+              <a routerLink="/notifications" class="link-btn">View Notifications</a>
+              <span class="link-separator">|</span>
+              <button type="button" class="link-btn" (click)="disableBrowserPush()" [disabled]="pushService.isLoading()">
+                @if (pushService.isLoading()) {
+                  Disabling...
+                } @else {
+                  Disable Push
+                }
+              </button>
+            </p>
+          </div>
+        } @else {
+          <div class="info-banner">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>Push notifications require browser permission.
+              <button type="button" class="link-btn" (click)="enableBrowserPush()" [disabled]="pushService.isLoading()">
+                @if (pushService.isLoading()) {
+                  Enabling...
+                } @else {
+                  Enable in browser
+                }
+              </button>
+            </p>
+          </div>
+        }
+        @if (pushService.error()) {
+          <div class="info-banner error">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p>{{ pushService.error() }}</p>
+          </div>
+        }
       </div>
     </div>
 

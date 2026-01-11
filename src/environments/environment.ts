@@ -10,6 +10,9 @@ export const environment = {
       'profile'
     ]
   },
+  firebase: {
+    vapidKey: 'BA9vHlh0UvrISwSjtG-tvA84Y41_h6KYIwfqipL0nAHHFg5uPdBKptQcwFhsc1A673B5bY9mvPC09Sc4Y-_I2Sc'
+  },
   features: {
     googleOneTap: true,
     googlePopupAuth: true,

@@ -1,0 +1,26 @@
+<div class="notification-filters">
+  <div class="filter-tabs">
+    @for (category of categories; track category.value) {
+      <button
+        class="filter-tab"
+        [class.active]="selectedCategory === category.value"
+        (click)="selectCategory(category.value)">
+        {{ category.label }}
+      </button>
+    }
+  </div>
+
+  <div class="filter-actions">
+    <button
+      class="filter-toggle"
+      [class.active]="showUnreadOnly"
+      (click)="toggleUnreadOnly()">
+      <span class="toggle-indicator"></span>
+      Unread only
+      @if (unreadCount > 0) {
+        <span class="badge">{{ unreadCount }}</span>
+      }
+    </button>
+  </div>
+</div>
+

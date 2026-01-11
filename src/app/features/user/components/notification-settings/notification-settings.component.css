@@ -269,6 +269,17 @@
   color: #92400e;
 }
 
+.info-banner.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.info-banner.error {
+  background: #fef2f2;
+  color: #dc2626;
+  margin-top: 0.5rem;
+}
+
 .info-banner p {
   margin: 0;
   flex: 1;
@@ -285,6 +296,12 @@
 
 .link-btn:hover {
   text-decoration: none;
+}
+
+.link-separator {
+  margin: 0 0.5rem;
+  color: inherit;
+  opacity: 0.5;
 }
 
 /* Quiet Hours */
