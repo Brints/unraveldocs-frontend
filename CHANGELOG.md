@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.5.0...v1.6.0) (2026-01-11)
+
+
+### Features
+
+* **notifications:** add push notification service with real-time updates ([ee9b267](https://github.com/Brints/unraveldocs-frontend/commit/ee9b267d4de08fe70eb3bdb412123aa5399ff1e5))
+
 # [1.5.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.4.0...v1.5.0) (2026-01-04)
 
 
