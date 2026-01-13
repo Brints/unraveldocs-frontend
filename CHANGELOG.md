@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.6.0...v1.7.0) (2026-01-13)
+
+
+### Features
+
+* Align team subscription type with backend enum ([d8844ab](https://github.com/Brints/unraveldocs-frontend/commit/d8844abd32f0788ff04e35c251368e00cc5d82fb))
+
 # [1.6.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.5.0...v1.6.0) (2026-01-11)
 
 
