@@ -7,11 +7,13 @@ import { User } from '../../../core/auth/models/auth.model';
 import {
   UserProfile,
   DashboardStats,
+  StorageInfo,
   Activity,
   Notification,
   Subscription,
   Team,
   DocumentSummary,
+  RecentCollection,
   UpdateProfileRequest,
   StatCard,
   QuickAction,
@@ -28,6 +30,8 @@ export class UserStateService {
 
   private readonly _profile = signal<UserProfile | null>(null);
   private readonly _stats = signal<DashboardStats | null>(null);
+  private readonly _storageInfo = signal<StorageInfo | null>(null);
+  private readonly _recentCollections = signal<RecentCollection[]>([]);
   private readonly _activities = signal<Activity[]>([]);
   private readonly _notifications = signal<Notification[]>([]);
   private readonly _subscription = signal<Subscription | null>(null);
@@ -41,6 +45,8 @@ export class UserStateService {
 
   readonly profile = this._profile.asReadonly();
   readonly stats = this._stats.asReadonly();
+  readonly storageInfo = this._storageInfo.asReadonly();
+  readonly recentCollections = this._recentCollections.asReadonly();
   readonly activities = this._activities.asReadonly();
   readonly notifications = this._notifications.asReadonly();
   readonly subscription = this._subscription.asReadonly();
@@ -69,19 +75,20 @@ export class UserStateService {
   });
 
   readonly storagePercentage = computed(() => {
-    const stats = this._stats();
-    if (!stats || stats.storageLimit === 0) return 0;
-    return Math.round((stats.storageUsed / stats.storageLimit) * 100);
+    const storage = this._storageInfo();
+    if (!storage || storage.storageLimit === 0) return 0;
+    return storage.percentageUsed;
   });
 
   readonly ocrUsagePercentage = computed(() => {
-    const stats = this._stats();
-    if (!stats || stats.ocrPagesLimit === 0) return 0;
-    return Math.round((stats.ocrPagesUsed / stats.ocrPagesLimit) * 100);
+    const storage = this._storageInfo();
+    if (!storage || storage.ocrPageLimit === 0 || storage.ocrUnlimited) return 0;
+    return Math.round((storage.ocrPagesUsed / storage.ocrPageLimit) * 100);
   });
 
   readonly storageStatus = computed(() => {
-    const percentage = this.storagePercentage();
+    const storage = this._storageInfo();
+    const percentage = storage?.percentageUsed ?? 0;
     if (percentage >= 90) return { status: 'critical', color: 'red', message: 'Storage almost full' };
     if (percentage >= 75) return { status: 'warning', color: 'amber', message: 'Storage running low' };
     return { status: 'healthy', color: 'green', message: 'Storage healthy' };
@@ -101,57 +108,68 @@ export class UserStateService {
   });
 
   readonly statCards = computed<StatCard[]>(() => {
-    const stats = this._stats();
-    if (!stats) return [];
+    const storage = this._storageInfo();
+
+    // Return empty if no storage data yet
+    if (!storage) return [];
 
     return [
       {
         id: 'documents',
-        title: 'Total Documents',
-        value: stats.totalDocuments,
+        title: 'Documents',
+        value: `${storage.documentsUploaded}`,
         icon: 'document',
-        color: 'blue',
-        change: {
-          value: `+${stats.documentsThisMonth} this month`,
-          percentage: 12,
-          type: 'increase'
-        },
+        color: storage.documentQuotaExceeded ? 'red' : 'blue',
+        subtitle: storage.documentsUnlimited
+          ? 'Unlimited'
+          : `${storage.documentsRemaining} remaining of ${storage.documentUploadLimit}`,
         link: '/documents'
       },
       {
         id: 'ocr',
-        title: 'OCR Pages Used',
-        value: `${stats.ocrPagesUsed}/${stats.ocrPagesLimit}`,
+        title: 'OCR Pages',
+        value: storage.ocrUnlimited
+          ? `${storage.ocrPagesUsed}`
+          : `${storage.ocrPagesUsed}/${storage.ocrPageLimit}`,
         icon: 'ocr',
-        color: 'purple',
-        subtitle: `${this.ocrUsagePercentage()}% used`,
+        color: storage.ocrQuotaExceeded ? 'red' : 'purple',
+        subtitle: storage.ocrUnlimited
+          ? 'Unlimited'
+          : `${storage.ocrPagesRemaining} remaining`,
         link: '/subscriptions'
       },
       {
         id: 'storage',
         title: 'Storage',
-        value: `${stats.storageUsed}GB`,
+        value: storage.storageUsedFormatted,
         icon: 'storage',
         color: this.storageStatus().color === 'red' ? 'red' :
                this.storageStatus().color === 'amber' ? 'orange' : 'green',
-        subtitle: `${stats.storageUsed}GB of ${stats.storageLimit}GB`,
+        subtitle: storage.unlimited
+          ? 'Unlimited'
+          : `${storage.storageUsedFormatted} of ${storage.storageLimitFormatted}`,
         link: '/settings/billing'
       },
       {
-        id: 'teams',
-        title: 'Teams',
-        value: stats.teamsCount,
-        icon: 'team',
+        id: 'plan',
+        title: 'Plan',
+        value: this.formatPlanName(storage.subscriptionPlan),
+        icon: 'chart',
         color: 'indigo',
-        change: {
-          value: `${stats.collaborations} collaborations`,
-          percentage: 0,
-          type: 'neutral'
-        },
-        link: '/teams'
+        subtitle: storage.billingInterval,
+        link: '/subscriptions'
       }
     ];
   });
+
+  /**
+   * Format subscription plan name for display
+   */
+  private formatPlanName(plan: string): string {
+    if (!plan) return 'Free';
+    // Convert "Business_Yearly" to "Business"
+    return plan.split('_')[0].replace(/([A-Z])/g, ' $1').trim();
+  }
 
   readonly quickActions = computed<QuickAction[]>(() => {
     const sub = this._subscription();
@@ -235,13 +253,24 @@ export class UserStateService {
       // Load collections/documents
       collections: this.api.getCollections().pipe(catchError(() => of([]))),
       teams: this.api.getTeams().pipe(catchError(() => of([]))),
+      // Load storage info from API
+      storageInfo: this.api.getStorageInfo().pipe(catchError(() => of(null))),
     }).pipe(
       tap(data => {
         if (data.teams) this._teams.set(data.teams);
 
-        // Load mock stats for now (until API endpoints are ready)
-        this.loadMockStats();
-        this.loadMockActivities();
+        // Set storage info from API
+        if (data.storageInfo) {
+          this._storageInfo.set(data.storageInfo);
+        }
+
+        // Set collections and generate activities from them
+        if (data.collections) {
+          this._recentCollections.set(data.collections);
+          this.generateActivitiesFromCollections(data.collections);
+        }
+
+        // Load mock subscription until API is ready
         this.loadMockSubscription();
 
         this._lastUpdated.set(new Date().toISOString());
@@ -253,6 +282,73 @@ export class UserStateService {
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
+  }
+
+  /**
+   * Generate activities from recent collections
+   */
+  private generateActivitiesFromCollections(collections: RecentCollection[]): void {
+    const activities: Activity[] = collections
+      .slice(0, 10) // Limit to 10 most recent
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map(collection => {
+        const activityType = this.getActivityTypeFromStatus(collection.collectionStatus);
+        return {
+          id: collection.id,
+          type: activityType,
+          title: `Collection ${collection.id.substring(0, 8)}...`,
+          description: this.getActivityDescription(collection),
+          timestamp: collection.updatedAt || collection.createdAt,
+          document: {
+            id: collection.id,
+            name: `${collection.fileCount} file${collection.fileCount !== 1 ? 's' : ''}`,
+            collectionId: collection.id
+          }
+        };
+      });
+
+    this._activities.set(activities);
+  }
+
+  /**
+   * Get activity type based on collection status
+   */
+  private getActivityTypeFromStatus(status: string): Activity['type'] {
+    switch (status) {
+      case 'completed':
+      case 'processed':
+        return 'ocr_completed';
+      case 'processing':
+      case 'pending':
+        return 'file_uploaded';
+      case 'failed':
+      case 'failed_ocr':
+        return 'ocr_failed';
+      default:
+        return 'document_created';
+    }
+  }
+
+  /**
+   * Get activity description based on collection
+   */
+  private getActivityDescription(collection: RecentCollection): string {
+    const fileText = collection.fileCount === 1 ? '1 file' : `${collection.fileCount} files`;
+
+    switch (collection.collectionStatus) {
+      case 'completed':
+      case 'processed':
+        return `OCR processing completed for ${fileText}`;
+      case 'processing':
+        return `Processing ${fileText}...`;
+      case 'pending':
+        return `${fileText} uploaded, waiting for processing`;
+      case 'failed':
+      case 'failed_ocr':
+        return `OCR processing failed for ${fileText}`;
+      default:
+        return `${fileText} uploaded`;
+    }
   }
 
   /**
@@ -287,6 +383,19 @@ export class UserStateService {
       tap(profile => this._profile.set(profile)),
       catchError(error => {
         console.error('Profile refresh error:', error);
+        return of(null);
+      })
+    ).subscribe();
+  }
+
+  /**
+   * Refresh storage info from API
+   */
+  refreshStorageInfo(): void {
+    this.api.getStorageInfo().pipe(
+      tap(storageInfo => this._storageInfo.set(storageInfo)),
+      catchError(error => {
+        console.error('Storage info refresh error:', error);
         return of(null);
       })
     ).subscribe();
@@ -377,64 +486,6 @@ export class UserStateService {
 
   // ==================== Mock Data Methods (temporary until API is ready) ====================
 
-  private loadMockStats(): void {
-    this._stats.set({
-      totalDocuments: 47,
-      documentsThisMonth: 12,
-      ocrPagesUsed: 89,
-      ocrPagesLimit: 150,
-      storageUsed: 2.4,
-      storageLimit: 5,
-      collaborations: 8,
-      teamsCount: 2,
-      pendingTasks: 5,
-      completedTasks: 23
-    });
-  }
-
-  private loadMockActivities(): void {
-    this._activities.set([
-      {
-        id: '1',
-        type: 'document_created',
-        title: 'Project Proposal.pdf',
-        description: 'New document uploaded',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        document: { id: 'doc1', name: 'Project Proposal.pdf', collectionId: 'col1' }
-      },
-      {
-        id: '2',
-        type: 'ocr_completed',
-        title: 'Invoice_2024.jpg',
-        description: 'OCR processing completed successfully',
-        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-        document: { id: 'doc2', name: 'Invoice_2024.jpg', collectionId: 'col1' }
-      },
-      {
-        id: '3',
-        type: 'team_joined',
-        title: 'Marketing Team',
-        description: 'You joined a new team',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-      },
-      {
-        id: '4',
-        type: 'document_shared',
-        title: 'Q4 Report.docx',
-        description: 'Document shared with john@example.com',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-        document: { id: 'doc3', name: 'Q4 Report.docx', collectionId: 'col2' }
-      },
-      {
-        id: '5',
-        type: 'file_uploaded',
-        title: 'Presentation.pptx',
-        description: 'File uploaded successfully',
-        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-        document: { id: 'doc4', name: 'Presentation.pptx', collectionId: 'col2' }
-      }
-    ]);
-  }
 
   private loadMockSubscription(): void {
     this._subscription.set({

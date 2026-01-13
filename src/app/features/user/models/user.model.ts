@@ -47,15 +47,65 @@ export interface UpdateProfileRequest {
 
 // ==================== Dashboard Stats ====================
 
-export interface DashboardStats {
-  totalDocuments: number;
-  documentsThisMonth: number;
-  ocrPagesUsed: number;
-  ocrPagesLimit: number;
+export interface StorageInfo {
   storageUsed: number;
   storageLimit: number;
+  storageUsedFormatted: string;
+  storageLimitFormatted: string;
+  percentageUsed: number;
+  ocrPageLimit: number;
+  ocrPagesUsed: number;
+  ocrPagesRemaining: number;
+  ocrUnlimited: boolean;
+  documentUploadLimit: number;
+  documentsUploaded: number;
+  documentsRemaining: number;
+  documentsUnlimited: boolean;
+  subscriptionPlan: string;
+  billingInterval: string;
+  documentQuotaExceeded: boolean;
+  ocrQuotaExceeded: boolean;
+  quotaExceeded: boolean;
+  remainingStorage: number;
+  unlimited: boolean;
+}
+
+export interface DashboardStats {
+  // Documents
+  totalDocuments: number;
+  documentsThisMonth: number;
+  documentsUploaded: number;
+  documentUploadLimit: number;
+  documentsRemaining: number;
+  documentsUnlimited: boolean;
+  documentQuotaExceeded: boolean;
+
+  // OCR
+  ocrPagesUsed: number;
+  ocrPagesLimit: number;
+  ocrPagesRemaining: number;
+  ocrUnlimited: boolean;
+  ocrQuotaExceeded: boolean;
+
+  // Storage
+  storageUsed: number;
+  storageLimit: number;
+  storageUsedFormatted: string;
+  storageLimitFormatted: string;
+  storagePercentageUsed: number;
+  remainingStorage: number;
+
+  // Subscription
+  subscriptionPlan: string;
+  billingInterval: string;
+  quotaExceeded: boolean;
+  unlimited: boolean;
+
+  // Teams & Collaboration
   collaborations: number;
   teamsCount: number;
+
+  // Tasks (for future use)
   pendingTasks: number;
   completedTasks: number;
 }
@@ -131,6 +181,17 @@ export type ActivityType =
   | 'payment_completed'
   | 'login'
   | 'password_changed';
+
+// ==================== Recent Collections ====================
+
+export interface RecentCollection {
+  id: string;
+  collectionStatus: 'pending' | 'processing' | 'processed' | 'completed' | 'failed' | 'failed_ocr';
+  fileCount: number;
+  createdAt: string;
+  updatedAt: string;
+  uploadTimestamp: string;
+}
 
 // ==================== Quick Actions ====================
 
@@ -315,7 +376,7 @@ export interface Team {
   name: string;
   description?: string;
   teamCode: string;
-  subscriptionType: 'PREMIUM' | 'ENTERPRISE';
+  subscriptionType: 'TEAM_PREMIUM' | 'TEAM_ENTERPRISE';
   subscriptionStatus: SubscriptionStatus;
   role: TeamRole;
   memberCount: number;

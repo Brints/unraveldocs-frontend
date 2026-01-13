@@ -55,7 +55,7 @@ export class TeamStateService {
     step: 1,
     name: '',
     description: '',
-    subscriptionType: 'PREMIUM',
+    subscriptionType: 'TEAM_PREMIUM',
     billingCycle: 'MONTHLY',
     paymentGateway: 'stripe',
     paymentToken: '',
@@ -110,7 +110,7 @@ export class TeamStateService {
   });
 
   readonly currentTeamIsEnterprise = computed(() =>
-    this._currentTeam()?.subscriptionType === 'ENTERPRISE'
+    this._currentTeam()?.subscriptionType === 'TEAM_ENTERPRISE'
   );
 
   readonly currentTeamIsOwner = computed(() =>
@@ -233,7 +233,7 @@ export class TeamStateService {
       step: 1,
       name: '',
       description: '',
-      subscriptionType: 'PREMIUM',
+      subscriptionType: 'TEAM_PREMIUM',
       billingCycle: 'MONTHLY',
       paymentGateway: 'stripe',
       paymentToken: '',

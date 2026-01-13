@@ -75,9 +75,9 @@ export class PricingService {
       params: { currency }
     }).pipe(
       catchError(err => {
-        this._error.set('Failed to load pricing. Please try again.');
-        this._isLoading.set(false);
-        return of(null);
+        console.warn('Failed to load plans from API, using fallback data:', err);
+        // Return fallback data instead of showing error
+        return of(this.getFallbackPlans(currency));
       })
     ).subscribe(response => {
       if (response) {
@@ -85,6 +85,130 @@ export class PricingService {
       }
       this._isLoading.set(false);
     });
+  }
+
+  /**
+   * Get fallback pricing data when API is unavailable
+   */
+  private getFallbackPlans(currency: string): PlansResponse {
+    const currencyInfo = this._currencies().find(c => c.code === currency) || { code: 'USD', symbol: '$', name: 'US Dollar' };
+    const timestamp = new Date().toISOString();
+
+    return {
+      individualPlans: [
+        {
+          planId: 'free-plan',
+          planName: 'FREE',
+          displayName: 'Free',
+          billingInterval: 'MONTH',
+          price: { originalAmountUsd: 0, convertedAmount: 0, currency, formattedPrice: `${currencyInfo.symbol}0`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 5,
+          ocrPageLimit: 25,
+          isActive: true,
+          features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+        },
+        {
+          planId: 'starter-monthly',
+          planName: 'STARTER_MONTHLY',
+          displayName: 'Starter',
+          billingInterval: 'MONTH',
+          price: { originalAmountUsd: 9, convertedAmount: 9, currency, formattedPrice: `${currencyInfo.symbol}9`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 30,
+          ocrPageLimit: 150,
+          isActive: true,
+          features: ['Standard document processing', 'Increased OCR pages', 'Priority email support', 'API access']
+        },
+        {
+          planId: 'pro-monthly',
+          planName: 'PRO_MONTHLY',
+          displayName: 'Pro',
+          billingInterval: 'MONTH',
+          price: { originalAmountUsd: 19, convertedAmount: 19, currency, formattedPrice: `${currencyInfo.symbol}19`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 100,
+          ocrPageLimit: 500,
+          isActive: true,
+          features: ['Advanced document processing', 'High OCR page limit', 'Priority support', 'Full API access', 'Custom integrations']
+        },
+        {
+          planId: 'business-monthly',
+          planName: 'BUSINESS_MONTHLY',
+          displayName: 'Business',
+          billingInterval: 'MONTH',
+          price: { originalAmountUsd: 49, convertedAmount: 49, currency, formattedPrice: `${currencyInfo.symbol}49`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 500,
+          ocrPageLimit: 2500,
+          isActive: true,
+          features: ['Unlimited document processing', 'Unlimited OCR pages', '24/7 premium support', 'Full API access', 'Custom integrations', 'Dedicated account manager']
+        },
+        {
+          planId: 'starter-yearly',
+          planName: 'STARTER_YEARLY',
+          displayName: 'Starter',
+          billingInterval: 'YEAR',
+          price: { originalAmountUsd: 90, convertedAmount: 90, currency, formattedPrice: `${currencyInfo.symbol}90`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 360,
+          ocrPageLimit: 1800,
+          isActive: true,
+          features: ['Standard document processing', 'Increased OCR pages', 'Priority email support', 'API access']
+        },
+        {
+          planId: 'pro-yearly',
+          planName: 'PRO_YEARLY',
+          displayName: 'Pro',
+          billingInterval: 'YEAR',
+          price: { originalAmountUsd: 190, convertedAmount: 190, currency, formattedPrice: `${currencyInfo.symbol}190`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 1200,
+          ocrPageLimit: 6000,
+          isActive: true,
+          features: ['Advanced document processing', 'High OCR page limit', 'Priority support', 'Full API access', 'Custom integrations']
+        },
+        {
+          planId: 'business-yearly',
+          planName: 'BUSINESS_YEARLY',
+          displayName: 'Business',
+          billingInterval: 'YEAR',
+          price: { originalAmountUsd: 490, convertedAmount: 490, currency, formattedPrice: `${currencyInfo.symbol}490`, exchangeRate: 1, rateTimestamp: timestamp },
+          documentUploadLimit: 6000,
+          ocrPageLimit: 30000,
+          isActive: true,
+          features: ['Unlimited document processing', 'Unlimited OCR pages', '24/7 premium support', 'Full API access', 'Custom integrations', 'Dedicated account manager']
+        }
+      ],
+      teamPlans: [
+        {
+          planId: 'team-premium',
+          planName: 'TEAM_PREMIUM',
+          displayName: 'Team Premium',
+          description: 'Perfect for small teams. Includes 200 documents per month with up to 10 members.',
+          monthlyPrice: { originalAmountUsd: 29, convertedAmount: 29, currency, formattedPrice: `${currencyInfo.symbol}29`, exchangeRate: 1, rateTimestamp: timestamp },
+          yearlyPrice: { originalAmountUsd: 290, convertedAmount: 290, currency, formattedPrice: `${currencyInfo.symbol}290`, exchangeRate: 1, rateTimestamp: timestamp },
+          maxMembers: 10,
+          monthlyDocumentLimit: 200,
+          hasAdminPromotion: false,
+          hasEmailInvitations: false,
+          trialDays: 10,
+          isActive: true,
+          features: ['Up to 10 team members', '200 documents per month', '10-day free trial', 'Team collaboration', 'Shared workspace']
+        },
+        {
+          planId: 'team-enterprise',
+          planName: 'TEAM_ENTERPRISE',
+          displayName: 'Team Enterprise',
+          description: 'For larger teams that need unlimited documents, admin roles, and email invitations.',
+          monthlyPrice: { originalAmountUsd: 79, convertedAmount: 79, currency, formattedPrice: `${currencyInfo.symbol}79`, exchangeRate: 1, rateTimestamp: timestamp },
+          yearlyPrice: { originalAmountUsd: 790, convertedAmount: 790, currency, formattedPrice: `${currencyInfo.symbol}790`, exchangeRate: 1, rateTimestamp: timestamp },
+          maxMembers: 15,
+          monthlyDocumentLimit: -1, // Unlimited
+          hasAdminPromotion: true,
+          hasEmailInvitations: true,
+          trialDays: 10,
+          isActive: true,
+          features: ['Up to 15 team members', 'Unlimited documents', 'Admin role promotion', 'Email invitations', '10-day free trial', 'Team collaboration', 'Shared workspace']
+        }
+      ],
+      displayCurrency: currency,
+      exchangeRateTimestamp: timestamp
+    };
   }
 
   /**

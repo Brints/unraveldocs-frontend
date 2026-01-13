@@ -5,7 +5,7 @@
 
 // ==================== Team Types ====================
 
-export type SubscriptionType = 'PREMIUM' | 'ENTERPRISE';
+export type SubscriptionType = 'TEAM_PREMIUM' | 'TEAM_ENTERPRISE';
 export type BillingCycle = 'MONTHLY' | 'YEARLY';
 export type SubscriptionStatus = 'TRIALING' | 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE';
 export type TeamMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
@@ -122,7 +122,7 @@ export interface TeamSubscriptionTier {
 
 export const TEAM_SUBSCRIPTION_TIERS: TeamSubscriptionTier[] = [
   {
-    type: 'PREMIUM',
+    type: 'TEAM_PREMIUM',
     name: 'Team Premium',
     monthlyPrice: 29,
     yearlyPrice: 290,
@@ -138,7 +138,7 @@ export const TEAM_SUBSCRIPTION_TIERS: TeamSubscriptionTier[] = [
     ]
   },
   {
-    type: 'ENTERPRISE',
+    type: 'TEAM_ENTERPRISE',
     name: 'Team Enterprise',
     monthlyPrice: 79,
     yearlyPrice: 790,

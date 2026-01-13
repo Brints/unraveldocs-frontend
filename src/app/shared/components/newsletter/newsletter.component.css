@@ -1,7 +1,13 @@
 .newsletter-section {
   padding: 4rem 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #1e293b;
   color: white;
+}
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 .newsletter-content {
   max-width: 600px;
@@ -30,9 +36,21 @@
   flex: 1;
   min-width: 250px;
   padding: 1rem;
-  border: none;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 1rem;
+  background: #ffffff;
+  color: #1f2937;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.email-input::placeholder {
+  color: #6b7280;
+}
+.email-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 .subscribe-btn {
   padding: 1rem 2rem;

@@ -35,7 +35,7 @@
 .loading-screen {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #4f46e5;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -83,9 +83,9 @@
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  background: #4f46e5;
   transition: width 0.1s ease;
-  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 10px rgba(79, 70, 229, 0.5);
 }
 
 /* Back to Top Button */
@@ -155,7 +155,7 @@
   height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #4f46e5;
   color: white;
   position: relative;
   overflow: hidden;
@@ -168,13 +168,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-              linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%),
-              linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%),
-              linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-  opacity: 0.1;
+  background: rgba(255, 255, 255, 0.03);
   z-index: 0;
 }
 
@@ -201,14 +195,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 100px;
-  background: linear-gradient(180deg, #f8fafc 0%, transparent 100%);
+  height: 1px;
+  background: #e5e7eb;
   pointer-events: none;
 }
 
 /* How It Works Section */
 .how-it-works-section {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  background: #f1f5f9;
   position: relative;
   z-index: 2;
 }
@@ -244,7 +238,7 @@
 
 /* Newsletter Section */
 .newsletter-section {
-  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  background: #1e293b;
   color: white;
   position: relative;
   z-index: 2;
@@ -252,7 +246,7 @@
 
 /* CTA Section */
 .cta-section {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  background: #4f46e5;
   color: white;
   text-align: center;
   padding: 6rem 0;

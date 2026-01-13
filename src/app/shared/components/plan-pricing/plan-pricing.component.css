@@ -407,14 +407,14 @@
   font-size: 0.6875rem;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #4f46e5;
   border-radius: 9999px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .tier-enterprise .popular-badge {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: #7c3aed;
 }
 
 /* Plan Header */
@@ -548,19 +548,21 @@
 
 .plan-cta.primary {
   color: white;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: #4f46e5;
 }
 
 .plan-cta.primary:hover {
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  background: #4338ca;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
 }
 
 .tier-enterprise .plan-cta.primary {
-  background: linear-gradient(135deg, #a855f7, #6366f1);
+  background: #7c3aed;
 }
 
 .tier-enterprise .plan-cta.primary:hover {
-  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+  background: #6d28d9;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 
 /* ==================== Exchange Info ==================== */

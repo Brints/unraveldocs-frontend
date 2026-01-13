@@ -95,7 +95,7 @@ export class TeamSettingsComponent implements OnInit {
   }
 
   getUpgradeTier() {
-    return this.subscriptionTiers.find(t => t.type === 'ENTERPRISE');
+    return this.subscriptionTiers.find(t => t.type === 'TEAM_ENTERPRISE');
   }
 }
 

@@ -8,11 +8,13 @@ import {
   UserProfile,
   UpdateProfileRequest,
   DashboardStats,
+  StorageInfo,
   Activity,
   Notification,
   Subscription,
   Team,
   DocumentSummary,
+  RecentCollection,
   PaymentMethod,
   Invoice,
   SecuritySettings,
@@ -94,6 +96,14 @@ export class UserApiService {
   }
 
   // ==================== Dashboard Stats ====================
+
+  /**
+   * Get storage information from the API
+   */
+  getStorageInfo(): Observable<StorageInfo> {
+    return this.http.get<ApiResponse<StorageInfo>>(`${this.apiUrl}/storage`)
+      .pipe(map(response => response.data));
+  }
 
   /**
    * Get dashboard statistics
@@ -208,9 +218,9 @@ export class UserApiService {
   /**
    * Get user collections
    */
-  getCollections(): Observable<unknown[]> {
-    return this.http.get<ApiResponse<unknown[]>>(`${this.apiUrl}/documents/my-collections`)
-      .pipe(map(response => response.data));
+  getCollections(): Observable<RecentCollection[]> {
+    return this.http.get<ApiResponse<RecentCollection[]>>(`${this.apiUrl}/documents/my-collections`)
+      .pipe(map(response => response.data || []));
   }
 
   // ==================== Billing ====================

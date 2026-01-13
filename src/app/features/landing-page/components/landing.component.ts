@@ -78,6 +78,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     { id: 'pricing', title: 'Pricing', visible: true },
     { id: 'faq', title: 'FAQ', visible: true },
     { id: 'blog', title: 'Latest Posts', visible: true },
+    { id: 'newsletter', title: 'Newsletter', visible: true },
     { id: 'cta', title: 'Get Started', visible: true }
   ]);
 

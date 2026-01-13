@@ -21,15 +21,55 @@ export class DashboardOverviewComponent implements OnInit {
   readonly profile = this.userState.profile;
   readonly fullName = this.userState.fullName;
   readonly stats = this.userState.stats;
+  readonly storageInfo = this.userState.storageInfo;
   readonly statCards = this.userState.statCards;
   readonly quickActions = this.userState.quickActions;
-  readonly activities = this.userState.activities;
+  readonly allActivities = this.userState.activities;
   readonly subscription = this.userState.subscription;
   readonly subscriptionStatus = this.userState.subscriptionStatus;
   readonly storagePercentage = this.userState.storagePercentage;
   readonly storageStatus = this.userState.storageStatus;
   readonly ocrUsagePercentage = this.userState.ocrUsagePercentage;
   readonly isLoading = this.userState.isLoading;
+
+  // Filtered activities based on time range
+  readonly activities = computed(() => {
+    const allActivities = this.allActivities();
+    const timeRange = this.selectedTimeRange();
+    const now = new Date();
+
+    // Calculate the cutoff date based on time range
+    const daysMap: Record<'7d' | '30d' | '90d', number> = {
+      '7d': 7,
+      '30d': 30,
+      '90d': 90
+    };
+
+    const cutoffDate = new Date(now.getTime() - daysMap[timeRange] * 24 * 60 * 60 * 1000);
+
+    return allActivities.filter(activity => {
+      const activityDate = new Date(activity.timestamp);
+      return activityDate >= cutoffDate;
+    });
+  });
+
+  // Activity stats based on filtered activities
+  readonly activityStats = computed(() => {
+    const filtered = this.activities();
+    const timeRange = this.selectedTimeRange();
+
+    const completed = filtered.filter(a => a.type === 'ocr_completed').length;
+    const failed = filtered.filter(a => a.type === 'ocr_failed').length;
+    const uploaded = filtered.filter(a => a.type === 'file_uploaded' || a.type === 'document_created').length;
+
+    return {
+      total: filtered.length,
+      completed,
+      failed,
+      uploaded,
+      timeRangeLabel: timeRange === '7d' ? 'last 7 days' : timeRange === '30d' ? 'last 30 days' : 'last 90 days'
+    };
+  });
 
   // Greeting based on time
   readonly greeting = computed(() => {
@@ -48,7 +88,6 @@ export class DashboardOverviewComponent implements OnInit {
 
   onTimeRangeChange(range: '7d' | '30d' | '90d'): void {
     this.selectedTimeRange.set(range);
-    // Refresh data based on new range
   }
 
   executeQuickAction(action: QuickAction): void {
@@ -136,6 +175,39 @@ export class DashboardOverviewComponent implements OnInit {
       'pink': { icon: 'bg-pink-100 text-pink-600', bg: 'bg-pink-50', text: 'text-pink-600' }
     };
     return colorMap[color] || colorMap['blue'];
+  }
+
+  /**
+   * Format subscription plan name for display
+   * Converts "Business_Yearly" to "Business"
+   */
+  formatPlanName(plan: string | undefined | null): string {
+    if (!plan) return 'Free';
+    return plan.split('_')[0].replace(/([A-Z])/g, ' $1').trim();
+  }
+
+  /**
+   * Calculate document usage percentage
+   */
+  getDocumentUsagePercentage(): number {
+    const storage = this.storageInfo();
+    if (!storage || storage.documentsUnlimited || storage.documentUploadLimit === 0) {
+      return 0;
+    }
+    return Math.round((storage.documentsUploaded / storage.documentUploadLimit) * 100);
+  }
+
+  /**
+   * Format bytes to human-readable string
+   */
+  formatBytes(bytes: number): string {
+    if (bytes === 0) return '0 B';
+
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const k = 1024;
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + units[i];
   }
 }
 

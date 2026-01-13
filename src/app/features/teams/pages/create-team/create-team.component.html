@@ -164,10 +164,10 @@
             <div
               class="plan-card"
               [class.selected]="wizardState().subscriptionType === tier.type"
-              [class.enterprise]="tier.type === 'ENTERPRISE'"
+              [class.enterprise]="tier.type === 'TEAM_ENTERPRISE'"
               (click)="selectSubscription(tier.type)"
             >
-              @if (tier.type === 'ENTERPRISE') {
+              @if (tier.type === 'TEAM_ENTERPRISE') {
                 <div class="recommended-badge">Recommended</div>
               }
               <h3 class="plan-name">{{ tier.name }}</h3>
