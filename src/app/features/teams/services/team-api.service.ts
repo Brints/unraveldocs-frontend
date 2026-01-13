@@ -182,7 +182,7 @@ export class TeamApiService {
   /**
    * Update subscription (upgrade/downgrade)
    */
-  updateSubscription(teamId: string, subscriptionType: 'PREMIUM' | 'ENTERPRISE', billingCycle: 'MONTHLY' | 'YEARLY'): Observable<Team> {
+  updateSubscription(teamId: string, subscriptionType: 'TEAM_PREMIUM' | 'TEAM_ENTERPRISE', billingCycle: 'MONTHLY' | 'YEARLY'): Observable<Team> {
     return this.http.patch<TeamApiResponse<Team>>(`${this.apiUrl}/${teamId}/subscription`, {
       subscriptionType,
       billingCycle

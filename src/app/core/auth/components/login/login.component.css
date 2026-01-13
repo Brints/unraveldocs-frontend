@@ -272,7 +272,8 @@
 }
 
 .error-message,
-.warning-message {
+.warning-message,
+.info-message {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
@@ -298,6 +299,25 @@
   background: #fef2f2;
   border: 1px solid #fecaca;
   color: #991b1b;
+}
+
+.info-message {
+  background: #eff6ff;
+  border: 1px solid #93c5fd;
+  color: #1e40af;
+}
+
+.info-message.session-expired {
+  background: #fefce8;
+  border: 1px solid #fcd34d;
+  color: #854d0e;
+}
+
+.info-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .google-error {

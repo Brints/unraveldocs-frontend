@@ -30,12 +30,25 @@ export class AuthService {
   public currentUser$: Observable<User | null> =
     this.currentUserSubject.asObservable();
 
+  // Track which storage type is being used
+  private useLocalStorage = true;
+  private readonly STORAGE_TYPE_KEY = 'authStorageType';
+
   constructor(private http: HttpClient) {
     this.loadStoredUser();
   }
 
+  private getStorage(): Storage {
+    return this.useLocalStorage ? localStorage : sessionStorage;
+  }
+
   private loadStoredUser() {
-    const userJson = localStorage.getItem('currentUser');
+    // Check which storage type was used
+    const storageType = localStorage.getItem(this.STORAGE_TYPE_KEY) || sessionStorage.getItem(this.STORAGE_TYPE_KEY);
+    this.useLocalStorage = storageType !== 'session';
+
+    const storage = this.getStorage();
+    const userJson = storage.getItem('currentUser');
     if (userJson) {
       const user: User = JSON.parse(userJson);
       this.currentUserSubject.next(user);
@@ -44,21 +57,51 @@ export class AuthService {
 
   private setCurrentUser(user: User | null) {
     this.currentUserSubject.next(user);
+    const storage = this.getStorage();
     if (user) {
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      storage.setItem('currentUser', JSON.stringify(user));
     } else {
-      localStorage.removeItem('currentUser');
+      storage.removeItem('currentUser');
     }
   }
 
-  private storeTokens(accessToken: string, refreshToken: string) {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
+  private storeTokens(accessToken: string, refreshToken: string, rememberMe: boolean = true) {
+    // Update storage preference
+    this.useLocalStorage = rememberMe;
+
+    // Clear tokens from both storages first
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('currentUser');
+
+    // Store in the appropriate storage
+    const storage = this.getStorage();
+    storage.setItem('accessToken', accessToken);
+    storage.setItem('refreshToken', refreshToken);
+
+    // Remember which storage type is being used
+    if (rememberMe) {
+      localStorage.setItem(this.STORAGE_TYPE_KEY, 'local');
+      sessionStorage.removeItem(this.STORAGE_TYPE_KEY);
+    } else {
+      sessionStorage.setItem(this.STORAGE_TYPE_KEY, 'session');
+      localStorage.removeItem(this.STORAGE_TYPE_KEY);
+    }
   }
 
   private clearStoredTokens() {
+    // Clear from both storages
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem(this.STORAGE_TYPE_KEY);
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem(this.STORAGE_TYPE_KEY);
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -168,7 +211,7 @@ export class AuthService {
         };
 
         // Store tokens and user
-        this.storeTokens(accessToken, refreshToken);
+        this.storeTokens(accessToken, refreshToken, request.rememberMe ?? true);
         this.setCurrentUser(user);
 
         // Return properly formatted response
@@ -286,7 +329,7 @@ export class AuthService {
   }
 
   async refreshToken(): Promise<string> {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
     if (!refreshToken) {
       throw new Error('No refresh token available');
     }
@@ -304,10 +347,12 @@ export class AuthService {
       const tokenData = response?.data || response;
 
       if (tokenData && tokenData.accessToken) {
-        localStorage.setItem('accessToken', tokenData.accessToken);
+        // Store in the appropriate storage based on current preference
+        const storage = this.getStorage();
+        storage.setItem('accessToken', tokenData.accessToken);
         // Also update refresh token if a new one is provided
         if (tokenData.refreshToken) {
-          localStorage.setItem('refreshToken', tokenData.refreshToken);
+          storage.setItem('refreshToken', tokenData.refreshToken);
         }
         return tokenData.accessToken;
       }
@@ -388,7 +433,7 @@ export class AuthService {
    * Check if user is authenticated
    */
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('accessToken');
+    const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     return !!token && !this.isTokenExpired(token);
   }
 

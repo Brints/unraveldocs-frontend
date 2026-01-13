@@ -83,6 +83,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private showForgotPassword = signal(false);
   private redirectUrl = signal<string | null>(null);
   public showPassword = signal(false);
+  public sessionExpired = signal(false);
 
   // Computed properties
   public error = computed(() => this.loginError());
@@ -134,6 +135,12 @@ export class LoginComponent implements OnInit, OnDestroy {
     const returnUrl = this.route.snapshot.queryParams['returnUrl'];
     if (returnUrl) {
       this.redirectUrl.set(decodeURIComponent(returnUrl));
+    }
+
+    // Check if session expired
+    const sessionExpired = this.route.snapshot.queryParams['sessionExpired'];
+    if (sessionExpired === 'true') {
+      this.sessionExpired.set(true);
     }
   }
 

@@ -241,6 +241,12 @@
   border-bottom: 1px solid #f1f5f9;
 }
 
+.card-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .card-title {
   font-size: 1.0625rem;
   font-weight: 600;
@@ -248,10 +254,51 @@
   margin: 0;
 }
 
+.activity-count {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
 .card-subtitle {
   font-size: 0.875rem;
   color: #64748b;
   margin: 0.25rem 0 0;
+}
+
+/* ==================== Activity Summary ==================== */
+.activity-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  background: #f8fafc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+}
+
+.summary-item.completed {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.summary-item.uploaded {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.summary-item.failed {
+  background: #fef2f2;
+  color: #dc2626;
 }
 
 .view-all-link {
@@ -348,10 +395,25 @@
   gap: 1rem;
   padding: 1rem 1.5rem;
   transition: background 0.2s ease;
+  text-decoration: none;
+  color: inherit;
 }
 
 .activity-item:hover {
   background: #f8fafc;
+}
+
+.activity-item.clickable {
+  cursor: pointer;
+}
+
+.activity-item.clickable:hover {
+  background: #f1f5f9;
+}
+
+.activity-item.clickable:hover .activity-arrow {
+  opacity: 1;
+  transform: translateX(2px);
 }
 
 .activity-icon {
@@ -392,6 +454,21 @@
   white-space: nowrap;
 }
 
+.activity-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.activity-arrow {
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
 /* ==================== Empty State ==================== */
 .empty-state {
   padding: 3rem 1.5rem;
@@ -421,6 +498,38 @@
   font-size: 0.9375rem;
   color: #64748b;
   margin: 0 0 1.5rem;
+}
+
+.empty-icon.muted {
+  width: 64px;
+  height: 64px;
+  background: #f8fafc;
+  border-radius: 16px;
+}
+
+.empty-time-range-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.time-range-action-btn {
+  padding: 0.625rem 1rem;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 500;
+  font-size: 0.875rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-range-action-btn:hover {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  color: #1e293b;
 }
 
 .empty-action-btn {
@@ -778,5 +887,145 @@
 
 .group:hover .group-hover\:translate-x-1 {
   transform: translateX(4px);
+}
+
+/* ==================== Subscription Card Enhancements ==================== */
+
+.billing-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  color: #0369a1;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.progress-fill.documents {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.progress-fill.critical {
+  background: linear-gradient(90deg, #ef4444, #dc2626) !important;
+}
+
+.unlimited-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: linear-gradient(135deg, #f0fdfa, #ecfdf5);
+  border: 1px solid #99f6e4;
+  border-radius: 6px;
+  color: #0d9488;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.quota-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  color: #991b1b;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.quota-warning svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+/* ==================== Storage Card Enhancements ==================== */
+
+.unlimited-tag {
+  padding: 0.25rem 0.625rem;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  color: white;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.storage-visual.unlimited {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 120px;
+  height: 120px;
+}
+
+.unlimited-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.storage-percentage.unlimited-text {
+  font-size: 2.5rem;
+  background: linear-gradient(135deg, #818cf8, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stat-dot.total {
+  background: #64748b;
+}
+
+/* Plan badge variations */
+.plan-badge {
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.plan-badge.free {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.plan-badge.starter,
+.plan-badge.starter_monthly,
+.plan-badge.starter_yearly {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1d4ed8;
+}
+
+.plan-badge.professional,
+.plan-badge.professional_monthly,
+.plan-badge.professional_yearly {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #4338ca;
+}
+
+.plan-badge.business,
+.plan-badge.business_monthly,
+.plan-badge.business_yearly {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #b45309;
+}
+
+.plan-badge.enterprise,
+.plan-badge.enterprise_monthly,
+.plan-badge.enterprise_yearly {
+  background: linear-gradient(135deg, #1e293b, #334155);
+  color: #f8fafc;
 }
 

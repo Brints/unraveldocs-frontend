@@ -47,11 +47,11 @@ export class TeamsListComponent implements OnInit {
   }
 
   getSubscriptionLabel(type: string): string {
-    return type === 'ENTERPRISE' ? 'Enterprise' : 'Premium';
+    return type === 'TEAM_ENTERPRISE' ? 'Enterprise' : 'Premium';
   }
 
   getSubscriptionClass(type: string): string {
-    return type === 'ENTERPRISE' ? 'tier-enterprise' : 'tier-premium';
+    return type === 'TEAM_ENTERPRISE' ? 'tier-enterprise' : 'tier-premium';
   }
 }
 
