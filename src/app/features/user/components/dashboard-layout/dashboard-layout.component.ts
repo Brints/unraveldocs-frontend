@@ -43,6 +43,7 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   // User dropdown
   userDropdownOpen = signal(false);
   notificationsOpen = signal(false);
+  expandedNotificationId = signal<string | null>(null);
 
   // Screen size
   isMobile = signal(window.innerWidth < 1024);
@@ -200,11 +201,16 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   toggleNotifications(): void {
     this.notificationsOpen.update(v => !v);
     this.userDropdownOpen.set(false);
+    if (this.notificationsOpen()) {
+      this.expandedNotificationId.set(null);
+      this.notificationState.loadNotifications(true, 0, 5);
+    }
   }
 
   closeDropdowns(): void {
     this.userDropdownOpen.set(false);
     this.notificationsOpen.set(false);
+    this.expandedNotificationId.set(null);
   }
 
   async logout(): Promise<void> {
@@ -307,5 +313,83 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       this.notificationState.markAsRead(notification.id);
     }
     this.closeDropdowns();
+  }
+
+  onNotificationItemClick(notification: AppNotification, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Mark as read if unread
+    if (!notification.isRead) {
+      this.notificationState.markAsRead(notification.id);
+    }
+
+    // Toggle expanded state
+    if (this.expandedNotificationId() === notification.id) {
+      this.expandedNotificationId.set(null);
+    } else {
+      this.expandedNotificationId.set(notification.id);
+    }
+  }
+
+  navigateToNotificationDetail(notification: AppNotification, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.closeDropdowns();
+
+    // Navigate based on notification type
+    const data = notification.data || {};
+    switch (notification.type) {
+      case 'DOCUMENT_UPLOAD_SUCCESS':
+      case 'DOCUMENT_UPLOAD_FAILED':
+      case 'DOCUMENT_DELETED':
+      case 'OCR_PROCESSING_STARTED':
+      case 'OCR_PROCESSING_COMPLETED':
+      case 'OCR_PROCESSING_FAILED':
+        this.router.navigate(['/documents']);
+        break;
+      case 'PAYMENT_SUCCESS':
+      case 'PAYMENT_FAILED':
+      case 'PAYMENT_REFUNDED':
+        this.router.navigate(['/settings/billing']);
+        break;
+      case 'SUBSCRIPTION_EXPIRING_7_DAYS':
+      case 'SUBSCRIPTION_EXPIRING_3_DAYS':
+      case 'SUBSCRIPTION_EXPIRING_1_DAY':
+      case 'SUBSCRIPTION_EXPIRED':
+      case 'SUBSCRIPTION_RENEWED':
+      case 'SUBSCRIPTION_UPGRADED':
+      case 'SUBSCRIPTION_DOWNGRADED':
+      case 'TRIAL_EXPIRING_SOON':
+      case 'TRIAL_EXPIRED':
+      case 'STORAGE_WARNING_80':
+      case 'STORAGE_WARNING_90':
+      case 'STORAGE_WARNING_95':
+      case 'STORAGE_LIMIT_REACHED':
+        this.router.navigate(['/settings/billing']);
+        break;
+      case 'TEAM_INVITATION_RECEIVED':
+      case 'TEAM_MEMBER_ADDED':
+      case 'TEAM_MEMBER_REMOVED':
+      case 'TEAM_ROLE_CHANGED':
+        this.router.navigate(['/teams']);
+        break;
+      default:
+        this.router.navigate(['/notifications']);
+        break;
+    }
+  }
+
+  viewAllNotifications(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.closeDropdowns();
+    this.router.navigate(['/notifications']);
+  }
+
+  truncateNotificationMessage(message: string, maxLength = 60): string {
+    if (message.length <= maxLength) return message;
+    return message.substring(0, maxLength) + '...';
   }
 }

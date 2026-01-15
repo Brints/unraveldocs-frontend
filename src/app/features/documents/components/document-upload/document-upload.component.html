@@ -159,6 +159,23 @@
     <!-- Upload Options -->
     @if (selectedFiles().length > 0 && !isUploading()) {
       <div class="upload-options">
+        <!-- Collection Name -->
+        <div class="option-input-group">
+          <label class="option-label" for="collectionName">
+            <strong>Collection Name</strong>
+            <span class="option-description">Optional - auto-generated if not provided</span>
+          </label>
+          <input
+            type="text"
+            id="collectionName"
+            class="option-input"
+            [value]="collectionName()"
+            (input)="collectionName.set($any($event.target).value)"
+            placeholder="Enter collection name..."
+            maxlength="255"/>
+        </div>
+
+        <!-- OCR Option -->
         <label class="option-checkbox">
           <input
             type="checkbox"
@@ -168,6 +185,20 @@
           <span class="checkbox-label">
             <strong>Extract text automatically (OCR)</strong>
             <span class="checkbox-description">Process documents and extract text content after upload</span>
+          </span>
+        </label>
+
+        <!-- Encryption Option (Premium) -->
+        <label class="option-checkbox premium-feature">
+          <input
+            type="checkbox"
+            [checked]="enableEncryption()"
+            (change)="enableEncryption.set(!enableEncryption())"/>
+          <span class="checkbox-mark"></span>
+          <span class="checkbox-label">
+            <strong>Enable AES-256 encryption</strong>
+            <span class="premium-badge">Premium</span>
+            <span class="checkbox-description">Bank-level encryption for sensitive documents (requires Starter+ subscription)</span>
           </span>
         </label>
       </div>

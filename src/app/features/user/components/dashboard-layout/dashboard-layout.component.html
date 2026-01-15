@@ -167,7 +167,7 @@
           <button
             type="button"
             class="action-btn"
-            (click)="toggleNotifications()"
+            (click)="toggleNotifications(); $event.stopPropagation()"
             [class.active]="notificationsOpen()"
             [class.has-unread]="unreadNotifications() > 0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,11 +180,11 @@
 
           <!-- Notifications Dropdown -->
           @if (notificationsOpen()) {
-            <div class="dropdown notifications-dropdown">
+            <div class="dropdown notifications-dropdown" (click)="$event.stopPropagation()">
               <div class="dropdown-header">
                 <h3>Notifications</h3>
                 @if (unreadNotifications() > 0) {
-                  <button type="button" class="mark-all-read" (click)="markAllNotificationsAsRead()">
+                  <button type="button" class="mark-all-read" (click)="markAllNotificationsAsRead(); $event.stopPropagation()">
                     Mark all as read
                   </button>
                 }
@@ -206,28 +206,48 @@
                     <div
                       class="notification-item"
                       [class.unread]="!notification.isRead"
-                      (click)="onNotificationClick(notification)">
-                      <div class="notification-icon" [class]="getNotificationCategory(notification.type)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
-                        </svg>
+                      [class.expanded]="expandedNotificationId() === notification.id"
+                      (click)="onNotificationItemClick(notification, $event)">
+                      <div class="notification-main">
+                        <div class="notification-icon" [class]="getNotificationCategory(notification.type)">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getNotificationIcon(notification.type)"/>
+                          </svg>
+                        </div>
+                        <div class="notification-content">
+                          <p class="notification-title">{{ notification.title }}</p>
+                          @if (expandedNotificationId() === notification.id) {
+                            <p class="notification-message-full">{{ notification.message }}</p>
+                          } @else {
+                            <p class="notification-message">{{ truncateNotificationMessage(notification.message) }}</p>
+                          }
+                          <span class="notification-time">{{ formatTimeAgo(notification.createdAt) }}</span>
+                        </div>
+                        @if (!notification.isRead) {
+                          <span class="unread-dot"></span>
+                        }
                       </div>
-                      <div class="notification-content">
-                        <p class="notification-title">{{ notification.title }}</p>
-                        <p class="notification-message">{{ notification.message }}</p>
-                        <span class="notification-time">{{ formatTimeAgo(notification.createdAt) }}</span>
-                      </div>
-                      @if (!notification.isRead) {
-                        <span class="unread-dot"></span>
+                      @if (expandedNotificationId() === notification.id) {
+                        <div class="notification-actions">
+                          <button
+                            type="button"
+                            class="notification-action-btn"
+                            (click)="navigateToNotificationDetail(notification, $event)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                            </svg>
+                            View Details
+                          </button>
+                        </div>
                       }
                     </div>
                   }
                 }
               </div>
               <div class="dropdown-footer">
-                <a routerLink="/notifications" class="view-all-link" (click)="closeDropdowns()">
+                <button type="button" class="view-all-link" (click)="viewAllNotifications($event)">
                   View all notifications
-                </a>
+                </button>
               </div>
             </div>
           }

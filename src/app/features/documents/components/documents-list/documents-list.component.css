@@ -311,6 +311,7 @@
   background: linear-gradient(135deg, #e0e7ff, #ddd6fe);
   color: #6366f1;
   border-radius: 16px;
+  position: relative;
 }
 
 .card-content {
@@ -569,6 +570,11 @@
   color: #dc2626;
 }
 
+.modal-icon.primary {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
 .modal-title {
   font-size: 1.25rem;
   font-weight: 600;
@@ -621,3 +627,60 @@
 .h-16 { height: 4rem; }
 .mb-2 { margin-bottom: 0.5rem; }
 
+/* ==================== Encryption Badge ==================== */
+.card-icon {
+  position: relative;
+}
+
+.encryption-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: #f59e0b;
+  color: white;
+  border-radius: 50%;
+}
+
+/* ==================== Modal Primary Icon ==================== */
+.modal-icon.primary {
+  background: #ede9fe;
+  color: #7c3aed;
+}
+
+/* ==================== Input Fields ==================== */
+.input-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  text-align: left;
+}
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.input-hint {
+  font-size: 0.8125rem;
+  color: #94a3b8;
+  margin-top: 0.5rem;
+  text-align: left;
+}

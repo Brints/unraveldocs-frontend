@@ -6,10 +6,12 @@ import {
   DocumentCollection,
   DocumentFile,
   UploadProgress,
+  UploadOptions,
   DocumentFilter,
   DocumentSort,
   ViewMode,
   FileStatus,
+  MoveDocumentRequest,
 } from '../models/document.model';
 
 @Injectable({
@@ -165,7 +167,7 @@ export class DocumentStateService {
   /**
    * Upload files
    */
-  uploadFiles(files: File[], extractOcr = false): void {
+  uploadFiles(files: File[], extractOcr = false, options?: UploadOptions): void {
     if (files.length === 0) return;
 
     this._isUploading.set(true);
@@ -181,7 +183,7 @@ export class DocumentStateService {
 
     const uploadObservable = extractOcr
       ? this.api.uploadAndExtractAll(files)
-      : this.api.uploadDocuments(files);
+      : this.api.uploadDocuments(files, options);
 
     uploadObservable.pipe(
       tap(event => {
@@ -293,6 +295,112 @@ export class DocumentStateService {
       catchError(error => {
         this._error.set('Failed to clear collections');
         console.error('Clear collections error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Update collection name
+   */
+  updateCollectionName(collectionId: string, name: string): void {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    this.api.updateCollectionName(collectionId, { name }).pipe(
+      tap(updatedCollection => {
+        // Update in collections list
+        this._collections.update(cols =>
+          cols.map(c => c.id === collectionId ? { ...c, name } : c)
+        );
+        // Update current collection if it's the one being renamed
+        if (this._currentCollection()?.id === collectionId) {
+          this._currentCollection.update(col => col ? { ...col, name } : null);
+        }
+        this._successMessage.set('Collection renamed successfully');
+        setTimeout(() => this._successMessage.set(null), 3000);
+      }),
+      catchError(error => {
+        const errorMessage = error?.error?.message || 'Failed to update collection name';
+        this._error.set(errorMessage);
+        console.error('Update collection name error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Update document display name
+   */
+  updateDocumentDisplayName(collectionId: string, documentId: string, displayName: string): void {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    this.api.updateDocumentDisplayName(collectionId, documentId, { displayName }).pipe(
+      tap(updatedDocument => {
+        // Update document in current collection
+        this._currentCollection.update(col => {
+          if (!col) return null;
+          return {
+            ...col,
+            files: col.files?.map(f =>
+              f.documentId === documentId ? { ...f, displayName } : f
+            )
+          };
+        });
+        this._successMessage.set('Document renamed successfully');
+        setTimeout(() => this._successMessage.set(null), 3000);
+      }),
+      catchError(error => {
+        this._error.set('Failed to update document name');
+        console.error('Update document name error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Move document between collections (Premium feature)
+   */
+  moveDocument(request: MoveDocumentRequest): void {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    this.api.moveDocument(request).pipe(
+      tap(movedDocument => {
+        // Remove document from current collection
+        this._currentCollection.update(col => {
+          if (!col) return null;
+          return {
+            ...col,
+            files: col.files?.filter(f => f.documentId !== request.documentId),
+            fileCount: (col.fileCount || 0) - 1
+          };
+        });
+
+        // Update collections list
+        this._collections.update(cols =>
+          cols.map(c => {
+            if (c.id === request.sourceCollectionId) {
+              return { ...c, fileCount: (c.fileCount || 0) - 1 };
+            }
+            if (c.id === request.targetCollectionId) {
+              return { ...c, fileCount: (c.fileCount || 0) + 1 };
+            }
+            return c;
+          })
+        );
+
+        this._successMessage.set('Document moved successfully');
+        setTimeout(() => this._successMessage.set(null), 3000);
+      }),
+      catchError(error => {
+        const errorMessage = error?.error?.message || 'Failed to move document. This feature may require a premium subscription.';
+        this._error.set(errorMessage);
+        console.error('Move document error:', error);
         return of(null);
       }),
       finalize(() => this._isLoading.set(false))

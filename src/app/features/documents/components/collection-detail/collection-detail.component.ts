@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentStateService } from '../../services/document-state.service';
-import { DocumentFile, ViewMode } from '../../models/document.model';
+import { DocumentFile, ViewMode, MoveDocumentRequest } from '../../models/document.model';
 
 @Component({
   selector: 'app-collection-detail',
@@ -24,8 +24,23 @@ export class CollectionDetailComponent implements OnInit {
   showOcrModal = signal(false);
   selectedDocument = signal<DocumentFile | null>(null);
 
+  // Rename document modal
+  showRenameDocModal = signal(false);
+  documentToRename = signal<DocumentFile | null>(null);
+  newDisplayName = signal('');
+
+  // Rename collection modal
+  showRenameCollectionModal = signal(false);
+  newCollectionName = signal('');
+
+  // Move document modal
+  showMoveModal = signal(false);
+  documentToMove = signal<DocumentFile | null>(null);
+  targetCollectionId = signal('');
+
   // From state service
   readonly collection = this.documentState.currentCollection;
+  readonly collections = this.documentState.collections;
   readonly filteredDocuments = this.documentState.filteredDocuments;
   readonly isLoading = this.documentState.isLoading;
   readonly isProcessingOcr = this.documentState.isProcessingOcr;
@@ -43,6 +58,8 @@ export class CollectionDetailComponent implements OnInit {
       if (id) {
         this.collectionId.set(id);
         this.documentState.loadCollection(id);
+        // Load all collections for move functionality
+        this.documentState.loadCollections();
       }
     });
   }
@@ -121,6 +138,87 @@ export class CollectionDetailComponent implements OnInit {
       this.documentState.deleteDocument(this.collectionId(), documentId);
     });
     this.documentState.clearSelection();
+  }
+
+  // Rename Collection
+  openRenameCollectionModal(): void {
+    const col = this.collection();
+    if (col) {
+      this.newCollectionName.set(col.name);
+      this.showRenameCollectionModal.set(true);
+    }
+  }
+
+  renameCollection(): void {
+    const name = this.newCollectionName().trim();
+    if (name) {
+      this.documentState.updateCollectionName(this.collectionId(), name);
+    }
+    this.closeRenameCollectionModal();
+  }
+
+  closeRenameCollectionModal(): void {
+    this.showRenameCollectionModal.set(false);
+    this.newCollectionName.set('');
+  }
+
+  // Rename Document
+  openRenameDocModal(document: DocumentFile): void {
+    this.documentToRename.set(document);
+    this.newDisplayName.set(document.displayName || document.originalFileName);
+    this.showRenameDocModal.set(true);
+  }
+
+  renameDocument(): void {
+    const doc = this.documentToRename();
+    const displayName = this.newDisplayName().trim();
+    if (doc && displayName) {
+      this.documentState.updateDocumentDisplayName(this.collectionId(), doc.documentId, displayName);
+    }
+    this.closeRenameDocModal();
+  }
+
+  closeRenameDocModal(): void {
+    this.showRenameDocModal.set(false);
+    this.documentToRename.set(null);
+    this.newDisplayName.set('');
+  }
+
+  // Move Document
+  openMoveModal(document: DocumentFile): void {
+    this.documentToMove.set(document);
+    this.targetCollectionId.set('');
+    this.showMoveModal.set(true);
+  }
+
+  moveDocument(): void {
+    const doc = this.documentToMove();
+    const targetId = this.targetCollectionId();
+    if (doc && targetId) {
+      const request: MoveDocumentRequest = {
+        sourceCollectionId: this.collectionId(),
+        targetCollectionId: targetId,
+        documentId: doc.documentId
+      };
+      this.documentState.moveDocument(request);
+    }
+    this.closeMoveModal();
+  }
+
+  closeMoveModal(): void {
+    this.showMoveModal.set(false);
+    this.documentToMove.set(null);
+    this.targetCollectionId.set('');
+  }
+
+  // Get other collections for move dropdown
+  getOtherCollections() {
+    return this.collections().filter(c => c.id !== this.collectionId());
+  }
+
+  // Get display name for document
+  getDocumentDisplayName(document: DocumentFile): string {
+    return document.displayName || document.originalFileName;
   }
 
   // Helpers

@@ -7,7 +7,8 @@ import {
   SUPPORTED_FILE_TYPES,
   MAX_FILE_SIZE,
   MAX_FILES_PER_UPLOAD,
-  UploadProgress
+  UploadProgress,
+  UploadOptions
 } from '../../models/document.model';
 
 interface FileWithPreview {
@@ -31,6 +32,8 @@ export class DocumentUploadComponent {
   selectedFiles = signal<FileWithPreview[]>([]);
   isDragOver = signal(false);
   extractOcrOnUpload = signal(true);
+  collectionName = signal('');
+  enableEncryption = signal(false);
 
   // From state service
   readonly isUploading = this.documentState.isUploading;
@@ -162,7 +165,15 @@ export class DocumentUploadComponent {
 
     if (validFiles.length === 0) return;
 
-    this.documentState.uploadFiles(validFiles, this.extractOcrOnUpload());
+    const options: UploadOptions = {};
+    if (this.collectionName().trim()) {
+      options.collectionName = this.collectionName().trim();
+    }
+    if (this.enableEncryption()) {
+      options.enableEncryption = true;
+    }
+
+    this.documentState.uploadFiles(validFiles, this.extractOcrOnUpload(), options);
 
     // Navigate to documents list after a short delay
     setTimeout(() => {

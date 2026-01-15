@@ -396,6 +396,52 @@
   padding: 1.25rem 1.5rem;
   border-top: 1px solid #f1f5f9;
   background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Option Input Group */
+.option-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.option-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.option-label strong {
+  font-size: 0.9375rem;
+  color: #1e293b;
+}
+
+.option-description {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.option-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 0.9375rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.option-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.option-input::placeholder {
+  color: #94a3b8;
 }
 
 .option-checkbox {
@@ -403,6 +449,27 @@
   align-items: flex-start;
   gap: 0.75rem;
   cursor: pointer;
+}
+
+.option-checkbox.premium-feature {
+  padding: 0.75rem;
+  background: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 8px;
+}
+
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
 }
 
 .option-checkbox input {

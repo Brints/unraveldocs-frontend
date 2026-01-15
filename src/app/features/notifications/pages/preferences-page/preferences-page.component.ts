@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NotificationStateService } from '../../services/notification-state.service';
@@ -22,8 +22,12 @@ export class PreferencesPageComponent implements OnInit {
 
   isSendingTest = false;
 
+  // Local preferences state for optimistic updates
+  private localPreferences = signal<NotificationPreferences | null>(null);
+
   get preferences(): NotificationPreferences | null {
-    return this.notificationState.preferences();
+    // Use local preferences if set, otherwise use state service
+    return this.localPreferences() ?? this.notificationState.preferences();
   }
 
   ngOnInit(): void {
@@ -67,22 +71,34 @@ export class PreferencesPageComponent implements OnInit {
     const current = this.preferences;
     if (!current) return;
 
+    // Optimistic update - immediately update local state
+    const optimisticUpdate: NotificationPreferences = {
+      ...current,
+      [key]: value,
+      updatedAt: new Date().toISOString()
+    };
+    this.localPreferences.set(optimisticUpdate);
+
     const update: UpdatePreferencesRequest = {
-      pushEnabled: current.pushEnabled,
-      emailEnabled: current.emailEnabled,
-      documentNotifications: current.documentNotifications,
-      ocrNotifications: current.ocrNotifications,
-      paymentNotifications: current.paymentNotifications,
-      storageNotifications: current.storageNotifications,
-      subscriptionNotifications: current.subscriptionNotifications,
-      teamNotifications: current.teamNotifications,
-      quietHoursEnabled: current.quietHoursEnabled,
-      quietHoursStart: current.quietHoursStart || undefined,
-      quietHoursEnd: current.quietHoursEnd || undefined,
-      [key]: value
+      pushEnabled: optimisticUpdate.pushEnabled,
+      emailEnabled: optimisticUpdate.emailEnabled,
+      documentNotifications: optimisticUpdate.documentNotifications,
+      ocrNotifications: optimisticUpdate.ocrNotifications,
+      paymentNotifications: optimisticUpdate.paymentNotifications,
+      storageNotifications: optimisticUpdate.storageNotifications,
+      subscriptionNotifications: optimisticUpdate.subscriptionNotifications,
+      teamNotifications: optimisticUpdate.teamNotifications,
+      quietHoursEnabled: optimisticUpdate.quietHoursEnabled,
+      quietHoursStart: optimisticUpdate.quietHoursStart || undefined,
+      quietHoursEnd: optimisticUpdate.quietHoursEnd || undefined,
     };
 
     this.notificationState.updatePreferences(update);
+
+    // Sync local preferences with state after API call completes
+    setTimeout(() => {
+      this.localPreferences.set(null);
+    }, 500);
   }
 
   updateQuietHoursStart(time: string): void {
