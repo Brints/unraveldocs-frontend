@@ -1,3 +1,11 @@
+# [1.8.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.7.0...v1.8.0) (2026-01-16)
+
+
+### Features
+
+* **notification:** complete implementation of push notification. ([303eb66](https://github.com/Brints/unraveldocs-frontend/commit/303eb6622401b2a73a54de4d3b9a73481161553b))
+* **payments:** implement Paystack callback page and fix payment history ([58b88fd](https://github.com/Brints/unraveldocs-frontend/commit/58b88fd84ac4bca8590987d8cc81e20025544156))
+
 # [1.7.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.6.0...v1.7.0) (2026-01-13)
 
 
