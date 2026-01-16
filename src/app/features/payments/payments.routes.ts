@@ -2,6 +2,14 @@ import { Routes } from '@angular/router';
 import { authGuard } from '../../core/auth/guards/auth.guard';
 
 export const paymentRoutes: Routes = [
+  // Paystack callback route (no auth required - user redirected from Paystack)
+  {
+    path: 'payments/paystack/callback',
+    loadComponent: () => import('./pages/paystack-callback/paystack-callback.component')
+      .then(m => m.PaystackCallbackComponent),
+    title: 'Payment Status - UnravelDocs'
+  },
+  // Payment routes under /payments prefix
   {
     path: 'payments',
     canActivate: [authGuard],

@@ -10,8 +10,10 @@
  */
 export interface DocumentCollectionSummary {
   id: string;
+  name: string;
   collectionStatus: CollectionStatus;
   fileCount: number;
+  hasEncryptedFiles: boolean;
   createdAt: string;
   updatedAt: string;
   uploadTimestamp: string;
@@ -22,8 +24,10 @@ export interface DocumentCollectionSummary {
  */
 export interface DocumentCollectionDetail {
   id: string;
+  name: string;
   collectionStatus: CollectionStatus;
   files: DocumentFile[];
+  hasEncryptedFiles?: boolean;
   createdAt: string;
   updatedAt: string;
   uploadTimestamp: string;
@@ -35,8 +39,10 @@ export interface DocumentCollectionDetail {
  */
 export interface DocumentCollection {
   id: string;
+  name: string;
   collectionStatus: CollectionStatus;
   fileCount: number;
+  hasEncryptedFiles: boolean;
   createdAt: string;
   updatedAt?: string;
   uploadTimestamp?: string;
@@ -50,14 +56,18 @@ export type CollectionStatus =
   | 'processed'
   | 'completed'
   | 'failed'
-  | 'failed_ocr';
+  | 'failed_ocr'
+  | 'partially_completed'
+  | 'failed_upload';
 
 export interface DocumentFile {
   documentId: string;
   originalFileName: string;
+  displayName: string | null;
   fileUrl: string;
   fileSize: number;
   status: FileStatus;
+  encrypted: boolean;
   mimeType?: string;
   ocrProcessed?: boolean;
   extractedText?: string;
@@ -65,7 +75,32 @@ export interface DocumentFile {
   updatedAt?: string;
 }
 
-export type FileStatus = 'success' | 'pending' | 'processing' | 'failed';
+export type FileStatus = 'success' | 'pending' | 'processing' | 'failed' | 'failed_validation' | 'failed_storage_upload';
+
+// ==================== Move Document ====================
+
+export interface MoveDocumentRequest {
+  sourceCollectionId: string;
+  targetCollectionId: string;
+  documentId: string;
+}
+
+// ==================== Update Requests ====================
+
+export interface UpdateCollectionRequest {
+  name: string;
+}
+
+export interface UpdateDocumentRequest {
+  displayName: string;
+}
+
+// ==================== Upload Options ====================
+
+export interface UploadOptions {
+  collectionName?: string;
+  enableEncryption?: boolean;
+}
 
 // Legacy type alias for backward compatibility
 export type DocumentStatus =
@@ -86,9 +121,11 @@ export interface UploadResponse {
 export interface UploadedFile {
   documentId: string;
   originalFileName: string;
+  displayName: string | null;
   fileSize: number;
   fileUrl: string;
   status: FileStatus;
+  encrypted: boolean;
 }
 
 export interface UploadProgress {

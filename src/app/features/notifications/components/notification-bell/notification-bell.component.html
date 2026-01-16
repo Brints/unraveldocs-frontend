@@ -1,7 +1,8 @@
 <div class="notification-bell" [class.open]="isOpen" [class.has-unread]="notificationState.hasUnread()">
   <button
+    type="button"
     class="bell-button"
-    (click)="toggleDropdown()"
+    (click)="toggleDropdown($event)"
     [attr.aria-expanded]="isOpen"
     aria-label="Notifications">
     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -16,14 +17,18 @@
   </button>
 
   @if (isOpen) {
-    <div class="notification-dropdown">
+    <div class="notification-dropdown" (click)="$event.stopPropagation()">
       <div class="dropdown-header">
         <h3>Notifications</h3>
         @if (notificationState.hasUnread()) {
           <button
+            type="button"
             class="mark-all-btn"
-            (click)="markAllAsRead()"
+            (click)="markAllAsRead($event)"
             [disabled]="notificationState.isProcessing()">
+            @if (notificationState.isProcessing()) {
+              <span class="spinner-xs"></span>
+            }
             Mark all read
           </button>
         }
@@ -48,39 +53,84 @@
               <div
                 class="notification-item"
                 [class.unread]="!notification.isRead"
-                (click)="onNotificationClick(notification)">
-                <div class="notification-icon" [class]="getCategory(notification)">
-                  @switch (getCategory(notification)) {
-                    @case ('document') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                      </svg>
+                [class.expanded]="isExpanded(notification.id)"
+                (click)="onNotificationClick(notification, $event)">
+                <div class="notification-main">
+                  <div class="notification-icon" [class]="getCategory(notification)">
+                    @switch (getCategory(notification)) {
+                      @case ('document') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                        </svg>
+                      }
+                      @case ('ocr') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
+                          <path d="M5 12V5a2 2 0 0 1 2-2h7l5 5v4"/>
+                          <path d="M9 18h6"/>
+                          <path d="M9 22h6"/>
+                        </svg>
+                      }
+                      @case ('payment') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <rect width="20" height="14" x="2" y="5" rx="2"/>
+                          <line x1="2" x2="22" y1="10" y2="10"/>
+                        </svg>
+                      }
+                      @case ('storage') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                          <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3"/>
+                        </svg>
+                      }
+                      @case ('subscription') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                          <path d="m9 12 2 2 4-4"/>
+                        </svg>
+                      }
+                      @case ('team') {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M18 21a8 8 0 0 0-16 0"/>
+                          <circle cx="10" cy="8" r="5"/>
+                          <path d="M22 20c0-3.37-2-6.5-4-8a5 5 0 0 0-.45-8.3"/>
+                        </svg>
+                      }
+                      @default {
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                        </svg>
+                      }
                     }
-                    @case ('ocr') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M14 3v4a1 1 0 0 0 1 1h4"/>
-                        <path d="M5 12V5a2 2 0 0 1 2-2h7l5 5v4"/>
-                      </svg>
+                  </div>
+                  <div class="notification-content">
+                    <span class="notification-title">{{ notification.title }}</span>
+                    @if (isExpanded(notification.id)) {
+                      <span class="notification-message-full">{{ notification.message }}</span>
+                    } @else {
+                      <span class="notification-message">{{ truncateMessage(notification.message) }}</span>
                     }
-                    @case ('payment') {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect width="20" height="14" x="2" y="5" rx="2"/>
-                      </svg>
-                    }
-                    @default {
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
-                      </svg>
-                    }
+                    <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
+                  </div>
+                  @if (!notification.isRead) {
+                    <div class="unread-dot"></div>
                   }
                 </div>
-                <div class="notification-content">
-                  <span class="notification-title">{{ notification.title }}</span>
-                  <span class="notification-message">{{ truncateMessage(notification.message) }}</span>
-                  <span class="notification-time">{{ formatTime(notification.createdAt) }}</span>
-                </div>
-                @if (!notification.isRead) {
-                  <div class="unread-dot"></div>
+                @if (isExpanded(notification.id)) {
+                  <div class="notification-actions">
+                    <button
+                      type="button"
+                      class="action-btn primary"
+                      (click)="navigateToNotification(notification, $event)">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                        <polyline points="15 3 21 3 21 9"/>
+                        <line x1="10" x2="21" y1="14" y2="3"/>
+                      </svg>
+                      View Details
+                    </button>
+                  </div>
                 }
               </div>
             }
@@ -89,9 +139,9 @@
       </div>
 
       <div class="dropdown-footer">
-        <a routerLink="/notifications" (click)="closeDropdown()">
+        <button type="button" class="view-all-btn" (click)="viewAllNotifications($event)">
           View all notifications
-        </a>
+        </button>
       </div>
     </div>
   }

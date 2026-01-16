@@ -406,8 +406,20 @@ export class NotificationStateService {
    * Update notification preferences
    */
   updatePreferences(preferences: UpdatePreferencesRequest): void {
+    const previousPreferences = this._preferences();
     this._isProcessing.set(true);
     this._error.set(null);
+
+    // Optimistic update - immediately apply changes locally
+    if (previousPreferences) {
+      this._preferences.set({
+        ...previousPreferences,
+        ...preferences,
+        quietHoursStart: preferences.quietHoursStart ?? previousPreferences.quietHoursStart,
+        quietHoursEnd: preferences.quietHoursEnd ?? previousPreferences.quietHoursEnd,
+        updatedAt: new Date().toISOString()
+      });
+    }
 
     this.api.updatePreferences(preferences).pipe(
       tap(updatedPreferences => {
@@ -416,6 +428,10 @@ export class NotificationStateService {
         this.clearSuccessMessageAfterDelay();
       }),
       catchError(error => {
+        // Revert to previous preferences on error
+        if (previousPreferences) {
+          this._preferences.set(previousPreferences);
+        }
         this._error.set(error?.error?.message || 'Failed to update preferences');
         return of(null);
       }),

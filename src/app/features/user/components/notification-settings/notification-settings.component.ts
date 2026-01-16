@@ -1,11 +1,13 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { UserApiService } from '../../services/user-api.service';
-import { NotificationPreferences } from '../../models/user.model';
 import { PushNotificationService } from '../../../notifications/services/push-notification.service';
 import { NotificationStateService } from '../../../notifications/services/notification-state.service';
+import {
+  NotificationPreferences,
+  UpdatePreferencesRequest
+} from '../../../notifications/models/notification.model';
 import { environment } from '../../../../../environments/environment';
 
 @Component({
@@ -16,262 +18,261 @@ import { environment } from '../../../../../environments/environment';
   styleUrls: ['./notification-settings.component.css']
 })
 export class NotificationSettingsComponent implements OnInit {
-  private readonly userApi = inject(UserApiService);
   readonly pushService = inject(PushNotificationService);
   readonly notificationState = inject(NotificationStateService);
 
-  // State
-  isLoading = signal(true);
-  isSaving = signal(false);
-  saveSuccess = signal(false);
-  saveError = signal<string | null>(null);
+  // Local state for optimistic updates
+  private localPreferences = signal<NotificationPreferences | null>(null);
 
-  // Notification preferences
-  preferences = signal<NotificationPreferences>({
-    email: {
-      documentShared: true,
-      ocrCompleted: true,
-      teamInvitations: true,
-      paymentReminders: true,
-      securityAlerts: true,
-      weeklyDigest: false,
-      marketingUpdates: false
-    },
-    push: {
-      documentShared: true,
-      ocrCompleted: true,
-      teamInvitations: true,
-      paymentReminders: false,
-      securityAlerts: true
-    },
-    sms: {
-      securityAlerts: false,
-      paymentReminders: false
-    }
+  // Computed preferences that prioritize local state for immediate feedback
+  readonly preferences = computed(() => {
+    return this.localPreferences() ?? this.notificationState.preferences();
   });
 
-  // Notification categories for display
-  readonly emailNotifications = [
-    {
-      key: 'documentShared',
-      label: 'Document Shared',
-      description: 'When someone shares a document with you'
-    },
-    {
-      key: 'ocrCompleted',
-      label: 'OCR Processing Complete',
-      description: 'When your document has finished processing'
-    },
-    {
-      key: 'teamInvitations',
-      label: 'Team Invitations',
-      description: 'When you receive a team invitation'
-    },
-    {
-      key: 'paymentReminders',
-      label: 'Payment Reminders',
-      description: 'Upcoming payment and billing reminders'
-    },
-    {
-      key: 'securityAlerts',
-      label: 'Security Alerts',
-      description: 'Important security notifications'
-    },
-    {
-      key: 'weeklyDigest',
-      label: 'Weekly Digest',
-      description: 'Weekly summary of your activity'
-    },
-    {
-      key: 'marketingUpdates',
-      label: 'Product Updates',
-      description: 'New features and product announcements'
-    }
-  ];
+  readonly isLoading = computed(() => this.notificationState.isLoading());
+  readonly isSaving = computed(() => this.notificationState.isProcessing());
+  readonly saveSuccess = this.notificationState.successMessage;
+  readonly saveError = this.notificationState.error;
 
-  readonly pushNotifications = [
+  // Notification categories mapped to API fields
+  readonly notificationCategories = [
     {
-      key: 'documentShared',
-      label: 'Document Shared',
-      description: 'Real-time notifications when documents are shared'
+      key: 'documentNotifications',
+      label: 'Document Notifications',
+      description: 'Upload success, failures, and deletions'
     },
     {
-      key: 'ocrCompleted',
-      label: 'OCR Complete',
-      description: 'Instant notification when processing finishes'
+      key: 'ocrNotifications',
+      label: 'OCR Processing',
+      description: 'Text extraction and processing updates'
     },
     {
-      key: 'teamInvitations',
-      label: 'Team Invitations',
-      description: 'Immediate notification for team invites'
+      key: 'paymentNotifications',
+      label: 'Payment Notifications',
+      description: 'Payment confirmations, failures, and refunds'
     },
     {
-      key: 'paymentReminders',
-      label: 'Payment Reminders',
-      description: 'Push reminders for upcoming payments'
+      key: 'storageNotifications',
+      label: 'Storage Alerts',
+      description: 'Storage usage warnings and limits'
     },
     {
-      key: 'securityAlerts',
-      label: 'Security Alerts',
-      description: 'Critical security notifications'
-    }
-  ];
-
-  readonly smsNotifications = [
-    {
-      key: 'securityAlerts',
-      label: 'Security Alerts',
-      description: 'SMS for critical security events'
+      key: 'subscriptionNotifications',
+      label: 'Subscription Notifications',
+      description: 'Subscription expiry, renewal, and changes'
     },
     {
-      key: 'paymentReminders',
-      label: 'Payment Reminders',
-      description: 'SMS reminders for important payments'
+      key: 'teamNotifications',
+      label: 'Team Notifications',
+      description: 'Team invitations and member changes'
     }
   ];
 
   ngOnInit(): void {
-    this.loadPreferences();
+    this.notificationState.loadPreferences();
+    this.notificationState.loadDevices();
     this.pushService.checkSubscriptionStatus();
   }
 
-  private loadPreferences(): void {
-    this.isLoading.set(true);
-
-    // Simulate API call - replace with actual API
-    setTimeout(() => {
-      this.isLoading.set(false);
-    }, 800);
+  // Get value for a specific preference
+  getPreferenceValue(key: string): boolean {
+    const prefs = this.preferences();
+    if (!prefs) return false;
+    return (prefs as any)[key] ?? false;
   }
 
+  // Toggle a specific notification preference
+  togglePreference(key: string): void {
+    const current = this.preferences();
+    if (!current) return;
+
+    const newValue = !this.getPreferenceValue(key);
+
+    // Optimistic update
+    const optimisticUpdate: NotificationPreferences = {
+      ...current,
+      [key]: newValue,
+      updatedAt: new Date().toISOString()
+    };
+    this.localPreferences.set(optimisticUpdate);
+
+    // Build the update request
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: key === 'pushEnabled' ? newValue : current.pushEnabled,
+      emailEnabled: key === 'emailEnabled' ? newValue : current.emailEnabled,
+      documentNotifications: key === 'documentNotifications' ? newValue : current.documentNotifications,
+      ocrNotifications: key === 'ocrNotifications' ? newValue : current.ocrNotifications,
+      paymentNotifications: key === 'paymentNotifications' ? newValue : current.paymentNotifications,
+      storageNotifications: key === 'storageNotifications' ? newValue : current.storageNotifications,
+      subscriptionNotifications: key === 'subscriptionNotifications' ? newValue : current.subscriptionNotifications,
+      teamNotifications: key === 'teamNotifications' ? newValue : current.teamNotifications,
+      quietHoursEnabled: current.quietHoursEnabled,
+      quietHoursStart: current.quietHoursStart || undefined,
+      quietHoursEnd: current.quietHoursEnd || undefined,
+    };
+
+    this.notificationState.updatePreferences(update);
+
+    // Clear local state after API call
+    setTimeout(() => {
+      this.localPreferences.set(null);
+    }, 500);
+  }
+
+  // Toggle quiet hours
+  toggleQuietHours(): void {
+    const current = this.preferences();
+    if (!current) return;
+
+    const newValue = !current.quietHoursEnabled;
+
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: current.pushEnabled,
+      emailEnabled: current.emailEnabled,
+      documentNotifications: current.documentNotifications,
+      ocrNotifications: current.ocrNotifications,
+      paymentNotifications: current.paymentNotifications,
+      storageNotifications: current.storageNotifications,
+      subscriptionNotifications: current.subscriptionNotifications,
+      teamNotifications: current.teamNotifications,
+      quietHoursEnabled: newValue,
+      quietHoursStart: current.quietHoursStart || '22:00:00',
+      quietHoursEnd: current.quietHoursEnd || '07:00:00',
+    };
+
+    this.notificationState.updatePreferences(update);
+  }
+
+  // Update quiet hours start time
+  updateQuietHoursStart(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const time = input.value;
+    const current = this.preferences();
+    if (!current) return;
+
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: current.pushEnabled,
+      emailEnabled: current.emailEnabled,
+      documentNotifications: current.documentNotifications,
+      ocrNotifications: current.ocrNotifications,
+      paymentNotifications: current.paymentNotifications,
+      storageNotifications: current.storageNotifications,
+      subscriptionNotifications: current.subscriptionNotifications,
+      teamNotifications: current.teamNotifications,
+      quietHoursEnabled: current.quietHoursEnabled,
+      quietHoursStart: time ? `${time}:00` : undefined,
+      quietHoursEnd: current.quietHoursEnd || undefined,
+    };
+
+    this.notificationState.updatePreferences(update);
+  }
+
+  // Update quiet hours end time
+  updateQuietHoursEnd(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const time = input.value;
+    const current = this.preferences();
+    if (!current) return;
+
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: current.pushEnabled,
+      emailEnabled: current.emailEnabled,
+      documentNotifications: current.documentNotifications,
+      ocrNotifications: current.ocrNotifications,
+      paymentNotifications: current.paymentNotifications,
+      storageNotifications: current.storageNotifications,
+      subscriptionNotifications: current.subscriptionNotifications,
+      teamNotifications: current.teamNotifications,
+      quietHoursEnabled: current.quietHoursEnabled,
+      quietHoursStart: current.quietHoursStart || undefined,
+      quietHoursEnd: time ? `${time}:00` : undefined,
+    };
+
+    this.notificationState.updatePreferences(update);
+  }
+
+  // Format time for input
+  formatTimeForInput(time: string | null | undefined): string {
+    if (!time) return '';
+    return time.substring(0, 5);
+  }
+
+  // Enable all notifications
+  enableAllNotifications(): void {
+    const current = this.preferences();
+    if (!current) return;
+
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: true,
+      emailEnabled: true,
+      documentNotifications: true,
+      ocrNotifications: true,
+      paymentNotifications: true,
+      storageNotifications: true,
+      subscriptionNotifications: true,
+      teamNotifications: true,
+      quietHoursEnabled: current.quietHoursEnabled,
+      quietHoursStart: current.quietHoursStart || undefined,
+      quietHoursEnd: current.quietHoursEnd || undefined,
+    };
+
+    this.notificationState.updatePreferences(update);
+  }
+
+  // Disable all notifications (except security-critical ones)
+  disableAllNotifications(): void {
+    const current = this.preferences();
+    if (!current) return;
+
+    const update: UpdatePreferencesRequest = {
+      pushEnabled: false,
+      emailEnabled: false,
+      documentNotifications: false,
+      ocrNotifications: false,
+      paymentNotifications: true, // Keep payment notifications
+      storageNotifications: true, // Keep storage notifications
+      subscriptionNotifications: true, // Keep subscription notifications
+      teamNotifications: false,
+      quietHoursEnabled: current.quietHoursEnabled,
+      quietHoursStart: current.quietHoursStart || undefined,
+      quietHoursEnd: current.quietHoursEnd || undefined,
+    };
+
+    this.notificationState.updatePreferences(update);
+  }
+
+  // Push notification methods
   async enableBrowserPush(): Promise<void> {
     const vapidKey = (environment as any).firebase?.vapidKey || '';
     await this.pushService.subscribe(vapidKey);
+    this.notificationState.loadDevices();
   }
 
   async disableBrowserPush(): Promise<void> {
     await this.pushService.unsubscribe();
+    this.notificationState.loadDevices();
   }
 
-  toggleEmailNotification(key: string): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      email: {
-        ...prefs.email,
-        [key]: !prefs.email[key as keyof typeof prefs.email]
-      }
-    }));
-    this.savePreferences();
+  // Device management
+  removeDevice(deviceId: string): void {
+    this.notificationState.unregisterDevice(deviceId);
   }
 
-  togglePushNotification(key: string): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      push: {
-        ...prefs.push,
-        [key]: !prefs.push[key as keyof typeof prefs.push]
-      }
-    }));
-    this.savePreferences();
-  }
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  toggleSmsNotification(key: string): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      sms: {
-        ...prefs.sms,
-        [key]: !prefs.sms[key as keyof typeof prefs.sms]
-      }
-    }));
-    this.savePreferences();
-  }
-
-  getEmailValue(key: string): boolean {
-    const email = this.preferences().email;
-    return (email as Record<string, boolean>)[key] ?? false;
-  }
-
-  getPushValue(key: string): boolean {
-    const push = this.preferences().push;
-    return (push as Record<string, boolean>)[key] ?? false;
-  }
-
-  getSmsValue(key: string): boolean {
-    const sms = this.preferences().sms;
-    return (sms as Record<string, boolean>)[key] ?? false;
-  }
-
-  private savePreferences(): void {
-    this.isSaving.set(true);
-    this.saveSuccess.set(false);
-    this.saveError.set(null);
-
-    // Debounced save - simulate API call
-    setTimeout(() => {
-      this.isSaving.set(false);
-      this.saveSuccess.set(true);
-      setTimeout(() => this.saveSuccess.set(false), 2000);
-    }, 500);
-  }
-
-  enableAllEmail(): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      email: {
-        documentShared: true,
-        ocrCompleted: true,
-        teamInvitations: true,
-        paymentReminders: true,
-        securityAlerts: true,
-        weeklyDigest: true,
-        marketingUpdates: true
-      }
-    }));
-    this.savePreferences();
-  }
-
-  disableAllEmail(): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      email: {
-        documentShared: false,
-        ocrCompleted: false,
-        teamInvitations: false,
-        paymentReminders: false,
-        securityAlerts: true, // Keep security alerts on
-        weeklyDigest: false,
-        marketingUpdates: false
-      }
-    }));
-    this.savePreferences();
-  }
-
-  enableAllPush(): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      push: {
-        documentShared: true,
-        ocrCompleted: true,
-        teamInvitations: true,
-        paymentReminders: true,
-        securityAlerts: true
-      }
-    }));
-    this.savePreferences();
-  }
-
-  disableAllPush(): void {
-    this.preferences.update(prefs => ({
-      ...prefs,
-      push: {
-        documentShared: false,
-        ocrCompleted: false,
-        teamInvitations: false,
-        paymentReminders: false,
-        securityAlerts: true // Keep security alerts on
-      }
-    }));
-    this.savePreferences();
+    if (diffDays === 0) {
+      return 'today';
+    } else if (diffDays === 1) {
+      return 'yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
   }
 }
 

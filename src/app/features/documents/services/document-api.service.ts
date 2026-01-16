@@ -9,6 +9,10 @@ import {
   DocumentCollectionDetail,
   DocumentFile,
   UploadResponse,
+  UploadOptions,
+  MoveDocumentRequest,
+  UpdateCollectionRequest,
+  UpdateDocumentRequest,
   OcrResult,
   OcrCollectionResult,
   OcrData,
@@ -27,9 +31,16 @@ export class DocumentApiService {
    * Upload documents
    * POST /documents/upload
    */
-  uploadDocuments(files: File[]): Observable<HttpEvent<DocumentApiResponse<UploadResponse>>> {
+  uploadDocuments(files: File[], options?: UploadOptions): Observable<HttpEvent<DocumentApiResponse<UploadResponse>>> {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
+
+    if (options?.collectionName) {
+      formData.append('collectionName', options.collectionName);
+    }
+    if (options?.enableEncryption !== undefined) {
+      formData.append('enableEncryption', String(options.enableEncryption));
+    }
 
     const req = new HttpRequest('POST', `${this.apiUrl}/documents/upload`, formData, {
       reportProgress: true
@@ -139,6 +150,54 @@ export class DocumentApiService {
     );
   }
 
+  // ==================== Move Document (Premium) ====================
+
+  /**
+   * Move document between collections
+   * POST /documents/move
+   * Requires Starter+ subscription
+   */
+  moveDocument(request: MoveDocumentRequest): Observable<DocumentFile> {
+    return this.http.post<DocumentApiResponse<any>>(
+      `${this.apiUrl}/documents/move`,
+      request
+    ).pipe(
+      map(response => this.mapToDocumentFile(response.data))
+    );
+  }
+
+  // ==================== Update Operations ====================
+
+  /**
+   * Update collection name
+   * PUT /documents/collection/{collectionId}
+   */
+  updateCollectionName(collectionId: string, request: UpdateCollectionRequest): Observable<DocumentCollection> {
+    return this.http.put<DocumentApiResponse<DocumentCollectionDetail>>(
+      `${this.apiUrl}/documents/collection/${collectionId}`,
+      request
+    ).pipe(
+      map(response => this.mapDetailToDocumentCollection(response.data))
+    );
+  }
+
+  /**
+   * Update document display name
+   * PUT /documents/collection/{collectionId}/document/{documentId}
+   */
+  updateDocumentDisplayName(
+    collectionId: string,
+    documentId: string,
+    request: UpdateDocumentRequest
+  ): Observable<DocumentFile> {
+    return this.http.put<DocumentApiResponse<any>>(
+      `${this.apiUrl}/documents/collection/${collectionId}/document/${documentId}`,
+      request
+    ).pipe(
+      map(response => this.mapToDocumentFile(response.data))
+    );
+  }
+
   // ==================== OCR Processing ====================
 
   /**
@@ -193,8 +252,10 @@ export class DocumentApiService {
   private mapToDocumentCollection(data: DocumentCollectionSummary): DocumentCollection {
     return {
       id: data.id,
+      name: data.name || `Collection-${data.id.substring(0, 8)}`,
       collectionStatus: data.collectionStatus || 'pending',
       fileCount: data.fileCount || 0,
+      hasEncryptedFiles: data.hasEncryptedFiles || false,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       uploadTimestamp: data.uploadTimestamp,
@@ -207,8 +268,10 @@ export class DocumentApiService {
   private mapDetailToDocumentCollection(data: DocumentCollectionDetail): DocumentCollection {
     return {
       id: data.id,
+      name: data.name || `Collection-${data.id.substring(0, 8)}`,
       collectionStatus: data.collectionStatus || 'pending',
       fileCount: data.files?.length || 0,
+      hasEncryptedFiles: data.hasEncryptedFiles || false,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       uploadTimestamp: data.uploadTimestamp,
@@ -224,9 +287,11 @@ export class DocumentApiService {
     return {
       documentId: data.documentId,
       originalFileName: data.originalFileName || data.fileName || 'Unknown',
+      displayName: data.displayName || null,
       fileUrl: data.fileUrl || '',
       fileSize: data.fileSize || 0,
       status: data.status || 'pending',
+      encrypted: data.encrypted || data.isEncrypted || false,
       mimeType: data.mimeType,
       ocrProcessed: data.ocrProcessed || false,
       extractedText: data.extractedText,

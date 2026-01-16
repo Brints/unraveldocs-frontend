@@ -19,6 +19,9 @@ export class DocumentsListComponent implements OnInit {
   searchQuery = signal('');
   showDeleteModal = signal(false);
   collectionToDelete = signal<DocumentCollection | null>(null);
+  showRenameModal = signal(false);
+  collectionToRename = signal<DocumentCollection | null>(null);
+  newCollectionName = signal('');
 
   // From state service
   readonly collections = this.documentState.collections;
@@ -29,11 +32,12 @@ export class DocumentsListComponent implements OnInit {
   readonly totalCollections = this.documentState.totalCollections;
   readonly totalDocuments = this.documentState.totalDocuments;
 
-  // Filtered collections
+  // Filtered collections - search by name or ID
   readonly filteredCollections = computed(() => {
     const query = this.searchQuery().toLowerCase();
     if (!query) return this.collections();
     return this.collections().filter(col =>
+      col.name.toLowerCase().includes(query) ||
       col.id.toLowerCase().includes(query)
     );
   });
@@ -49,6 +53,30 @@ export class DocumentsListComponent implements OnInit {
 
   setViewMode(mode: ViewMode): void {
     this.documentState.setViewMode(mode);
+  }
+
+  // Rename modal
+  openRenameModal(collection: DocumentCollection, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.collectionToRename.set(collection);
+    this.newCollectionName.set(collection.name);
+    this.showRenameModal.set(true);
+  }
+
+  renameCollection(): void {
+    const collection = this.collectionToRename();
+    const name = this.newCollectionName().trim();
+    if (collection && name && name !== collection.name) {
+      this.documentState.updateCollectionName(collection.id, name);
+    }
+    this.closeRenameModal();
+  }
+
+  closeRenameModal(): void {
+    this.showRenameModal.set(false);
+    this.collectionToRename.set(null);
+    this.newCollectionName.set('');
   }
 
   confirmDeleteCollection(collection: DocumentCollection): void {
@@ -98,7 +126,9 @@ export class DocumentsListComponent implements OnInit {
       'processed': 'Processed',
       'completed': 'Completed',
       'failed': 'Failed',
-      'failed_ocr': 'OCR Failed'
+      'failed_ocr': 'OCR Failed',
+      'partially_completed': 'Partial',
+      'failed_upload': 'Upload Failed'
     };
     return statusLabels[status] || status;
   }
