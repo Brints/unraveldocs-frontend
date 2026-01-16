@@ -1,23 +1,33 @@
 <!-- Payment Methods Page -->
 <div class="payment-methods-page">
+  <!-- Breadcrumb Navigation -->
+  <nav class="breadcrumb">
+    <a routerLink="/settings/billing" class="breadcrumb-link">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+      </svg>
+      Billing
+    </a>
+    <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="breadcrumb-current">Payment Methods</span>
+  </nav>
+
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-content">
-      <a routerLink="/payments/history" class="back-link">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-        </svg>
-        Back to Payments
-      </a>
       <h1 class="page-title">Payment Methods</h1>
-      <p class="page-subtitle">Manage your saved payment methods</p>
+      <p class="page-subtitle">Manage your saved payment methods for quick checkout</p>
     </div>
-    <button type="button" class="btn-primary" (click)="openAddModal()">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-      </svg>
-      Add Payment Method
-    </button>
+    <div class="header-actions">
+      <a routerLink="/payments/history" class="btn-outline">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Payment History
+      </a>
+    </div>
   </div>
 
   <!-- Alerts -->
@@ -58,14 +68,19 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
         </svg>
       </div>
-      <h3>No payment methods</h3>
-      <p>Add a payment method to start making payments</p>
-      <button type="button" class="btn-primary" (click)="openAddModal()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
-        Add Payment Method
-      </button>
+      <h3>No saved payment methods</h3>
+      <p>When you make a payment with Paystack, your card details are securely stored by Paystack for future transactions. Cards with reusable authorizations will appear here.</p>
+      <div class="empty-actions">
+        <a routerLink="/settings/billing" class="btn-primary">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Subscribe to a Plan
+        </a>
+        <a routerLink="/payments/history" class="btn-outline">
+          View Payment History
+        </a>
+      </div>
     </div>
   } @else {
     <div class="methods-grid">
@@ -129,14 +144,15 @@
       }
 
       <!-- Add New Card -->
-      <button type="button" class="add-card-button" (click)="openAddModal()">
+      <a routerLink="/settings/billing" class="add-card-button">
         <div class="add-icon">
           <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
         </div>
-        <span>Add New Card</span>
-      </button>
+        <span>Make a Payment</span>
+        <span class="add-card-subtitle">Card will be saved automatically</span>
+      </a>
     </div>
   }
 
@@ -147,7 +163,7 @@
     </svg>
     <div>
       <strong>Secure Payment Processing</strong>
-      <p>Your payment information is encrypted and securely stored by Stripe. We never store your full card details.</p>
+      <p>Your payment information is encrypted and securely stored by Paystack. We never store your full card details on our servers.</p>
     </div>
   </div>
 </div>
@@ -165,19 +181,27 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="stripe-notice">
-          <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-          </svg>
-          <p>Stripe Elements will be integrated here for secure card input.</p>
-          <p class="note">This requires the Stripe.js library and a Stripe publishable key.</p>
+        <div class="paystack-notice">
+          <div class="notice-icon">
+            <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          <h4>How to Add a Payment Method</h4>
+          <p>With Paystack, your card is automatically saved when you make a payment. To add a new payment method:</p>
+          <ol class="notice-steps">
+            <li>Go to the Billing page</li>
+            <li>Select a subscription plan</li>
+            <li>Complete the payment with your card</li>
+            <li>Your card will be saved for future payments</li>
+          </ol>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeAddModal()">Cancel</button>
-        <button type="button" class="btn-primary" disabled>
-          Add Card
-        </button>
+        <button type="button" class="btn-secondary" (click)="closeAddModal()">Close</button>
+        <a routerLink="/settings/billing" class="btn-primary" (click)="closeAddModal()">
+          Go to Billing
+        </a>
       </div>
     </div>
   </div>

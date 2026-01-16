@@ -1,9 +1,14 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { UserStateService } from '../../services/user-state.service';
 import { UserApiService } from '../../services/user-api.service';
-import { PaymentMethod, Invoice, Subscription } from '../../models/user.model';
+import { AuthService } from '../../../../core/auth/services/auth.service';
+import { PaystackStateService } from '../../../payments/services/paystack-state.service';
+import { PricingService } from '../../../../shared/services/pricing.service';
+import { PaymentMethod, Invoice } from '../../models/user.model';
+import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
 
 @Component({
   selector: 'app-billing-settings',
@@ -12,146 +17,236 @@ import { PaymentMethod, Invoice, Subscription } from '../../models/user.model';
   templateUrl: './billing-settings.component.html',
   styleUrls: ['./billing-settings.component.css']
 })
-export class BillingSettingsComponent implements OnInit {
+export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly userState = inject(UserStateService);
   private readonly userApi = inject(UserApiService);
+  private readonly authService = inject(AuthService);
+  private readonly paystackState = inject(PaystackStateService);
+  private readonly pricingService = inject(PricingService);
+  private readonly route = inject(ActivatedRoute);
 
-  // State
+  private userSubscription?: Subscription;
+
+  // State from user state service
   readonly subscription = this.userState.subscription;
   readonly subscriptionStatus = this.userState.subscriptionStatus;
 
+  // Payment methods and invoices (local state)
   paymentMethods = signal<PaymentMethod[]>([]);
   invoices = signal<Invoice[]>([]);
   isLoadingPayments = signal(true);
   isLoadingInvoices = signal(true);
 
-  // Plan options for display
-  readonly plans = [
+  // Paystack state
+  readonly storageInfo = this.paystackState.storageInfo;
+  readonly currentPlanName = this.paystackState.currentPlanName;
+  readonly currentBillingInterval = this.paystackState.currentBillingInterval;
+  readonly individualPlans = this.paystackState.individualPlans;
+  readonly teamPlans = this.paystackState.teamPlans;
+  readonly filteredIndividualPlans = this.paystackState.filteredIndividualPlans;
+  readonly selectedPlanId = this.paystackState.selectedPlanId;
+  readonly billingInterval = this.paystackState.billingInterval;
+  readonly selectedCurrency = this.paystackState.selectedCurrency;
+  readonly isLoading = this.paystackState.isLoading;
+  readonly isProcessing = this.paystackState.isProcessing;
+  readonly error = this.paystackState.error;
+  readonly successMessage = this.paystackState.successMessage;
+  readonly paymentHistory = this.paystackState.paymentHistory;
+  readonly hasActiveSubscription = this.paystackState.hasActiveSubscription;
+  readonly formattedSelectedPrice = this.paystackState.formattedSelectedPrice;
+  readonly selectedPlan = this.paystackState.selectedPlan;
+
+  // UI state
+  showCheckoutModal = signal(false);
+  showCancelModal = signal(false);
+  activeTab = signal<'individual' | 'team'>('individual');
+
+  // Payment Gateway Selection
+  readonly paymentGateways = [
     {
-      id: 'FREE',
-      name: 'Free',
-      monthlyPrice: 0,
-      yearlyPrice: 0,
-      features: ['5 documents/month', '25 OCR pages', '1GB storage', 'Basic support'],
-      popular: false
+      type: 'paystack' as const,
+      name: 'Paystack',
+      description: 'Pay with card, bank transfer, or USSD',
+      icon: '💳',
+      supportedCurrencies: ['NGN', 'GHS', 'ZAR', 'KES', 'USD'],
+      isAvailable: true
     },
     {
-      id: 'STARTER',
-      name: 'Starter',
-      monthlyPrice: 9,
-      yearlyPrice: 90,
-      features: ['30 documents/month', '150 OCR pages', '5GB storage', 'Email support'],
-      popular: false
+      type: 'stripe' as const,
+      name: 'Stripe',
+      description: 'International cards and payment methods',
+      icon: '💎',
+      supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+      isAvailable: false // Coming soon
     },
     {
-      id: 'PRO',
-      name: 'Pro',
-      monthlyPrice: 19,
-      yearlyPrice: 190,
-      features: ['100 documents/month', '500 OCR pages', '20GB storage', 'Priority support', 'API access'],
-      popular: true
-    },
-    {
-      id: 'BUSINESS',
-      name: 'Business',
-      monthlyPrice: 49,
-      yearlyPrice: 490,
-      features: ['500 documents/month', '2500 OCR pages', '100GB storage', '24/7 support', 'API access', 'Team features'],
-      popular: false
+      type: 'paypal' as const,
+      name: 'PayPal',
+      description: 'Pay with PayPal account or card',
+      icon: '🅿️',
+      supportedCurrencies: ['USD', 'EUR', 'GBP'],
+      isAvailable: false // Coming soon
     }
   ];
 
+  selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>('paystack');
+
+  // Available currencies
+  readonly currencies = POPULAR_CURRENCIES.filter(c =>
+    ['NGN', 'GHS', 'ZAR', 'KES', 'USD'].includes(c.code)
+  );
+
+  // Display plans based on tab and interval
+  readonly displayPlans = computed(() => {
+    if (this.activeTab() === 'individual') {
+      return this.filteredIndividualPlans();
+    }
+    return this.teamPlans();
+  });
+
   ngOnInit(): void {
+    // Check for success query param from callback
+    this.route.queryParams.subscribe(params => {
+      if (params['success'] === 'true') {
+        // Success message is handled by state service
+      }
+    });
+
+    // Subscribe to current user to get email
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      if (user?.email) {
+        this.paystackState.initialize(user.email);
+        // Load billing data with NGN as default for African users
+        this.paystackState.loadBillingData('NGN');
+      }
+    });
+
     this.loadPaymentMethods();
     this.loadInvoices();
+  }
+
+  ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
   }
 
   private loadPaymentMethods(): void {
     this.isLoadingPayments.set(true);
 
-    // Mock data
+    // Return empty array - payment methods will be populated from actual saved payment methods
     setTimeout(() => {
-      this.paymentMethods.set([
-        {
-          id: 'pm_1',
-          type: 'card',
-          brand: 'visa',
-          last4: '4242',
-          expiryMonth: 12,
-          expiryYear: 2027,
-          isDefault: true
-        },
-        {
-          id: 'pm_2',
-          type: 'card',
-          brand: 'mastercard',
-          last4: '8888',
-          expiryMonth: 6,
-          expiryYear: 2026,
-          isDefault: false
-        }
-      ]);
+      this.paymentMethods.set([]);
       this.isLoadingPayments.set(false);
-    }, 1000);
+    }, 500);
   }
 
   private loadInvoices(): void {
     this.isLoadingInvoices.set(true);
 
-    // Mock data
+    // Mock data - replace with actual API call when available
     setTimeout(() => {
-      this.invoices.set([
-        {
-          id: 'inv_1',
-          number: 'INV-2024-001',
-          amount: 9.00,
-          currency: 'USD',
-          status: 'paid',
-          date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-          pdfUrl: '#',
-          items: [{ description: 'Starter Plan - Monthly', quantity: 1, unitPrice: 9, total: 9 }]
-        },
-        {
-          id: 'inv_2',
-          number: 'INV-2023-012',
-          amount: 9.00,
-          currency: 'USD',
-          status: 'paid',
-          date: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000).toISOString(),
-          pdfUrl: '#',
-          items: [{ description: 'Starter Plan - Monthly', quantity: 1, unitPrice: 9, total: 9 }]
-        },
-        {
-          id: 'inv_3',
-          number: 'INV-2023-011',
-          amount: 9.00,
-          currency: 'USD',
-          status: 'paid',
-          date: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000).toISOString(),
-          pdfUrl: '#',
-          items: [{ description: 'Starter Plan - Monthly', quantity: 1, unitPrice: 9, total: 9 }]
-        }
-      ]);
+      this.invoices.set([]);
       this.isLoadingInvoices.set(false);
     }, 1200);
   }
+
+  // ==================== Currency & Interval ====================
+
+  setCurrency(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.paystackState.setCurrency(select.value);
+  }
+
+  setBillingInterval(interval: 'monthly' | 'yearly'): void {
+    this.paystackState.setBillingInterval(interval);
+  }
+
+  setActiveTab(tab: 'individual' | 'team'): void {
+    this.activeTab.set(tab);
+  }
+
+  selectGateway(gateway: 'paystack' | 'stripe' | 'paypal'): void {
+    const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
+    if (gatewayInfo?.isAvailable) {
+      this.selectedGateway.set(gateway);
+    }
+  }
+
+  // ==================== Plan Selection & Checkout ====================
+
+  selectPlan(planId: string): void {
+    if (this.paystackState.isCurrentPlan(this.getPlanNameById(planId))) return;
+    this.paystackState.selectPlan(planId);
+    this.showCheckoutModal.set(true);
+  }
+
+  getPlanNameById(planId: string): string {
+    const individual = this.individualPlans().find(p => p.planId === planId);
+    if (individual) return individual.planName;
+    const team = this.teamPlans().find(p => p.planId === planId);
+    if (team) return team.planName;
+    return '';
+  }
+
+  proceedToCheckout(): void {
+    this.showCheckoutModal.set(false);
+    this.paystackState.startCheckout();
+  }
+
+  cancelCheckout(): void {
+    this.showCheckoutModal.set(false);
+    this.paystackState.clearSelectedPlan();
+  }
+
+  // ==================== Subscription Management ====================
+
+  openCancelModal(): void {
+    this.showCancelModal.set(true);
+  }
+
+  closeCancelModal(): void {
+    this.showCancelModal.set(false);
+  }
+
+  confirmCancelSubscription(): void {
+    this.paystackState.cancelSubscription();
+    this.closeCancelModal();
+  }
+
+  reactivateSubscription(): void {
+    this.paystackState.reactivateSubscription();
+  }
+
+  // ==================== Payment Methods ====================
 
   setDefaultPaymentMethod(paymentMethodId: string): void {
     this.paymentMethods.update(methods =>
       methods.map(m => ({ ...m, isDefault: m.id === paymentMethodId }))
     );
-    // API call would go here
   }
 
   removePaymentMethod(paymentMethodId: string): void {
     this.paymentMethods.update(methods =>
       methods.filter(m => m.id !== paymentMethodId)
     );
-    // API call would go here
+  }
+
+  // ==================== Utility Methods ====================
+
+  isCurrentPlan(planName: string): boolean {
+    return this.paystackState.isCurrentPlan(planName);
+  }
+
+  getPlanButtonText(planName: string): string {
+    return this.paystackState.getPlanButtonText(planName);
+  }
+
+  getButtonClass(plan: IndividualPlan | TeamPlan): string {
+    const planName = (plan as IndividualPlan).planName || (plan as TeamPlan).planName;
+    if (this.isCurrentPlan(planName)) return 'plan-btn current';
+    return 'plan-btn upgrade';
   }
 
   getCardBrandIcon(brand: string): string {
-    // Return appropriate icon path based on brand
     const icons: Record<string, string> = {
       'visa': 'M3 10h2l.5-2h3l.5 2h2l-1-4h-2l-.5 2h-1l-.5-2h-2l-1 4zm10 0h2l1-4h-2l-1 4zm4-2a2 2 0 104 0 2 2 0 00-4 0z',
       'mastercard': 'M16 12a4 4 0 11-8 0 4 4 0 018 0zm-4-2a2 2 0 100 4 2 2 0 000-4z',
@@ -186,19 +281,59 @@ export class BillingSettingsComponent implements OnInit {
     });
   }
 
-  getCurrentPlan() {
-    const sub = this.subscription();
-    return this.plans.find(p => p.id === sub?.planName) || this.plans[0];
+  formatPaystackAmount(amount: number, currency: string): string {
+    // Amount from Paystack API is in kobo, convert to main unit
+    const mainAmount = amount / 100;
+    const currencySymbols: Record<string, string> = {
+      NGN: '₦',
+      GHS: '₵',
+      ZAR: 'R',
+      KES: 'KSh',
+      USD: '$',
+    };
+    const symbol = currencySymbols[currency] || currency;
+    return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   }
 
-  isCurrentPlan(planId: string): boolean {
-    return this.subscription()?.planName === planId;
+  getCurrentPlan() {
+    const planName = this.currentPlanName();
+    // Find matching plan from individual or team plans
+    const individual = this.individualPlans().find(p =>
+      p.planName === planName ||
+      p.planName.replace('_MONTHLY', '').replace('_YEARLY', '') === planName.replace('_Monthly', '').replace('_Yearly', '')
+    );
+    if (individual) {
+      return {
+        name: individual.displayName,
+        monthlyPrice: individual.price.convertedAmount,
+        features: individual.features
+      };
+    }
+    // Default to free plan display
+    return {
+      name: 'Free',
+      monthlyPrice: 0,
+      features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+    };
+  }
+
+  clearError(): void {
+    this.paystackState.clearError();
+  }
+
+  clearSuccessMessage(): void {
+    this.paystackState.clearSuccessMessage();
   }
 
   canUpgrade(planId: string): boolean {
-    const currentIndex = this.plans.findIndex(p => p.id === this.subscription()?.planName);
-    const targetIndex = this.plans.findIndex(p => p.id === planId);
-    return targetIndex > currentIndex;
+    // Check if plan is upgradeable (not current plan)
+    const planName = this.getPlanNameById(planId);
+    return !this.isCurrentPlan(planName);
+  }
+
+  // Plan display helpers
+  getDisplayPlans() {
+    return this.displayPlans();
   }
 }
 

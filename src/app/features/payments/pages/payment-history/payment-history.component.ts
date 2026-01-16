@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaymentStateService } from '../../services/payment-state.service';
 import { Payment, PaymentStatus, PaymentProvider } from '../../models/payment.model';
@@ -14,6 +14,7 @@ import { Payment, PaymentStatus, PaymentProvider } from '../../models/payment.mo
 })
 export class PaymentHistoryComponent implements OnInit {
   protected readonly paymentState = inject(PaymentStateService);
+  private readonly router = inject(Router);
 
   // Local state
   searchQuery = signal('');
@@ -70,17 +71,31 @@ export class PaymentHistoryComponent implements OnInit {
     this.paymentState.selectPayment(null);
   }
 
-  viewReceipt(receiptNumber: string): void {
-    this.paymentState.downloadReceipt(receiptNumber);
+  viewReceipt(paymentReference: string): void {
+    // Payment reference (PAY_xxx) is not the same as receipt number (REC-xxx)
+    // Navigate to receipts page where user can find their receipt
+    this.router.navigate(['/payments/receipts']);
   }
 
   // Helpers
   formatAmount(amount: number, currency: string): string {
-    const divisor = currency === 'NGN' ? 100 : 100;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount / divisor);
+    // Paystack stores amounts in kobo (smallest currency unit)
+    // Divide by 100 to get the main currency unit
+    const mainAmount = amount / 100;
+
+    // Use custom symbols for currencies not well supported by Intl
+    const currencySymbols: Record<string, string> = {
+      'NGN': '₦',
+      'GHS': '₵',
+      'ZAR': 'R',
+      'KES': 'KSh',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£'
+    };
+
+    const symbol = currencySymbols[currency] || currency + ' ';
+    return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   }
 
   formatDate(dateString: string): string {

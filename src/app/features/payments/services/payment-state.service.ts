@@ -1,6 +1,7 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { PaymentApiService } from './payment-api.service';
+import { PaystackApiService } from './paystack-api.service';
 import {
   Payment,
   PaymentMethod,
@@ -9,12 +10,14 @@ import {
   PaymentProvider,
   PaymentFilterOptions,
 } from '../models/payment.model';
+import { PaystackPaymentHistoryItem } from '../models/paystack.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PaymentStateService {
   private readonly api = inject(PaymentApiService);
+  private readonly paystackApi = inject(PaystackApiService);
 
   // ==================== State Signals ====================
 
@@ -111,32 +114,114 @@ export class PaymentStateService {
     this._isLoading.set(true);
     this._error.set(null);
 
-    // Load mock data for development
-    this.loadMockData();
+    // Load real data from APIs
+    forkJoin({
+      paystackHistory: this.paystackApi.getPaymentHistory(0, 50).pipe(
+        catchError(error => {
+          console.error('Failed to load Paystack history:', error);
+          return of({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 } });
+        })
+      ),
+      receipts: this.api.getReceipts(0, 50).pipe(
+        catchError(error => {
+          console.error('Failed to load receipts:', error);
+          return of([]);
+        })
+      )
+    }).pipe(
+      tap(({ paystackHistory, receipts }) => {
+        // Convert Paystack history to Payment format
+        const payments = this.convertPaystackHistoryToPayments(paystackHistory.content || []);
+        this._payments.set(payments);
+        this._receipts.set(receipts);
+
+        // Update pagination
+        this._pagination.update(p => ({
+          ...p,
+          totalElements: paystackHistory.totalElements || 0,
+          totalPages: paystackHistory.totalPages || 0
+        }));
+      }),
+      catchError(error => {
+        console.error('Failed to load payment data:', error);
+        this._error.set('Failed to load payment data. Please try again.');
+        return of(null);
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
   }
 
   /**
    * Load payment history
    */
-  loadPaymentHistory(page = 0, size = 10): void {
+  loadPaymentHistory(page = 0, size = 20): void {
     this._isLoading.set(true);
 
-    forkJoin({
-      stripe: this.api.getStripePaymentHistory(page, size).pipe(catchError(() => of([]))),
-      paystack: this.api.getPaystackPaymentHistory(page, size).pipe(catchError(() => of([])))
-    }).pipe(
-      tap(({ stripe, paystack }) => {
-        const allPayments = [...stripe, ...paystack]
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        this._payments.set(allPayments);
+    this.paystackApi.getPaymentHistory(page, size).pipe(
+      tap(response => {
+        const payments = this.convertPaystackHistoryToPayments(response.content || []);
+        this._payments.set(payments);
+        this._pagination.update(p => ({
+          ...p,
+          page: response.pageable?.pageNumber || 0,
+          size: response.pageable?.pageSize || size,
+          totalElements: response.totalElements || 0,
+          totalPages: response.totalPages || 0
+        }));
       }),
       catchError(error => {
         console.error('Failed to load payment history:', error);
-        this.loadMockPayments();
+        this._error.set('Failed to load payment history. Please try again.');
         return of(null);
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
+  }
+
+  /**
+   * Convert Paystack payment history items to unified Payment format
+   */
+  private convertPaystackHistoryToPayments(items: PaystackPaymentHistoryItem[]): Payment[] {
+    return items.map(item => this.convertPaystackItemToPayment(item));
+  }
+
+  /**
+   * Convert a single Paystack history item to Payment format
+   */
+  private convertPaystackItemToPayment(item: PaystackPaymentHistoryItem): Payment {
+    return {
+      id: item.id,
+      provider: 'paystack',
+      amount: item.amount,
+      currency: item.currency,
+      status: this.mapPaystackStatus(item.status),
+      description: item.description || `Payment - ${item.reference}`,
+      paymentMethodBrand: item.channel || undefined,
+      paymentMethodLast4: undefined,
+      receiptNumber: item.reference,
+      refundedAmount: item.amount_refunded || undefined,
+      createdAt: item.created_at || item.createdAt || new Date().toISOString(),
+      updatedAt: item.paid_at || item.paidAt || item.created_at || item.createdAt
+    };
+  }
+
+  /**
+   * Map Paystack transaction status to unified PaymentStatus
+   */
+  private mapPaystackStatus(status: string): PaymentStatus {
+    const normalizedStatus = status?.toUpperCase();
+    const statusMap: Record<string, PaymentStatus> = {
+      'SUCCESS': 'succeeded',
+      'SUCCEEDED': 'succeeded',
+      'SUCCESSFUL': 'succeeded',
+      'FAILED': 'failed',
+      'ABANDONED': 'canceled',
+      'PENDING': 'pending',
+      'REVERSED': 'refunded',
+      'QUEUED': 'processing',
+      'PROCESSING': 'processing'
+    };
+    return statusMap[normalizedStatus] || 'pending';
   }
 
   /**

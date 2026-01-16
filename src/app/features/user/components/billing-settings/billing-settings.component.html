@@ -2,9 +2,55 @@
 <div class="settings-page">
   <!-- Page Header -->
   <div class="page-header">
-    <h1 class="page-title">Billing & Subscription</h1>
-    <p class="page-subtitle">Manage your subscription, payment methods, and billing history</p>
+    <div class="header-content">
+      <h1 class="page-title">Billing & Subscription</h1>
+      <p class="page-subtitle">Manage your subscription, payment methods, and billing history</p>
+    </div>
+
+    <!-- Currency Selector -->
+    <div class="currency-selector">
+      <label for="currency">Currency:</label>
+      <select id="currency" [value]="selectedCurrency()" (change)="setCurrency($event)">
+        @for (currency of currencies; track currency.code) {
+        <option [value]="currency.code">
+          {{ currency.symbol }} {{ currency.code }}
+        </option>
+        }
+      </select>
+    </div>
   </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+  <div class="alert alert-error">
+    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ error() }}</span>
+    <button class="alert-close" (click)="clearError()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  }
+
+  <!-- Success Alert -->
+  @if (successMessage()) {
+  <div class="alert alert-success">
+    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ successMessage() }}</span>
+    <button class="alert-close" (click)="clearSuccessMessage()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  }
 
   <!-- Current Plan Section -->
   <div class="settings-card">
@@ -13,216 +59,111 @@
         <h2 class="card-title">Current Plan</h2>
         <p class="card-description">Your subscription details and usage</p>
       </div>
-      <a routerLink="/subscriptions/plans" class="btn-primary">
-        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-        </svg>
-        Upgrade Plan
-      </a>
     </div>
     <div class="card-body">
+      @if (isLoading()) {
+      <div class="loading-skeleton">
+        <div class="skeleton-card"></div>
+      </div>
+      } @else {
       <div class="current-plan-display">
-        <div class="plan-badge" [class]="'plan-' + (subscription()?.planName?.toLowerCase() || 'free')">
-          {{ subscription()?.planName || 'Free' }}
+        @if (hasActiveSubscription()) {
+        <div class="plan-badge" [class]="'plan-' + currentPlanName().toLowerCase()">
+          {{ currentPlanName() }}
         </div>
         <div class="plan-details">
           <div class="plan-name">{{ getCurrentPlan().name }} Plan</div>
           <div class="plan-price">
-            @if (getCurrentPlan().monthlyPrice === 0) {
-              <span class="price">Free</span>
-            } @else {
-              <span class="price">{{ formatCurrency(getCurrentPlan().monthlyPrice) }}</span>
-              <span class="period">/month</span>
-            }
+            <span class="price">{{ getCurrentPlan().monthlyPrice | currency:selectedCurrency() }}</span>
+            <span class="period">/{{ currentBillingInterval() === 'monthly' ? 'month' : 'year' }}</span>
           </div>
         </div>
         <div class="plan-status">
-          @if (subscriptionStatus().isActive && !subscriptionStatus().isTrial) {
-            <span class="status-badge active">
-              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Active
-            </span>
-          } @else if (subscriptionStatus().isTrial) {
-            <span class="status-badge trial">
-              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Trial
-            </span>
-          } @else if (!subscriptionStatus().isActive) {
-            <span class="status-badge inactive">
-              <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-              Inactive
-            </span>
-          } @else {
-            <span class="status-badge inactive">Inactive</span>
-          }
+          <span class="status-badge active">
+            <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Active
+          </span>
+        </div>
+        } @else {
+        <div class="plan-badge plan-free">Free</div>
+        <div class="plan-details">
+          <div class="plan-name">You're on the Free Plan</div>
+          <div class="plan-price">
+            <span class="price-note">Upgrade to unlock more features</span>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- Storage Info from API -->
+      @if (storageInfo()) {
+      <div class="usage-info">
+        <div class="usage-item">
+          <span class="usage-label">Documents</span>
+          <span class="usage-value">{{ storageInfo()!.documentsUploaded }} / {{ storageInfo()!.documentsUnlimited ?
+            'Unlimited' : storageInfo()!.documentUploadLimit }}</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">OCR Pages</span>
+          <span class="usage-value">{{ storageInfo()!.ocrPagesUsed }} / {{ storageInfo()!.ocrUnlimited ? 'Unlimited' :
+            storageInfo()!.ocrPageLimit }}</span>
+        </div>
+        <div class="usage-item">
+          <span class="usage-label">Storage</span>
+          <span class="usage-value">{{ storageInfo()!.storageUsedFormatted }} / {{ storageInfo()!.storageLimitFormatted
+            }}</span>
         </div>
       </div>
+      }
 
       <!-- Plan Features -->
       <div class="plan-features-grid">
         @for (feature of getCurrentPlan().features; track feature) {
-          <div class="feature-item">
-            <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            <span>{{ feature }}</span>
-          </div>
+        <div class="feature-item">
+          <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          <span>{{ feature }}</span>
+        </div>
         }
       </div>
-
-      <!-- Quick Links -->
-      <div class="quick-links">
-        <a routerLink="/subscriptions" class="quick-link">
-          <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-          </svg>
-          View Usage
-        </a>
-        <a routerLink="/subscriptions/plans" class="quick-link">
-          <svg class="link-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
-          </svg>
-          Compare Plans
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <!-- Payment Methods Section -->
-  <div class="settings-card">
-    <div class="card-header">
-      <div class="header-info">
-        <h2 class="card-title">Payment Methods</h2>
-        <p class="card-description">Manage your saved payment methods</p>
-      </div>
-      <a routerLink="/payments/methods" class="btn-outline">
-        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-        </svg>
-        Add New
-      </a>
-    </div>
-    <div class="card-body">
-      @if (isLoadingPayments()) {
-        <div class="loading-skeleton">
-          <div class="skeleton-card"></div>
-          <div class="skeleton-card"></div>
-        </div>
-      } @else if (paymentMethods().length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-            </svg>
-          </div>
-          <h3>No payment methods</h3>
-          <p>Add a payment method to subscribe to a plan</p>
-          <a routerLink="/payments/methods" class="btn-primary small">Add Payment Method</a>
-        </div>
-      } @else {
-        <div class="payment-methods-list">
-          @for (method of paymentMethods(); track method.id) {
-            <div class="payment-method-card" [class.default]="method.isDefault">
-              <div class="card-icon" [class]="'brand-' + (method.brand || 'default')">
-                {{ getCardBrandName(method.brand || 'card').slice(0, 4).toUpperCase() }}
-              </div>
-              <div class="card-info">
-                <span class="card-number">{{ getCardBrandName(method.brand || 'card') }} •••• {{ method.last4 }}</span>
-                <span class="card-expiry">Expires {{ method.expiryMonth }}/{{ method.expiryYear }}</span>
-              </div>
-              <div class="card-actions">
-                @if (method.isDefault) {
-                  <span class="default-badge">Default</span>
-                } @else {
-                  <button type="button" class="action-btn" (click)="setDefaultPaymentMethod(method.id)">
-                    Set Default
-                  </button>
-                }
-                <button type="button" class="action-btn danger" (click)="removePaymentMethod(method.id)">
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          }
-        </div>
-        <a routerLink="/payments/methods" class="view-all-link">
-          Manage all payment methods
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-          </svg>
-        </a>
       }
     </div>
   </div>
 
-  <!-- Billing History Section -->
+  <!-- Payment Gateway Selector -->
   <div class="settings-card">
     <div class="card-header">
       <div class="header-info">
-        <h2 class="card-title">Billing History</h2>
-        <p class="card-description">View your past invoices and receipts</p>
+        <h2 class="card-title">Payment Method</h2>
+        <p class="card-description">Select your preferred payment gateway</p>
       </div>
-      <a routerLink="/payments/receipts" class="btn-outline">
-        View All
-      </a>
     </div>
     <div class="card-body">
-      @if (isLoadingInvoices()) {
-        <div class="loading-skeleton">
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row"></div>
-          <div class="skeleton-row"></div>
-        </div>
-      } @else if (invoices().length === 0) {
-        <div class="empty-state">
-          <div class="empty-icon">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
+      <div class="gateway-grid">
+        @for (gateway of paymentGateways; track gateway.type) {
+        <button type="button" class="gateway-card" [class.selected]="selectedGateway() === gateway.type"
+          [class.disabled]="!gateway.isAvailable" [disabled]="!gateway.isAvailable"
+          (click)="selectGateway(gateway.type)">
+          <div class="gateway-icon">{{ gateway.icon }}</div>
+          <div class="gateway-info">
+            <span class="gateway-name">{{ gateway.name }}</span>
+            <span class="gateway-description">{{ gateway.description }}</span>
           </div>
-          <h3>No invoices yet</h3>
-          <p>Your billing history will appear here</p>
-        </div>
-      } @else {
-        <div class="invoices-table">
-          <div class="table-header">
-            <span>Invoice</span>
-            <span>Date</span>
-            <span>Amount</span>
-            <span>Status</span>
-            <span></span>
-          </div>
-          @for (invoice of invoices(); track invoice.id) {
-            <div class="table-row">
-              <span class="invoice-number">{{ invoice.number }}</span>
-              <span class="invoice-date">{{ formatDate(invoice.date) }}</span>
-              <span class="invoice-amount">{{ formatCurrency(invoice.amount, invoice.currency) }}</span>
-              <span class="invoice-status" [class]="'status-' + invoice.status">
-                {{ invoice.status }}
-              </span>
-              <a [href]="invoice.pdfUrl" target="_blank" class="download-btn" title="Download">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-              </a>
-            </div>
+          @if (!gateway.isAvailable) {
+          <span class="coming-soon-badge">Coming Soon</span>
           }
-        </div>
-        <a routerLink="/payments/history" class="view-all-link">
-          View complete payment history
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          @if (selectedGateway() === gateway.type && gateway.isAvailable) {
+          <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
           </svg>
-        </a>
-      }
+          }
+        </button>
+        }
+      </div>
     </div>
   </div>
 
@@ -235,48 +176,235 @@
       </div>
     </div>
     <div class="card-body">
-      <div class="plans-grid">
-        @for (plan of plans; track plan.id) {
-          <div class="plan-card" [class.current]="isCurrentPlan(plan.id)" [class.popular]="plan.popular">
-            @if (plan.popular) {
-              <div class="popular-badge">Most Popular</div>
-            }
-            @if (isCurrentPlan(plan.id)) {
-              <div class="current-badge">Current</div>
-            }
-            <h3 class="plan-title">{{ plan.name }}</h3>
-            <div class="plan-pricing">
-              @if (plan.monthlyPrice === 0) {
-                <span class="price">Free</span>
-              } @else {
-                <span class="price">{{ formatCurrency(plan.monthlyPrice) }}</span>
-                <span class="period">/mo</span>
-              }
-            </div>
-            <ul class="plan-feature-list">
-              @for (feature of plan.features; track feature) {
-                <li>
-                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  {{ feature }}
-                </li>
-              }
-            </ul>
-            @if (isCurrentPlan(plan.id)) {
-              <button type="button" class="plan-btn current" disabled>Current Plan</button>
-            } @else if (canUpgrade(plan.id)) {
-              <a routerLink="/subscriptions/plans" class="plan-btn upgrade">Upgrade</a>
-            } @else {
-              <a routerLink="/subscriptions/plans" class="plan-btn switch">Switch</a>
-            }
-          </div>
+      <!-- Plan Type Tabs -->
+      <div class="plan-controls">
+        <div class="plan-type-tabs">
+          <button class="tab-btn" [class.active]="activeTab() === 'individual'" (click)="setActiveTab('individual')">
+            Individual Plans
+          </button>
+          <button class="tab-btn" [class.active]="activeTab() === 'team'" (click)="setActiveTab('team')">
+            Team Plans
+          </button>
+        </div>
+
+        <!-- Billing Interval Toggle (only for individual plans) -->
+        @if (activeTab() === 'individual') {
+        <div class="billing-toggle">
+          <button class="toggle-btn" [class.active]="billingInterval() === 'monthly'"
+            (click)="setBillingInterval('monthly')">
+            Monthly
+          </button>
+          <button class="toggle-btn" [class.active]="billingInterval() === 'yearly'"
+            (click)="setBillingInterval('yearly')">
+            Yearly
+            <span class="save-badge">Save ~17%</span>
+          </button>
+        </div>
         }
       </div>
+
+      @if (isLoading()) {
+      <div class="loading-skeleton">
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+      } @else {
+      <div class="plans-grid">
+        @if (activeTab() === 'individual') {
+        <!-- Individual Plans -->
+        @for (plan of filteredIndividualPlans(); track plan.planId) {
+        <div class="plan-card" [class.current]="isCurrentPlan(plan.planName)"
+          [class.popular]="plan.planName === 'PRO_MONTHLY' || plan.planName === 'PRO_YEARLY'">
+          @if (plan.planName === 'PRO_MONTHLY' || plan.planName === 'PRO_YEARLY') {
+          <div class="popular-badge">Most Popular</div>
+          }
+          @if (isCurrentPlan(plan.planName)) {
+          <div class="current-badge">Current</div>
+          }
+          <h3 class="plan-title">{{ plan.displayName }}</h3>
+          <div class="plan-pricing">
+            @if (plan.price.convertedAmount === 0) {
+            <span class="price">Free</span>
+            } @else {
+            <span class="price">{{ plan.price.formattedPrice }}</span>
+            <span class="period">/{{ plan.billingInterval === 'MONTH' ? 'mo' : 'yr' }}</span>
+            }
+          </div>
+          <div class="plan-limits">
+            <span>{{ plan.documentUploadLimit }} docs/{{ plan.billingInterval === 'MONTH' ? 'month' : 'year' }}</span>
+            <span>{{ plan.ocrPageLimit }} OCR pages</span>
+          </div>
+          <ul class="plan-feature-list">
+            @for (feature of plan.features; track feature) {
+            <li>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              {{ feature }}
+            </li>
+            }
+          </ul>
+          @if (isCurrentPlan(plan.planName)) {
+          <button type="button" class="plan-btn current" disabled>Current Plan</button>
+          } @else if (plan.price.convertedAmount === 0) {
+          <button type="button" class="plan-btn" disabled>Free Plan</button>
+          } @else {
+          <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
+            {{ getPlanButtonText(plan.planName) }}
+          </button>
+          }
+        </div>
+        }
+        } @else {
+        <!-- Team Plans -->
+        @for (plan of teamPlans(); track plan.planId) {
+        <div class="plan-card team-plan" [class.current]="isCurrentPlan(plan.planName)">
+          @if (isCurrentPlan(plan.planName)) {
+          <div class="current-badge">Current</div>
+          }
+          <h3 class="plan-title">{{ plan.displayName }}</h3>
+          <p class="plan-description">{{ plan.description }}</p>
+          <div class="plan-pricing">
+            <div class="price-option">
+              <span class="price">{{ plan.monthlyPrice.formattedPrice }}</span>
+              <span class="period">/month</span>
+            </div>
+            <div class="price-divider">or</div>
+            <div class="price-option">
+              <span class="price">{{ plan.yearlyPrice.formattedPrice }}</span>
+              <span class="period">/year</span>
+            </div>
+          </div>
+          <div class="plan-limits">
+            <span>Up to {{ plan.maxMembers }} members</span>
+            <span>{{ plan.monthlyDocumentLimit === null ? 'Unlimited' : plan.monthlyDocumentLimit }} docs/month</span>
+          </div>
+          <ul class="plan-feature-list">
+            @for (feature of plan.features; track feature) {
+            <li>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              {{ feature }}
+            </li>
+            }
+          </ul>
+          @if (isCurrentPlan(plan.planName)) {
+          <button type="button" class="plan-btn current" disabled>Current Plan</button>
+          } @else {
+          <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
+            Subscribe
+          </button>
+          }
+        </div>
+        }
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Payment Methods Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Payment Methods</h2>
+        <p class="card-description">Manage your saved payment methods</p>
+      </div>
+    </div>
+    <div class="card-body">
+      @if (isLoadingPayments()) {
+      <div class="loading-skeleton">
+        <div class="skeleton-card"></div>
+      </div>
+      } @else if (paymentMethods().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        </div>
+        <h3>No saved cards</h3>
+        <p>Cards used with Paystack are securely stored by Paystack. When you make a payment with a reusable card, it can be used for future transactions.</p>
+        <a routerLink="/payments/history" class="empty-action-link">View Payment History →</a>
+      </div>
+      } @else {
+      <div class="payment-methods-list">
+        @for (method of paymentMethods(); track method.id) {
+        <div class="payment-method-card" [class.default]="method.isDefault">
+          <div class="card-icon" [class]="'brand-' + (method.brand || 'default')">
+            {{ getCardBrandName(method.brand || 'card').slice(0, 4).toUpperCase() }}
+          </div>
+          <div class="card-info">
+            <span class="card-number">{{ getCardBrandName(method.brand || 'card') }} •••• {{ method.last4 }}</span>
+            <span class="card-expiry">Expires {{ method.expiryMonth }}/{{ method.expiryYear }}</span>
+          </div>
+          <div class="card-actions">
+            @if (method.isDefault) {
+            <span class="default-badge">Default</span>
+            } @else {
+            <button type="button" class="action-btn" (click)="setDefaultPaymentMethod(method.id)">
+              Set Default
+            </button>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <!-- Billing History Section -->
+  <div class="settings-card">
+    <div class="card-header">
+      <div class="header-info">
+        <h2 class="card-title">Payment History</h2>
+        <p class="card-description">View your past payments</p>
+      </div>
+      <a routerLink="/payments/receipts" class="btn-outline">
+        View All
+      </a>
+    </div>
+    <div class="card-body">
+      @if (paymentHistory().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <h3>No payment history</h3>
+        <p>Your payment history will appear here after your first payment</p>
+      </div>
+      } @else {
+      <div class="invoices-table">
+        <div class="table-header">
+          <span>Reference</span>
+          <span>Date</span>
+          <span>Amount</span>
+          <span>Status</span>
+        </div>
+        @for (payment of paymentHistory(); track payment.reference) {
+        <div class="table-row">
+          <span class="invoice-number">{{ payment.reference }}</span>
+          <span class="invoice-date">{{ formatDate(payment.createdAt) }}</span>
+          <span class="invoice-amount">{{ formatPaystackAmount(payment.amount, payment.currency) }}</span>
+          <span class="invoice-status" [class]="'status-' + payment.status">
+            {{ payment.status }}
+          </span>
+        </div>
+        }
+      </div>
+      }
     </div>
   </div>
 
   <!-- Danger Zone -->
+  @if (hasActiveSubscription()) {
   <div class="settings-card danger">
     <div class="card-header">
       <div class="header-info">
@@ -290,11 +418,111 @@
           If you cancel your subscription, you'll lose access to premium features at the end of your billing period.
           Your documents and data will be preserved, but some features may become unavailable.
         </p>
-        <a routerLink="/subscriptions" class="btn-danger-outline">
-          Manage Subscription
-        </a>
+        <button type="button" class="btn-danger-outline" (click)="openCancelModal()">
+          Cancel Subscription
+        </button>
       </div>
     </div>
   </div>
+  }
 </div>
 
+<!-- Checkout Confirmation Modal -->
+@if (showCheckoutModal()) {
+<div class="modal-overlay" (click)="cancelCheckout()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirm Subscription</h3>
+      <button class="modal-close" (click)="cancelCheckout()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      @if (selectedPlan()) {
+      <div class="checkout-summary">
+        <div class="summary-row">
+          <span class="summary-label">Plan</span>
+          <span class="summary-value">{{ selectedPlan()!.displayName || selectedPlan()!.planName }}</span>
+        </div>
+
+        <div class="summary-row">
+          <span class="summary-label">Billing</span>
+          <span class="summary-value">{{ billingInterval() === 'monthly' ? 'Monthly' : 'Yearly' }}</span>
+        </div>
+
+        <div class="summary-row total">
+          <span class="summary-label">Total</span>
+          <span class="summary-value">{{ formattedSelectedPrice() }}</span>
+        </div>
+      </div>
+
+      <p class="checkout-note">
+        You will be redirected to Paystack to complete your payment securely.
+      </p>
+      }
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="cancelCheckout()">Cancel</button>
+      <button class="btn btn-primary" (click)="proceedToCheckout()" [disabled]="isProcessing()">
+        @if (isProcessing()) {
+        <span class="spinner-small"></span>
+        Processing...
+        } @else {
+        Proceed to Payment
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Cancel Subscription Modal -->
+@if (showCancelModal()) {
+<div class="modal-overlay" (click)="closeCancelModal()">
+  <div class="modal-content modal-danger" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Cancel Subscription</h3>
+      <button class="modal-close" (click)="closeCancelModal()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="warning-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+
+      <p class="warning-text">
+        Are you sure you want to cancel your subscription?
+      </p>
+
+      <ul class="cancel-info">
+        <li>Your subscription will remain active until the end of your current billing period.</li>
+        <li>You will lose access to premium features after that date.</li>
+        <li>You can reactivate your subscription at any time.</li>
+      </ul>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" (click)="closeCancelModal()">Keep Subscription</button>
+      <button class="btn btn-danger" (click)="confirmCancelSubscription()" [disabled]="isProcessing()">
+        @if (isProcessing()) {
+        <span class="spinner-small"></span>
+        Cancelling...
+        } @else {
+        Yes, Cancel
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}

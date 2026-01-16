@@ -41,6 +41,12 @@ export const userRoutes: Routes = [
             title: 'Billing & Subscription - UnravelDocs'
           },
           {
+            path: 'billing/paystack/callback',
+            loadComponent: () => import('../payments/pages/paystack-callback/paystack-callback.component')
+              .then(m => m.PaystackCallbackComponent),
+            title: 'Payment Processing - UnravelDocs'
+          },
+          {
             path: 'notifications',
             loadComponent: () => import('./components/notification-settings/notification-settings.component')
               .then(m => m.NotificationSettingsComponent),
