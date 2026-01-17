@@ -453,6 +453,11 @@
           <span class="summary-value">{{ billingInterval() === 'monthly' ? 'Monthly' : 'Yearly' }}</span>
         </div>
 
+        <div class="summary-row">
+          <span class="summary-label">Payment Method</span>
+          <span class="summary-value">{{ selectedGateway() === 'paypal' ? 'PayPal' : selectedGateway() === 'stripe' ? 'Stripe' : 'Paystack' }}</span>
+        </div>
+
         <div class="summary-row total">
           <span class="summary-label">Total</span>
           <span class="summary-value">{{ formattedSelectedPrice() }}</span>
@@ -460,7 +465,13 @@
       </div>
 
       <p class="checkout-note">
-        You will be redirected to Paystack to complete your payment securely.
+        @if (selectedGateway() === 'paypal') {
+          You will be redirected to PayPal to complete your subscription securely.
+        } @else if (selectedGateway() === 'stripe') {
+          You will be redirected to Stripe to complete your payment securely.
+        } @else {
+          You will be redirected to Paystack to complete your payment securely.
+        }
       </p>
       }
     </div>
