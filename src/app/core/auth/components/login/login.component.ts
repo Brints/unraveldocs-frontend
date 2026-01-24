@@ -399,8 +399,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private navigateAfterLogin(): void {
-    const destination = this.redirectUrl() || '/dashboard';
-    this.router.navigate([destination]);
+    const destination = this.redirectUrl() || '/user/dashboard';
+    // Use navigateByUrl for full URL paths (handles /teams/join/token correctly)
+    this.router.navigateByUrl(destination);
   }
 
   private trackSocialLogin(provider: string, response: GoogleSignupResponse): void {

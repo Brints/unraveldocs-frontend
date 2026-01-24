@@ -1,22 +1,34 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { SubscriptionStateService } from '../../services/subscription-state.service';
 import { SubscriptionPlan, PlanTier } from '../../models/subscription.model';
+import { CouponApiService } from '../../../coupon/services/coupon-api.service';
+import { AppliedCoupon } from '../../../coupon/models/coupon.model';
+import { catchError, finalize, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-subscription-plans',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './subscription-plans.component.html',
   styleUrls: ['./subscription-plans.component.css']
 })
 export class SubscriptionPlansComponent implements OnInit {
   protected readonly subState = inject(SubscriptionStateService);
+  private readonly couponApi = inject(CouponApiService);
 
   // Local state
   showConfirmModal = signal(false);
   selectedPlanForCheckout = signal<SubscriptionPlan | null>(null);
+
+  // Coupon state
+  couponCode = signal('');
+  appliedCoupon = signal<AppliedCoupon | null>(null);
+  isValidatingCoupon = signal(false);
+  couponError = signal<string | null>(null);
+  couponSuccess = signal<string | null>(null);
 
   // From state service
   readonly plans = this.subState.plans;
@@ -55,6 +67,7 @@ export class SubscriptionPlansComponent implements OnInit {
   closeConfirmModal(): void {
     this.showConfirmModal.set(false);
     this.selectedPlanForCheckout.set(null);
+    this.removeCoupon();
   }
 
   isCurrentPlan(plan: SubscriptionPlan): boolean {
@@ -114,6 +127,85 @@ export class SubscriptionPlansComponent implements OnInit {
       case 'enterprise': return 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4';
       default: return 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
     }
+  }
+
+  // ==================== Coupon Methods ====================
+
+  applyCoupon(): void {
+    const code = this.couponCode().trim();
+    const plan = this.selectedPlanForCheckout();
+
+    if (!code) {
+      this.couponError.set('Please enter a coupon code');
+      return;
+    }
+
+    if (!plan) {
+      this.couponError.set('No plan selected');
+      return;
+    }
+
+    this.isValidatingCoupon.set(true);
+    this.couponError.set(null);
+    this.couponSuccess.set(null);
+
+    this.couponApi.validateCoupon({
+      code,
+      planId: plan.id,
+      currency: plan.currency
+    }).pipe(
+      tap(response => {
+        if (response.valid && response.coupon) {
+          this.appliedCoupon.set({
+            code: response.coupon.code,
+            type: response.coupon.type,
+            value: response.coupon.value,
+            description: response.coupon.description,
+            originalAmount: response.originalAmount,
+            discountAmount: response.discountAmount,
+            finalAmount: response.finalAmount,
+            currency: response.currency
+          });
+          this.couponSuccess.set(
+            response.coupon.type === 'PERCENTAGE'
+              ? `${response.coupon.value}% discount applied!`
+              : `${this.formatPrice(response.discountAmount, response.currency)} discount applied!`
+          );
+          this.couponError.set(null);
+        } else {
+          this.couponError.set(response.message || 'Invalid coupon code');
+          this.appliedCoupon.set(null);
+        }
+      }),
+      catchError(error => {
+        console.error('Coupon validation error:', error);
+        this.couponError.set(
+          error.error?.message || 'Failed to validate coupon. Please try again.'
+        );
+        this.appliedCoupon.set(null);
+        return of(null);
+      }),
+      finalize(() => this.isValidatingCoupon.set(false))
+    ).subscribe();
+  }
+
+  removeCoupon(): void {
+    this.appliedCoupon.set(null);
+    this.couponCode.set('');
+    this.couponSuccess.set(null);
+    this.couponError.set(null);
+  }
+
+  getFinalPrice(): number {
+    const coupon = this.appliedCoupon();
+    if (coupon) {
+      return coupon.finalAmount;
+    }
+    const plan = this.selectedPlanForCheckout();
+    if (!plan) return 0;
+    return this.billingInterval() === 'yearly'
+      ? this.getYearlyPrice(plan) / 12
+      : plan.price;
   }
 }
 

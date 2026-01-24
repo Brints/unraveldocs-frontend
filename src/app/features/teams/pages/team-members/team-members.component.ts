@@ -140,7 +140,8 @@ export class TeamMembersComponent implements OnInit {
     }
   }
 
-  formatDate(dateString: string): string {
+  formatDate(dateString: string | null): string {
+    if (!dateString) return 'Just now';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

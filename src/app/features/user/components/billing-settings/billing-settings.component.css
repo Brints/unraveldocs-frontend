@@ -365,7 +365,7 @@
 
 /* Payment Methods List */
 .payment-methods-list {
-  divide: 1px solid #f1f5f9;
+  /* Dividers handled by child elements */
 }
 
 .payment-method-item {
@@ -555,6 +555,8 @@
 
 .plan-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   padding: 1.5rem;
   background: #f8fafc;
   border: 2px solid #e2e8f0;
@@ -637,6 +639,7 @@
 .btn-upgrade,
 .btn-downgrade {
   width: 100%;
+  margin-top: auto;
   padding: 0.625rem 1rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -1099,8 +1102,10 @@
 .plan-card .plan-feature-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 1.5rem;
+  margin: 0;
+  flex-grow: 1;
   text-align: left;
+  margin-bottom: 1rem;
 }
 
 .plan-card .plan-feature-list li {

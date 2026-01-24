@@ -99,7 +99,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     }
   ];
 
-  selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>('paystack');
+  selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>(this.loadPersistedGateway());
 
   // Available currencies
   readonly currencies = POPULAR_CURRENCIES.filter(c =>
@@ -126,8 +126,12 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       if (user?.email) {
         this.paystackState.initialize(user.email);
-        // Load billing data with NGN as default for African users
-        this.paystackState.loadBillingData('NGN');
+        // Load billing data with persisted currency or default to NGN
+        const persistedCurrency = this.loadPersistedCurrency();
+        // Explicitly set currency first to update the dropdown
+        this.paystackState.setCurrency(persistedCurrency);
+        // Then load billing data
+        this.paystackState.loadBillingData(persistedCurrency);
         // Also load PayPal billing data and plans
         this.paypalState.loadBillingData();
       }
@@ -165,7 +169,10 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   setCurrency(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.paystackState.setCurrency(select.value);
+    const currency = select.value;
+    // Persist currency to localStorage
+    localStorage.setItem('billing_currency', currency);
+    this.paystackState.setCurrency(currency);
   }
 
   setBillingInterval(interval: 'monthly' | 'yearly'): void {
@@ -179,6 +186,8 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   selectGateway(gateway: 'paystack' | 'stripe' | 'paypal'): void {
     const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
     if (gatewayInfo?.isAvailable) {
+      // Persist gateway to localStorage
+      localStorage.setItem('billing_payment_gateway', gateway);
       this.selectedGateway.set(gateway);
     }
   }
@@ -352,11 +361,13 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   getCurrentPlan() {
     const planName = this.currentPlanName();
-    // Find matching plan from individual or team plans
+    
+    // Try to find matching individual plan
     const individual = this.individualPlans().find(p =>
       p.planName === planName ||
       p.planName.replace('_MONTHLY', '').replace('_YEARLY', '') === planName.replace('_Monthly', '').replace('_Yearly', '')
     );
+    
     if (individual) {
       return {
         name: individual.displayName,
@@ -364,11 +375,37 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         features: individual.features
       };
     }
-    // Default to free plan display
+    
+    // Try to find matching team plan
+    const team = this.teamPlans().find(p =>
+      p.planName === planName ||
+      p.planName.toUpperCase() === planName.toUpperCase() ||
+      p.displayName.toUpperCase().includes(planName.toUpperCase())
+    );
+    
+    if (team) {
+      // For team plans, use the monthly price by default
+      return {
+        name: team.displayName,
+        monthlyPrice: team.monthlyPrice.convertedAmount,
+        features: team.features
+      };
+    }
+    
+    // Only return free plan if no active subscription
+    if (!this.hasActiveSubscription()) {
+      return {
+        name: 'Free',
+        monthlyPrice: 0,
+        features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+      };
+    }
+    
+    // If we have an active subscription but can't find the plan, return plan name as-is
     return {
-      name: 'Free',
+      name: planName || 'Unknown Plan',
       monthlyPrice: 0,
-      features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+      features: []
     };
   }
 
@@ -391,6 +428,29 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   // Plan display helpers
   getDisplayPlans() {
     return this.displayPlans();
+  }
+
+  // ==================== Persistence ====================
+
+  private loadPersistedCurrency(): string {
+    const persisted = localStorage.getItem('billing_currency');
+    // Validate persisted currency is supported
+    if (persisted && ['NGN', 'GHS', 'ZAR', 'KES', 'USD'].includes(persisted)) {
+      return persisted;
+    }
+    return 'NGN'; // Default to NGN
+  }
+
+  private loadPersistedGateway(): 'paystack' | 'stripe' | 'paypal' {
+    const persisted = localStorage.getItem('billing_payment_gateway') as 'paystack' | 'stripe' | 'paypal' | null;
+    // Validate persisted gateway is available
+    if (persisted) {
+      const gateway = this.paymentGateways.find(g => g.type === persisted);
+      if (gateway?.isAvailable) {
+        return persisted;
+      }
+    }
+    return 'paystack'; // Default to paystack
   }
 }
 

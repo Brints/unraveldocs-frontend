@@ -288,8 +288,76 @@
         <div class="plan-summary">
           <div class="summary-plan">{{ selectedPlanForCheckout()?.name }} Plan</div>
           <div class="summary-price">
-            {{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(selectedPlanForCheckout()!) / 12 : selectedPlanForCheckout()!.price, selectedPlanForCheckout()!.currency) }}/month
+            @if (appliedCoupon()) {
+              <span class="original-price">{{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(selectedPlanForCheckout()!) / 12 : selectedPlanForCheckout()!.price, selectedPlanForCheckout()!.currency) }}/month</span>
+              <span class="discounted-price">{{ formatPrice(appliedCoupon()!.finalAmount / (billingInterval() === 'yearly' ? 12 : 1), appliedCoupon()!.currency) }}/month</span>
+            } @else {
+              {{ formatPrice(billingInterval() === 'yearly' ? getYearlyPrice(selectedPlanForCheckout()!) / 12 : selectedPlanForCheckout()!.price, selectedPlanForCheckout()!.currency) }}/month
+            }
           </div>
+          @if (appliedCoupon()) {
+            <div class="summary-discount">
+              <span>Discount:</span>
+              <strong class="discount-amount">-{{ formatPrice(appliedCoupon()!.discountAmount, appliedCoupon()!.currency) }}</strong>
+            </div>
+          }
+        </div>
+
+        <!-- Coupon Code Section -->
+        <div class="coupon-section">
+          <label class="coupon-label">Have a coupon code?</label>
+          @if (!appliedCoupon()) {
+            <div class="coupon-input-group">
+              <input
+                type="text"
+                class="coupon-input"
+                placeholder="Enter coupon code"
+                [value]="couponCode()"
+                (input)="couponCode.set($any($event.target).value)"
+                [disabled]="isValidatingCoupon()"
+              />
+              <button
+                type="button"
+                class="coupon-apply-btn"
+                (click)="applyCoupon()"
+                [disabled]="isValidatingCoupon() || !couponCode()">
+                @if (isValidatingCoupon()) {
+                  <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                  </svg>
+                } @else {
+                  Apply
+                }
+              </button>
+            </div>
+            @if (couponError()) {
+              <p class="coupon-error">{{ couponError() }}</p>
+            }
+          } @else {
+            <div class="coupon-applied">
+              <div class="coupon-badge">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>{{ appliedCoupon()!.code }}</span>
+                <span class="coupon-discount">
+                  @if (appliedCoupon()!.type === 'PERCENTAGE') {
+                    {{ appliedCoupon()!.value }}% off
+                  } @else {
+                    {{ formatPrice(appliedCoupon()!.discountAmount, appliedCoupon()!.currency) }} off
+                  }
+                </span>
+              </div>
+              <button type="button" class="coupon-remove-btn" (click)="removeCoupon()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+            @if (couponSuccess()) {
+              <p class="coupon-success">{{ couponSuccess() }}</p>
+            }
+          }
         </div>
 
         @if (selectedPlanForCheckout()?.trialDays) {

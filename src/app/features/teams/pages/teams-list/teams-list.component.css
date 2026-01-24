@@ -2,16 +2,58 @@
 .teams-page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: 1.5rem 1rem 3rem;
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+}
+
+/* ==================== Breadcrumb Navigation ==================== */
+.breadcrumb-nav {
+  margin-bottom: 1.5rem;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.625rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.back-link:hover {
+  color: #6366f1;
+  background: #f5f3ff;
+  border-color: #c7d2fe;
+  transform: translateX(-2px);
+}
+
+.back-link svg {
+  transition: transform 0.2s ease;
+}
+
+.back-link:hover svg {
+  transform: translateX(-3px);
 }
 
 /* ==================== Header ==================== */
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 2rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   flex-wrap: wrap;
 }
 
@@ -21,17 +63,36 @@
   gap: 0.5rem;
 }
 
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #6366f1;
+  border-radius: 0.875rem;
+}
+
 .page-title {
   font-size: 1.75rem;
   font-weight: 700;
   color: #111827;
   margin: 0;
+  letter-spacing: -0.025em;
 }
 
 .page-subtitle {
   font-size: 0.9375rem;
   color: #6b7280;
   margin: 0;
+  padding-left: 4rem;
 }
 
 /* ==================== Buttons ==================== */
@@ -88,9 +149,9 @@
   align-items: center;
   padding: 4rem 2rem;
   text-align: center;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
+  background: linear-gradient(135deg, #f8fafc 0%, white 100%);
+  border: 2px dashed #e5e7eb;
+  border-radius: 1.5rem;
   margin-bottom: 2rem;
 }
 
@@ -104,23 +165,31 @@
   color: #6366f1;
   border-radius: 1.5rem;
   margin-bottom: 1.5rem;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .empty-state h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 700;
   color: #111827;
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.75rem;
 }
 
 .empty-state p {
   color: #6b7280;
-  margin: 0 0 1.5rem;
+  margin: 0 0 2rem;
+  max-width: 320px;
+  line-height: 1.6;
 }
 
 /* ==================== Section ==================== */
 .teams-section {
   margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .section-title {
@@ -130,7 +199,13 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #374151;
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.section-title svg {
+  color: #6366f1;
 }
 
 /* ==================== Teams Grid ==================== */
@@ -309,77 +384,217 @@
 /* ==================== Subscription Info ==================== */
 .subscription-info {
   margin-top: 3rem;
-  padding-top: 2rem;
-  border-top: 1px solid #e5e7eb;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, #f5f3ff 0%, #e0e7ff 50%, #dbeafe 100%);
+  border-radius: 1.5rem;
+  text-align: center;
 }
 
+.subscription-header {
+  margin-bottom: 2.5rem;
+}
+
+.section-title-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.75rem;
+}
+
+.section-title-large svg {
+  color: #6366f1;
+}
+
+.section-description {
+  font-size: 1rem;
+  color: #6b7280;
+  margin: 0 0 2rem;
+}
+
+/* ==================== Billing Toggle ==================== */
+.billing-toggle {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn:hover:not(.active) {
+  color: #374151;
+  background: #f3f4f6;
+}
+
+.toggle-btn.active {
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+}
+
+.savings-badge {
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #059669;
+  background: #d1fae5;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+.toggle-btn.active .savings-badge {
+  color: white;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ==================== Tiers Grid ==================== */
 .tiers-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  max-width: 700px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
+/* ==================== Tier Card ==================== */
 .tier-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   padding: 2rem;
   background: white;
   border: 2px solid #e5e7eb;
-  border-radius: 1rem;
+  border-radius: 1.25rem;
   text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.tier-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
 }
 
 .tier-card.enterprise {
   border-color: #a855f7;
+  background: linear-gradient(180deg, #faf5ff 0%, white 30%);
 }
 
 .tier-card .popular-badge {
   position: absolute;
-  top: -0.75rem;
+  top: -0.875rem;
   left: 50%;
   transform: translateX(-50%);
-  padding: 0.25rem 0.75rem;
+  padding: 0.375rem 1rem;
   font-size: 0.6875rem;
   font-weight: 700;
   color: white;
   background: linear-gradient(135deg, #a855f7, #6366f1);
   border-radius: 9999px;
   text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
+}
+
+.tier-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .tier-header {
   margin-bottom: 1.5rem;
 }
 
+.plan-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 1rem;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #6366f1;
+  border-radius: 0.875rem;
+}
+
+.plan-icon.enterprise {
+  background: linear-gradient(135deg, #fae8ff, #e9d5ff);
+  color: #a855f7;
+}
+
 .tier-header h3 {
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #111827;
-  margin: 0 0 0.75rem;
+  margin: 0 0 1rem;
 }
 
 .tier-price {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 0.25rem;
+  gap: 0.125rem;
+}
+
+.tier-price .currency {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #6b7280;
+  align-self: flex-start;
+  margin-top: 0.5rem;
 }
 
 .tier-price .price {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 800;
   color: #111827;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .tier-price .period {
   font-size: 1rem;
+  font-weight: 500;
   color: #6b7280;
 }
 
-.yearly-price {
+.yearly-savings-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  margin-top: 0.75rem;
   font-size: 0.75rem;
+  font-weight: 600;
   color: #059669;
-  margin: 0.25rem 0 0;
+  background: #ecfdf5;
+  border-radius: 9999px;
+}
+
+.yearly-savings-tag svg {
+  color: #059669;
 }
 
 .tier-features {
@@ -387,15 +602,16 @@
   padding: 0;
   margin: 0 0 1.5rem;
   text-align: left;
+  flex: 1;
 }
 
 .tier-features li {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
   color: #374151;
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px solid #f3f4f6;
 }
 
@@ -409,23 +625,36 @@
 }
 
 .tier-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   width: 100%;
-  padding: 0.75rem;
+  padding: 0.875rem 1.5rem;
   font-size: 0.9375rem;
   font-weight: 600;
   color: #6366f1;
   background: #e0e7ff;
   border: none;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   text-decoration: none;
   text-align: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  margin-top: auto;
 }
 
 .tier-btn:hover {
   background: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.tier-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.tier-btn:hover svg {
+  transform: translateX(3px);
 }
 
 .tier-btn.enterprise {
@@ -435,6 +664,34 @@
 
 .tier-btn.enterprise:hover {
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+/* ==================== Trust Section ==================== */
+.trust-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(99, 102, 241, 0.15);
+}
+
+.trust-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.trust-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.trust-badge svg {
+  color: #6366f1;
 }
 
 /* ==================== Skeleton ==================== */
@@ -476,6 +733,67 @@
 .h-4 { height: 1rem; }
 .w-5 { width: 1.25rem; }
 .h-5 { height: 1.25rem; }
+.w-6 { width: 1.5rem; }
+.h-6 { height: 1.5rem; }
+.w-8 { width: 2rem; }
+.h-8 { height: 2rem; }
 .w-16 { width: 4rem; }
 .h-16 { height: 4rem; }
+
+/* ==================== Responsive Styles ==================== */
+@media (max-width: 768px) {
+  .teams-page {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem;
+    gap: 1rem;
+  }
+
+  .title-wrapper {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .page-subtitle {
+    padding-left: 0;
+    text-align: center;
+  }
+
+  .btn-primary {
+    justify-content: center;
+  }
+
+  .subscription-info {
+    padding: 2rem 1rem;
+  }
+
+  .section-title-large {
+    font-size: 1.25rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .tiers-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .billing-toggle {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .trust-badges {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
 

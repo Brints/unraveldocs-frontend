@@ -187,8 +187,7 @@
           </button>
         </div>
 
-        <!-- Billing Interval Toggle (only for individual plans) -->
-        @if (activeTab() === 'individual') {
+        <!-- Billing Interval Toggle (for both individual and team plans) -->
         <div class="billing-toggle">
           <button class="toggle-btn" [class.active]="billingInterval() === 'monthly'"
             (click)="setBillingInterval('monthly')">
@@ -200,7 +199,6 @@
             <span class="save-badge">Save ~17%</span>
           </button>
         </div>
-        }
       </div>
 
       @if (isLoading()) {
@@ -266,15 +264,13 @@
           <h3 class="plan-title">{{ plan.displayName }}</h3>
           <p class="plan-description">{{ plan.description }}</p>
           <div class="plan-pricing">
-            <div class="price-option">
-              <span class="price">{{ plan.monthlyPrice.formattedPrice }}</span>
-              <span class="period">/month</span>
-            </div>
-            <div class="price-divider">or</div>
-            <div class="price-option">
-              <span class="price">{{ plan.yearlyPrice.formattedPrice }}</span>
-              <span class="period">/year</span>
-            </div>
+            @if (billingInterval() === 'monthly') {
+            <span class="price">{{ plan.monthlyPrice.formattedPrice }}</span>
+            <span class="period">/month</span>
+            } @else {
+            <span class="price">{{ plan.yearlyPrice.formattedPrice }}</span>
+            <span class="period">/year</span>
+            }
           </div>
           <div class="plan-limits">
             <span>Up to {{ plan.maxMembers }} members</span>
@@ -305,12 +301,14 @@
     </div>
   </div>
 
-  <!-- Payment Methods Section -->
+  <!-- Payment Methods Section - Hidden as cards are managed by payment gateways -->
+  @if (false) {
   <div class="settings-card">
     <div class="card-header">
       <div class="header-info">
         <h2 class="card-title">Payment Methods</h2>
-        <p class="card-description">Manage your saved payment methods</p>
+        <p class="card-description">Payment methods are securely managed by {{ selectedGateway() === 'paypal' ? 'PayPal'
+          : selectedGateway() === 'stripe' ? 'Stripe' : 'Paystack' }}</p>
       </div>
     </div>
     <div class="card-body">
@@ -327,7 +325,10 @@
           </svg>
         </div>
         <h3>No saved cards</h3>
-        <p>Cards used with Paystack are securely stored by Paystack. When you make a payment with a reusable card, it can be used for future transactions.</p>
+        <p>Cards used with {{ selectedGateway() === 'paypal' ? 'PayPal' : selectedGateway() === 'stripe' ? 'Stripe' :
+          'Paystack' }} are securely stored by {{ selectedGateway() === 'paypal' ? 'PayPal' : selectedGateway() ===
+          'stripe' ? 'Stripe' : 'Paystack' }}. When you make a payment with a reusable card, it
+          can be used for future transactions.</p>
         <a routerLink="/payments/history" class="empty-action-link">View Payment History →</a>
       </div>
       } @else {
@@ -356,6 +357,7 @@
       }
     </div>
   </div>
+  }
 
   <!-- Billing History Section -->
   <div class="settings-card">
@@ -455,7 +457,8 @@
 
         <div class="summary-row">
           <span class="summary-label">Payment Method</span>
-          <span class="summary-value">{{ selectedGateway() === 'paypal' ? 'PayPal' : selectedGateway() === 'stripe' ? 'Stripe' : 'Paystack' }}</span>
+          <span class="summary-value">{{ selectedGateway() === 'paypal' ? 'PayPal' : selectedGateway() === 'stripe' ?
+            'Stripe' : 'Paystack' }}</span>
         </div>
 
         <div class="summary-row total">
@@ -466,11 +469,11 @@
 
       <p class="checkout-note">
         @if (selectedGateway() === 'paypal') {
-          You will be redirected to PayPal to complete your subscription securely.
+        You will be redirected to PayPal to complete your subscription securely.
         } @else if (selectedGateway() === 'stripe') {
-          You will be redirected to Stripe to complete your payment securely.
+        You will be redirected to Stripe to complete your payment securely.
         } @else {
-          You will be redirected to Paystack to complete your payment securely.
+        You will be redirected to Paystack to complete your payment securely.
         }
       </p>
       }

@@ -11,6 +11,8 @@ import {
   PayPalSubscriptionStatus,
   PayPalCreateSubscriptionRequest,
   PayPalBillingPlan,
+  PayPalCreateOrderRequest,
+  PayPalCreateOrderResponse,
   getPayPalStatusLabel,
   canCancelSubscription,
   canSuspendSubscription,
@@ -50,6 +52,13 @@ export class PayPalStateService {
     totalPages: 0
   });
 
+  // Coupon-related state
+  private readonly _couponCode = signal<string | null>(null);
+  private readonly _discountAmount = signal<number>(0);
+  private readonly _originalAmount = signal<number>(0);
+  private readonly _discountedAmount = signal<number>(0);
+  private readonly _lastOrderId = signal<string | null>(null);
+
   // ==================== Public Readonly Signals ====================
 
   readonly userEmail = this._userEmail.asReadonly();
@@ -64,6 +73,14 @@ export class PayPalStateService {
   readonly error = this._error.asReadonly();
   readonly successMessage = this._successMessage.asReadonly();
   readonly pagination = this._pagination.asReadonly();
+
+  // Coupon readonly signals
+  readonly couponCode = this._couponCode.asReadonly();
+  readonly discountAmount = this._discountAmount.asReadonly();
+  readonly originalAmount = this._originalAmount.asReadonly();
+  readonly discountedAmount = this._discountedAmount.asReadonly();
+  readonly lastOrderId = this._lastOrderId.asReadonly();
+  readonly hasCoupon = computed(() => !!this._couponCode());
 
   // Plans from pricing service
   readonly individualPlans = this.pricingService.individualPlans;
@@ -319,6 +336,28 @@ export class PayPalStateService {
     this.pricingService.loadPlans(currency);
   }
 
+  // ==================== Coupon Management ====================
+
+  /**
+   * Set coupon code and calculate discount
+   */
+  setCoupon(couponCode: string, discountAmount: number, originalAmount: number): void {
+    this._couponCode.set(couponCode);
+    this._discountAmount.set(discountAmount);
+    this._originalAmount.set(originalAmount);
+    this._discountedAmount.set(originalAmount - discountAmount);
+  }
+
+  /**
+   * Clear coupon
+   */
+  clearCoupon(): void {
+    this._couponCode.set(null);
+    this._discountAmount.set(0);
+    this._originalAmount.set(0);
+    this._discountedAmount.set(0);
+  }
+
   // ==================== Subscription Actions ====================
 
   /**
@@ -380,9 +419,18 @@ export class PayPalStateService {
 
   /**
    * Create a new PayPal subscription
+   * If a coupon code is set, uses the orders endpoint for one-time discounted payment
+   * Otherwise, uses the subscriptions endpoint for recurring billing
    */
   createSubscription(internalPlanId: string): void {
     console.log('PayPal createSubscription called with internal planId:', internalPlanId);
+
+    // Check if we have a coupon code - if so, use orders endpoint
+    const couponCode = this._couponCode();
+    if (couponCode) {
+      this.createOrderWithCoupon(internalPlanId);
+      return;
+    }
 
     // Map internal plan ID to PayPal billing plan ID
     const paypalPlanId = this.getPayPalPlanId(internalPlanId);
@@ -409,6 +457,7 @@ export class PayPalStateService {
 
     // Store subscription info in session for callback
     sessionStorage.setItem('paypal_plan_id', paypalPlanId);
+    sessionStorage.setItem('paypal_payment_type', 'subscription');
 
     this.api.createSubscription(request).pipe(
       tap(response => {
@@ -426,6 +475,124 @@ export class PayPalStateService {
         this._error.set(
           error.error?.message ||
           'Failed to create subscription. Please try again.'
+        );
+        return of(null);
+      }),
+      finalize(() => this._isProcessing.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Create a PayPal order with coupon discount
+   * Used for one-time discounted payments instead of subscriptions
+   */
+  private createOrderWithCoupon(internalPlanId: string): void {
+    console.log('Creating PayPal order with coupon for planId:', internalPlanId);
+
+    // Map internal plan ID to PayPal billing plan ID
+    const paypalPlanId = this.getPayPalPlanId(internalPlanId);
+
+    if (!paypalPlanId) {
+      this._error.set('Could not find the corresponding PayPal plan. Please try again or contact support.');
+      return;
+    }
+
+    // Get plan details for description and currency
+    const selectedPlan = this.selectedPlan();
+    if (!selectedPlan) {
+      this._error.set('No plan selected. Please try again.');
+      return;
+    }
+
+    const couponCode = this._couponCode()!;
+    const discountAmount = this._discountAmount();
+    const originalAmount = this._originalAmount();
+    const discountedAmount = this._discountedAmount();
+    const currency = this.selectedCurrency() || 'USD';
+
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    const baseUrl = window.location.origin;
+    const billingInterval = this._billingInterval();
+    const description = `${selectedPlan.displayName} - ${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (with ${couponCode} coupon)`;
+
+    const request: PayPalCreateOrderRequest = {
+      amount: discountedAmount,
+      currency: currency.toUpperCase(),
+      description: description,
+      returnUrl: `${baseUrl}/payment/success?gateway=paypal&type=order`,
+      cancelUrl: `${baseUrl}/payment/cancel?gateway=paypal&type=order`,
+      metadata: {
+        planId: paypalPlanId,
+        couponCode: couponCode,
+        discountAmount: discountAmount.toFixed(2),
+        originalAmount: originalAmount.toFixed(2)
+      },
+      intent: 'CAPTURE'
+    };
+
+    console.log('PayPal order request:', request);
+
+    // Store order info in session for callback
+    sessionStorage.setItem('paypal_plan_id', paypalPlanId);
+    sessionStorage.setItem('paypal_payment_type', 'order');
+    sessionStorage.setItem('paypal_coupon_code', couponCode);
+
+    this.api.createOrder(request).pipe(
+      tap(response => {
+        console.log('PayPal order response:', response);
+        this._lastOrderId.set(response.orderId);
+        sessionStorage.setItem('paypal_order_id', response.orderId);
+
+        if (response.approvalUrl) {
+          // Redirect to PayPal for approval
+          console.log('Redirecting to PayPal for order approval:', response.approvalUrl);
+          window.location.href = response.approvalUrl;
+        } else {
+          this._error.set('Failed to get PayPal approval URL');
+        }
+      }),
+      catchError(error => {
+        console.error('Failed to create order:', error);
+        this._error.set(
+          error.error?.message ||
+          'Failed to create order. Please try again.'
+        );
+        return of(null);
+      }),
+      finalize(() => this._isProcessing.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Capture a PayPal order after approval
+   */
+  captureOrder(orderId: string): void {
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    this.api.captureOrder(orderId).pipe(
+      tap(response => {
+        console.log('PayPal order capture response:', response);
+        this._successMessage.set('Payment completed successfully!');
+        this.clearMessageAfterDelay();
+
+        // Clear coupon and session data
+        this.clearCoupon();
+        sessionStorage.removeItem('paypal_plan_id');
+        sessionStorage.removeItem('paypal_payment_type');
+        sessionStorage.removeItem('paypal_order_id');
+        sessionStorage.removeItem('paypal_coupon_code');
+
+        // Refresh billing data
+        this.loadBillingData();
+      }),
+      catchError(error => {
+        console.error('Failed to capture order:', error);
+        this._error.set(
+          error.error?.message ||
+          'Failed to complete payment. Please contact support.'
         );
         return of(null);
       }),

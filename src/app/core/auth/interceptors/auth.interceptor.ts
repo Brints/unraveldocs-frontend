@@ -107,8 +107,13 @@ function handleUnauthorizedError(
             isRefreshing = false;
             // Refresh failed, logout and redirect to login
             authService.logout().then(() => {
+              // Preserve the current URL so user can return after login
+              const currentUrl = window.location.pathname + window.location.search;
               router.navigate(['/auth/login'], {
-                queryParams: { sessionExpired: 'true' }
+                queryParams: {
+                  sessionExpired: 'true',
+                  returnUrl: currentUrl
+                }
               });
             });
             observer.error(refreshError);
@@ -118,8 +123,13 @@ function handleUnauthorizedError(
       // No refresh token available, logout
       isRefreshing = false;
       authService.logout().then(() => {
+        // Preserve the current URL so user can return after login
+        const currentUrl = window.location.pathname + window.location.search;
         router.navigate(['/auth/login'], {
-          queryParams: { sessionExpired: 'true' }
+          queryParams: {
+            sessionExpired: 'true',
+            returnUrl: currentUrl
+          }
         });
       });
       return throwError(() => new Error('No refresh token available'));

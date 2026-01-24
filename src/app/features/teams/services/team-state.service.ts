@@ -5,7 +5,6 @@ import {
   Team,
   TeamSummary,
   TeamMember,
-  TeamInvitation,
   InitiateTeamRequest,
   SubscriptionType,
   BillingCycle,
@@ -46,10 +45,6 @@ export class TeamStateService {
   private readonly _members = signal<TeamMember[]>([]);
   private readonly _isLoadingMembers = signal(false);
 
-  // Team invitations
-  private readonly _invitations = signal<TeamInvitation[]>([]);
-  private readonly _isLoadingInvitations = signal(false);
-
   // Create team wizard
   private readonly _wizardState = signal<CreateTeamWizardState>({
     step: 1,
@@ -76,8 +71,6 @@ export class TeamStateService {
   readonly isLoadingTeam = this._isLoadingTeam.asReadonly();
   readonly members = this._members.asReadonly();
   readonly isLoadingMembers = this._isLoadingMembers.asReadonly();
-  readonly invitations = this._invitations.asReadonly();
-  readonly isLoadingInvitations = this._isLoadingInvitations.asReadonly();
   readonly wizardState = this._wizardState.asReadonly();
   readonly isProcessing = this._isProcessing.asReadonly();
   readonly error = this._error.asReadonly();
@@ -203,20 +196,6 @@ export class TeamStateService {
     });
   }
 
-  loadTeamInvitations(teamId: string): void {
-    this._isLoadingInvitations.set(true);
-
-    this.teamApi.getTeamInvitations(teamId).subscribe({
-      next: (invitations) => {
-        this._invitations.set(invitations);
-        this._isLoadingInvitations.set(false);
-      },
-      error: (err) => {
-        this._error.set(err.error?.message || 'Failed to load invitations');
-        this._isLoadingInvitations.set(false);
-      }
-    });
-  }
 
   // ==================== Create Team Wizard ====================
 
@@ -402,27 +381,9 @@ export class TeamStateService {
       next: () => {
         this._successMessage.set(`Invitation sent to ${email}`);
         this._isProcessing.set(false);
-        this.loadTeamInvitations(teamId);
       },
       error: (err) => {
         this._error.set(err.error?.message || 'Failed to send invitation');
-        this._isProcessing.set(false);
-      }
-    });
-  }
-
-  cancelInvitation(teamId: string, invitationId: string): void {
-    this._isProcessing.set(true);
-    this._error.set(null);
-
-    this.teamApi.cancelInvitation(teamId, invitationId).subscribe({
-      next: () => {
-        this._invitations.update(invs => invs.filter(i => i.id !== invitationId));
-        this._successMessage.set('Invitation cancelled');
-        this._isProcessing.set(false);
-      },
-      error: (err) => {
-        this._error.set(err.error?.message || 'Failed to cancel invitation');
         this._isProcessing.set(false);
       }
     });
@@ -528,7 +489,6 @@ export class TeamStateService {
   clearCurrentTeam(): void {
     this._currentTeam.set(null);
     this._members.set([]);
-    this._invitations.set([]);
   }
 }
 

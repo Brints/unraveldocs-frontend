@@ -13,52 +13,101 @@ export type PaymentGateway = 'stripe' | 'paystack';
 
 // ==================== Team ====================
 
+/**
+ * Team model - maps to API response
+ * Note: API may return fields as `owner`, `active`, `closed`, `verified` (without "is" prefix)
+ * or with the "is" prefix depending on context. We normalize these in the service layer.
+ */
 export interface Team {
   id: string;
   name: string;
   description?: string;
   teamCode: string;
-  subscriptionType: SubscriptionType;
-  billingCycle: BillingCycle;
-  subscriptionStatus: SubscriptionStatus;
+  subscriptionType: SubscriptionType | string;  // API may return "Team Premium" or "TEAM_PREMIUM"
+  billingCycle: BillingCycle | string;  // API may return "Monthly" or "MONTHLY"
+  subscriptionStatus: SubscriptionStatus | string;  // API may return "Trial" or "TRIALING"
   subscriptionPrice: number;
   currency: string;
   isActive: boolean;
   isVerified: boolean;
   isClosed: boolean;
   autoRenew: boolean;
-  trialEndsAt?: string;
-  nextBillingDate?: string;
-  subscriptionEndsAt?: string;
-  cancellationRequestedAt?: string;
-  createdAt: string;
+  trialEndsAt?: string | null;
+  nextBillingDate?: string | null;
+  subscriptionEndsAt?: string | null;
+  cancellationRequestedAt?: string | null;
+  createdAt?: string | null;
   currentMemberCount: number;
   maxMembers: number;
   monthlyDocumentLimit: number;
   isOwner: boolean;
 }
 
+/**
+ * Raw API response for team - used to transform to Team interface
+ */
+export interface TeamApiData {
+  id: string;
+  name: string;
+  description?: string;
+  teamCode: string;
+  subscriptionType: string;
+  billingCycle: string;
+  subscriptionStatus: string;
+  subscriptionPrice: number;
+  currency: string;
+  active?: boolean;
+  isActive?: boolean;
+  verified?: boolean;
+  isVerified?: boolean;
+  closed?: boolean;
+  isClosed?: boolean;
+  autoRenew: boolean;
+  trialEndsAt?: string | null;
+  nextBillingDate?: string | null;
+  subscriptionEndsAt?: string | null;
+  cancellationRequestedAt?: string | null;
+  createdAt?: string | null;
+  currentMemberCount: number;
+  maxMembers: number;
+  monthlyDocumentLimit: number;
+  owner?: boolean;
+  isOwner?: boolean;
+}
+
 export interface TeamSummary {
   id: string;
   name: string;
+  description?: string;
   teamCode: string;
-  subscriptionType: SubscriptionType;
-  subscriptionStatus: SubscriptionStatus;
+  subscriptionType: SubscriptionType | string;
+  subscriptionStatus: SubscriptionStatus | string;
+  billingCycle?: BillingCycle | string;
+  subscriptionPrice?: number;
+  currency?: string;
   currentMemberCount: number;
   maxMembers: number;
+  monthlyDocumentLimit?: number;
   isOwner: boolean;
+  isActive?: boolean;
+  autoRenew?: boolean;
+  trialEndsAt?: string | null;
+  nextBillingDate?: string | null;
+  subscriptionEndsAt?: string | null;
+  cancellationRequestedAt?: string | null;
+  createdAt?: string | null;
 }
 
 // ==================== Team Member ====================
 
 export interface TeamMember {
   id: string;
-  odId: string;
+  userId: string;
   firstName: string;
   lastName: string;
   email: string;
   role: TeamMemberRole;
-  joinedAt: string;
+  joinedAt: string | null;
   profilePicture?: string;
 }
 

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TeamStateService } from '../../services/team-state.service';
@@ -19,6 +19,52 @@ export class TeamsListComponent implements OnInit {
   readonly hasTeams = this.teamState.hasTeams;
   readonly isLoading = this.teamState.isLoadingTeams;
   readonly error = this.teamState.error;
+
+  // Billing cycle toggle
+  billingCycle = signal<'monthly' | 'yearly'>('monthly');
+
+  // Plan data
+  readonly plans = [
+    {
+      name: 'Team Premium',
+      monthlyPrice: 29,
+      yearlyPrice: 290,
+      yearlySavings: 58,
+      features: [
+        'Up to 10 team members',
+        '200 documents/month',
+        'Shared document library',
+        '10-day free trial'
+      ],
+      isEnterprise: false
+    },
+    {
+      name: 'Team Enterprise',
+      monthlyPrice: 79,
+      yearlyPrice: 790,
+      yearlySavings: 158,
+      features: [
+        'Up to 15 team members',
+        'Unlimited documents',
+        'Admin role promotion',
+        'Email invitations',
+        'Priority support'
+      ],
+      isEnterprise: true
+    }
+  ];
+
+  toggleBillingCycle(cycle: 'monthly' | 'yearly'): void {
+    this.billingCycle.set(cycle);
+  }
+
+  getDisplayPrice(plan: typeof this.plans[0]): number {
+    return this.billingCycle() === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice;
+  }
+
+  getPricePeriod(): string {
+    return this.billingCycle() === 'monthly' ? '/month' : '/year';
+  }
 
   ngOnInit(): void {
     this.teamState.loadMyTeams();

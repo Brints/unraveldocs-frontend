@@ -83,8 +83,14 @@ export class TokenRefreshService implements OnDestroy {
 
       // Clear tokens and redirect to login
       await this.authService.logout();
-      this.router.navigate(['/auth/login'], {
-        queryParams: { sessionExpired: 'true' }
+
+      // Preserve the current URL so user can return after login
+      const currentUrl = window.location.pathname + window.location.search;
+      await this.router.navigate(['/auth/login'], {
+        queryParams: {
+          sessionExpired: 'true',
+          returnUrl: currentUrl
+        }
       });
     }
   }

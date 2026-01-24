@@ -15,6 +15,8 @@ export type PayPalSubscriptionStatus =
 
 export type PayPalPlanStatus = 'CREATED' | 'ACTIVE' | 'INACTIVE';
 
+export type PayPalOrderStatus = 'CREATED' | 'SAVED' | 'APPROVED' | 'VOIDED' | 'COMPLETED' | 'PAYER_ACTION_REQUIRED';
+
 // ==================== PayPal Currencies ====================
 
 export type PayPalCurrency = 'USD' | 'EUR' | 'GBP' | 'CAD' | 'AUD';
@@ -38,6 +40,47 @@ export interface PayPalBillingPlan {
 
 export interface PayPalPlansResponse {
   plans: PayPalBillingPlan[];
+}
+
+// ==================== Create Order (for coupon payments) ====================
+
+export interface PayPalOrderMetadata {
+  planId: string;
+  couponCode: string;
+  discountAmount: string;
+  originalAmount: string;
+}
+
+export interface PayPalCreateOrderRequest {
+  amount: number;
+  currency: string;
+  description: string;
+  returnUrl: string;
+  cancelUrl: string;
+  metadata: PayPalOrderMetadata;
+  intent: 'CAPTURE' | 'AUTHORIZE';
+}
+
+export interface PayPalOrderLink {
+  href: string;
+  rel: string;
+  method: string;
+}
+
+export interface PayPalCreateOrderResponse {
+  status: PayPalOrderStatus;
+  orderId: string;
+  approvalUrl: string;
+  links: PayPalOrderLink[];
+}
+
+export interface PayPalCaptureOrderResponse {
+  orderId: string;
+  status: PayPalOrderStatus;
+  captureId?: string;
+  payerId?: string;
+  amount?: number;
+  currency?: string;
 }
 
 // ==================== Create Subscription ====================

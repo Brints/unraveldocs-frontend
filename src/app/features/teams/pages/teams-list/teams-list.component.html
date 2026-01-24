@@ -1,10 +1,29 @@
 <!-- Teams List Page -->
 <div class="teams-page">
+  <!-- Back Navigation -->
+  <nav class="breadcrumb-nav">
+    <a routerLink="/user/dashboard" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+      </svg>
+      Back to Dashboard
+    </a>
+  </nav>
+
   <!-- Page Header -->
   <div class="page-header">
     <div class="header-content">
-      <h1 class="page-title">My Teams</h1>
-      <p class="page-subtitle">Manage your team subscriptions and collaborate with others</p>
+      <div class="title-wrapper">
+        <div class="title-icon">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="page-title">My Teams</h1>
+          <p class="page-subtitle">Manage your team subscriptions and collaborate with others</p>
+        </div>
+      </div>
     </div>
     <a routerLink="/teams/create" class="btn-primary">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,91 +168,113 @@
 
   <!-- Subscription Tiers Info -->
   <div class="subscription-info">
-    <h2 class="section-title">Team Subscription Plans</h2>
-    <div class="tiers-grid">
-      <!-- Premium Tier -->
-      <div class="tier-card">
-        <div class="tier-header">
-          <h3>Team Premium</h3>
-          <div class="tier-price">
-            <span class="price">$29</span>
-            <span class="period">/month</span>
-          </div>
-          <p class="yearly-price">or $290/year (save $58)</p>
-        </div>
-        <ul class="tier-features">
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Up to 10 team members
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            200 documents/month
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Shared document library
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            10-day free trial
-          </li>
-        </ul>
-        <a routerLink="/teams/create" class="tier-btn">Get Started</a>
-      </div>
+    <div class="subscription-header">
+      <h2 class="section-title-large">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Team Subscription Plans
+      </h2>
+      <p class="section-description">Choose the perfect plan for your team's needs</p>
 
-      <!-- Enterprise Tier -->
-      <div class="tier-card enterprise">
-        <div class="popular-badge">Recommended</div>
-        <div class="tier-header">
-          <h3>Team Enterprise</h3>
-          <div class="tier-price">
-            <span class="price">$79</span>
-            <span class="period">/month</span>
+      <!-- Billing Cycle Toggle -->
+      <div class="billing-toggle">
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="billingCycle() === 'monthly'"
+          (click)="toggleBillingCycle('monthly')"
+        >
+          Monthly
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          [class.active]="billingCycle() === 'yearly'"
+          (click)="toggleBillingCycle('yearly')"
+        >
+          Yearly
+          <span class="savings-badge">Save 17%</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="tiers-grid">
+      @for (plan of plans; track plan.name) {
+        <div class="tier-card" [class.enterprise]="plan.isEnterprise">
+          @if (plan.isEnterprise) {
+            <div class="popular-badge">Recommended</div>
+          }
+          <div class="tier-content">
+            <div class="tier-header">
+              <div class="plan-icon" [class.enterprise]="plan.isEnterprise">
+                @if (plan.isEnterprise) {
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                  </svg>
+                } @else {
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+                  </svg>
+                }
+              </div>
+              <h3>{{ plan.name }}</h3>
+              <div class="tier-price">
+                <span class="currency">$</span>
+                <span class="price">{{ getDisplayPrice(plan) }}</span>
+                <span class="period">{{ getPricePeriod() }}</span>
+              </div>
+              @if (billingCycle() === 'yearly') {
+                <div class="yearly-savings-tag">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  Save ${{ plan.yearlySavings }} annually
+                </div>
+              }
+            </div>
+            <ul class="tier-features">
+              @for (feature of plan.features; track feature) {
+                <li>
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  {{ feature }}
+                </li>
+              }
+            </ul>
           </div>
-          <p class="yearly-price">or $790/year (save $158)</p>
+          <a routerLink="/teams/create" class="tier-btn" [class.enterprise]="plan.isEnterprise">
+            Get Started
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
         </div>
-        <ul class="tier-features">
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Up to 15 team members
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Unlimited documents
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Admin role promotion
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Email invitations
-          </li>
-          <li>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-            Priority support
-          </li>
-        </ul>
-        <a routerLink="/teams/create" class="tier-btn enterprise">Get Started</a>
+      }
+    </div>
+
+    <!-- Trust Badges -->
+    <div class="trust-section">
+      <div class="trust-badges">
+        <div class="trust-badge">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+          </svg>
+          <span>Secure Payments</span>
+        </div>
+        <div class="trust-badge">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>Free Trial Included</span>
+        </div>
+        <div class="trust-badge">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          <span>Cancel Anytime</span>
+        </div>
       </div>
     </div>
   </div>

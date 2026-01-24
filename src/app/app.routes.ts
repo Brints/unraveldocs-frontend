@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 import { LandingComponent } from './features/landing-page/components/landing.component';
 import { authGuard } from './core/auth/guards/auth.guard';
+import { redirectIfAuthenticatedGuard } from './core/auth/guards/redirect-if-authenticated.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component: LandingComponent },
+  { path: 'home', component: LandingComponent, canActivate: [redirectIfAuthenticatedGuard] },
   {
     path: 'pricing',
     loadComponent: () => import('./pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),

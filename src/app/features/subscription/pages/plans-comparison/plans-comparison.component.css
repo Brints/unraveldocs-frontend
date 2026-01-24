@@ -588,6 +588,164 @@
   flex: 1;
 }
 
+/* ==================== Coupon Section ==================== */
+.coupon-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.coupon-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.coupon-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.coupon-input {
+  flex: 1;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.coupon-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.coupon-input:disabled {
+  background: #f9fafb;
+  cursor: not-allowed;
+}
+
+.coupon-apply-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6366f1;
+  background: #eef2ff;
+  border: 1px solid #c7d2fe;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 5rem;
+}
+
+.coupon-apply-btn:hover:not(:disabled) {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+}
+
+.coupon-apply-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.coupon-error {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: #dc2626;
+}
+
+.coupon-success {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: #059669;
+}
+
+.coupon-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.875rem;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 0.5rem;
+}
+
+.coupon-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #059669;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.coupon-badge svg {
+  flex-shrink: 0;
+}
+
+.coupon-discount {
+  padding: 0.125rem 0.5rem;
+  background: #d1fae5;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.coupon-remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.coupon-remove-btn:hover {
+  color: #dc2626;
+  background: #fee2e2;
+}
+
+/* Price with discount styling */
+.original-price {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  text-decoration: line-through;
+  margin-right: 0.5rem;
+}
+
+.discounted-price {
+  color: #059669;
+  font-weight: 600;
+}
+
+.summary-discount {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  margin-top: 0.5rem;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 0.875rem;
+}
+
+.summary-discount .discount-amount {
+  color: #059669;
+}
+
+.w-4 { width: 1rem; }
+.h-4 { height: 1rem; }
+
 /* ==================== Skeleton ==================== */
 .plan-card.skeleton {
   min-height: 500px;

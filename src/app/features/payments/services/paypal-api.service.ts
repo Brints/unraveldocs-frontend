@@ -11,6 +11,9 @@ import {
   PayPalApiResponse,
   PayPalBillingPlan,
   PayPalPlansResponse,
+  PayPalCreateOrderRequest,
+  PayPalCreateOrderResponse,
+  PayPalCaptureOrderResponse,
 } from '../models/paypal.model';
 
 /**
@@ -35,6 +38,34 @@ export class PayPalApiService {
       `${this.apiUrl}/plans`
     ).pipe(
       map(response => response.data.plans)
+    );
+  }
+
+  // ==================== Order Endpoints (for coupon payments) ====================
+
+  /**
+   * Create a new PayPal order (one-time payment with coupon)
+   * POST /paypal/orders
+   */
+  createOrder(request: PayPalCreateOrderRequest): Observable<PayPalCreateOrderResponse> {
+    return this.http.post<PayPalApiResponse<PayPalCreateOrderResponse>>(
+      `${this.apiUrl}/orders`,
+      request
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  /**
+   * Capture a PayPal order after approval
+   * POST /paypal/orders/{orderId}/capture
+   */
+  captureOrder(orderId: string): Observable<PayPalCaptureOrderResponse> {
+    return this.http.post<PayPalApiResponse<PayPalCaptureOrderResponse>>(
+      `${this.apiUrl}/orders/${encodeURIComponent(orderId)}/capture`,
+      null
+    ).pipe(
+      map(response => response.data)
     );
   }
 

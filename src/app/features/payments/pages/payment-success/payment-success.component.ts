@@ -2,7 +2,8 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { PayPalApiService } from '../../services/paypal-api.service';
-import { PayPalSubscriptionDetails, getPayPalStatusLabel } from '../../models/paypal.model';
+import { PayPalStateService } from '../../services/paypal-state.service';
+import { PayPalSubscriptionDetails, PayPalCaptureOrderResponse, getPayPalStatusLabel } from '../../models/paypal.model';
 import { catchError, of, tap, finalize } from 'rxjs';
 
 /**
@@ -37,26 +38,51 @@ import { catchError, of, tap, finalize } from 'rxjs';
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
-            <h2>Subscription Activated!</h2>
-            <p>Your {{ gateway() }} subscription has been set up successfully.</p>
 
-            @if (subscriptionDetails()) {
-              <div class="subscription-details">
-                <div class="detail-row">
-                  <span class="label">Subscription ID:</span>
-                  <span class="value">{{ subscriptionDetails()!.id }}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="label">Status:</span>
-                  <span class="value status-success">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
-                </div>
-                @if (subscriptionDetails()!.billingInfo?.nextBillingTime) {
+            @if (paymentType() === 'order') {
+              <h2>Payment Complete!</h2>
+              <p>Your {{ gateway() }} payment has been processed successfully.</p>
+
+              @if (orderDetails()) {
+                <div class="subscription-details">
                   <div class="detail-row">
-                    <span class="label">Next Billing:</span>
-                    <span class="value">{{ formatDate(subscriptionDetails()!.billingInfo!.nextBillingTime!) }}</span>
+                    <span class="label">Order ID:</span>
+                    <span class="value">{{ orderDetails()!.orderId }}</span>
                   </div>
-                }
-              </div>
+                  <div class="detail-row">
+                    <span class="label">Status:</span>
+                    <span class="value status-success">Completed</span>
+                  </div>
+                  @if (orderDetails()!.amount) {
+                    <div class="detail-row">
+                      <span class="label">Amount:</span>
+                      <span class="value">{{ orderDetails()!.currency }} {{ orderDetails()!.amount }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            } @else {
+              <h2>Subscription Activated!</h2>
+              <p>Your {{ gateway() }} subscription has been set up successfully.</p>
+
+              @if (subscriptionDetails()) {
+                <div class="subscription-details">
+                  <div class="detail-row">
+                    <span class="label">Subscription ID:</span>
+                    <span class="value">{{ subscriptionDetails()!.id }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Status:</span>
+                    <span class="value status-success">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
+                  </div>
+                  @if (subscriptionDetails()!.billingInfo?.nextBillingTime) {
+                    <div class="detail-row">
+                      <span class="label">Next Billing:</span>
+                      <span class="value">{{ formatDate(subscriptionDetails()!.billingInfo!.nextBillingTime!) }}</span>
+                    </div>
+                  }
+                </div>
+              }
             }
 
             <div class="callback-actions">
@@ -79,20 +105,39 @@ import { catchError, of, tap, finalize } from 'rxjs';
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
               </svg>
             </div>
-            <h2>Subscription Pending</h2>
-            <p>Your subscription is pending approval. This may take a few moments.</p>
 
-            @if (subscriptionDetails()) {
-              <div class="subscription-details">
-                <div class="detail-row">
-                  <span class="label">Subscription ID:</span>
-                  <span class="value">{{ subscriptionDetails()!.id }}</span>
+            @if (paymentType() === 'order') {
+              <h2>Payment Pending</h2>
+              <p>Your payment is being processed. This may take a few moments.</p>
+
+              @if (orderDetails()) {
+                <div class="subscription-details">
+                  <div class="detail-row">
+                    <span class="label">Order ID:</span>
+                    <span class="value">{{ orderDetails()!.orderId }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Status:</span>
+                    <span class="value status-pending">{{ orderDetails()!.status }}</span>
+                  </div>
                 </div>
-                <div class="detail-row">
-                  <span class="label">Status:</span>
-                  <span class="value status-pending">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
+              }
+            } @else {
+              <h2>Subscription Pending</h2>
+              <p>Your subscription is pending approval. This may take a few moments.</p>
+
+              @if (subscriptionDetails()) {
+                <div class="subscription-details">
+                  <div class="detail-row">
+                    <span class="label">Subscription ID:</span>
+                    <span class="value">{{ subscriptionDetails()!.id }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Status:</span>
+                    <span class="value status-pending">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
+                  </div>
                 </div>
-              </div>
+              }
             }
 
             <div class="callback-actions">
@@ -361,17 +406,21 @@ import { catchError, of, tap, finalize } from 'rxjs';
 export class PaymentSuccessComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly paypalApi = inject(PayPalApiService);
+  private readonly paypalState = inject(PayPalStateService);
 
   // Component state
   gateway = signal<string>('PayPal');
+  paymentType = signal<'subscription' | 'order'>('subscription');
   isVerifying = signal(true);
   isSuccess = signal(false);
   isPending = signal(false);
   isError = signal(false);
   errorMessage = signal('');
   subscriptionDetails = signal<PayPalSubscriptionDetails | null>(null);
+  orderDetails = signal<PayPalCaptureOrderResponse | null>(null);
 
   private subscriptionId: string | null = null;
+  private orderId: string | null = null;
 
   ngOnInit(): void {
     this.handleCallback();
@@ -384,6 +433,75 @@ export class PaymentSuccessComponent implements OnInit {
       this.gateway.set(gatewayParam.charAt(0).toUpperCase() + gatewayParam.slice(1));
     }
 
+    // Get payment type from query params or session storage
+    const typeParam = this.route.snapshot.queryParamMap.get('type');
+    const storedPaymentType = sessionStorage.getItem('paypal_payment_type');
+    const paymentType = typeParam || storedPaymentType || 'subscription';
+
+    if (paymentType === 'order') {
+      this.paymentType.set('order');
+      this.handleOrderCallback();
+    } else {
+      this.paymentType.set('subscription');
+      this.handleSubscriptionCallback();
+    }
+  }
+
+  private handleOrderCallback(): void {
+    // Get order ID from query params (token) or session storage
+    const orderId = this.route.snapshot.queryParamMap.get('token')
+      || sessionStorage.getItem('paypal_order_id');
+
+    if (orderId) {
+      this.orderId = orderId;
+      this.captureOrder(orderId);
+    } else {
+      this.isVerifying.set(false);
+      this.isError.set(true);
+      this.errorMessage.set('No order ID found. Please try again or contact support.');
+    }
+  }
+
+  private captureOrder(orderId: string): void {
+    this.paypalApi.captureOrder(orderId).pipe(
+      tap(response => {
+        console.log('Order capture response:', response);
+        this.orderDetails.set(response);
+
+        if (response.status === 'COMPLETED') {
+          this.isSuccess.set(true);
+
+          // Clear session storage
+          sessionStorage.removeItem('paypal_plan_id');
+          sessionStorage.removeItem('paypal_payment_type');
+          sessionStorage.removeItem('paypal_order_id');
+          sessionStorage.removeItem('paypal_coupon_code');
+
+          // Clear coupon state
+          this.paypalState.clearCoupon();
+        } else if (response.status === 'APPROVED') {
+          this.isPending.set(true);
+        } else {
+          this.isError.set(true);
+          this.errorMessage.set(`Order status: ${response.status}. Please contact support.`);
+        }
+      }),
+      catchError(error => {
+        console.error('Failed to capture order:', error);
+        this.isError.set(true);
+        this.errorMessage.set(
+          error.error?.message ||
+          'Unable to complete payment. Please contact support.'
+        );
+        return of(null);
+      }),
+      finalize(() => {
+        this.isVerifying.set(false);
+      })
+    ).subscribe();
+  }
+
+  private handleSubscriptionCallback(): void {
     // Get subscription ID from query params or session storage
     const subscriptionId = this.route.snapshot.queryParamMap.get('subscription_id')
       || this.route.snapshot.queryParamMap.get('token')
@@ -497,14 +615,24 @@ export class PaymentSuccessComponent implements OnInit {
   }
 
   retryVerification(): void {
-    if (this.subscriptionId) {
-      this.isVerifying.set(true);
-      this.isPending.set(false);
-      this.verifySubscription(this.subscriptionId);
+    this.isVerifying.set(true);
+    this.isPending.set(false);
+    this.isError.set(false);
+
+    if (this.paymentType() === 'order') {
+      if (this.orderId) {
+        this.captureOrder(this.orderId);
+      } else {
+        this.isVerifying.set(false);
+        this.isError.set(true);
+        this.errorMessage.set('No order ID found. Please try again.');
+      }
     } else {
-      this.isVerifying.set(true);
-      this.isPending.set(false);
-      this.checkActiveSubscription();
+      if (this.subscriptionId) {
+        this.verifySubscription(this.subscriptionId);
+      } else {
+        this.checkActiveSubscription();
+      }
     }
   }
 
