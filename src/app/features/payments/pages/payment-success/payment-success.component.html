@@ -1,0 +1,157 @@
+<div class="callback-page">
+  <div class="callback-card">
+    <!-- Loading State -->
+    @if (isVerifying()) {
+      <div class="callback-loading">
+        <div class="spinner"></div>
+        <h2>Verifying Payment</h2>
+        <p>Please wait while we confirm your {{ gateway() }} payment...</p>
+      </div>
+    }
+
+    <!-- Success State -->
+    @if (isSuccess()) {
+      <div class="callback-success">
+        <div class="success-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+
+        @if (paymentType() === 'order') {
+          <h2>Payment Complete!</h2>
+          <p>Your {{ gateway() }} payment has been processed successfully.</p>
+
+          @if (orderDetails()) {
+            <div class="subscription-details">
+              <div class="detail-row">
+                <span class="label">Order ID:</span>
+                <span class="value">{{ orderDetails()!.orderId }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-success">Completed</span>
+              </div>
+              @if (orderDetails()!.amount) {
+                <div class="detail-row">
+                  <span class="label">Amount:</span>
+                  <span class="value">{{ orderDetails()!.currency }} {{ orderDetails()!.amount }}</span>
+                </div>
+              }
+            </div>
+          }
+        } @else {
+          <h2>Subscription Activated!</h2>
+          <p>Your {{ gateway() }} subscription has been set up successfully.</p>
+
+          @if (subscriptionDetails()) {
+            <div class="subscription-details">
+              <div class="detail-row">
+                <span class="label">Subscription ID:</span>
+                <span class="value">{{ subscriptionDetails()!.id }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-success">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
+              </div>
+              @if (subscriptionDetails()!.billingInfo?.nextBillingTime) {
+                <div class="detail-row">
+                  <span class="label">Next Billing:</span>
+                  <span class="value">{{ formatDate(subscriptionDetails()!.billingInfo!.nextBillingTime!) }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        <div class="callback-actions">
+          <a routerLink="/settings/billing" class="btn btn-primary">
+            Go to Billing
+          </a>
+          <a routerLink="/dashboard" class="btn btn-outline">
+            Go to Dashboard
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- Pending Approval State -->
+    @if (isPending()) {
+      <div class="callback-pending">
+        <div class="pending-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+
+        @if (paymentType() === 'order') {
+          <h2>Payment Pending</h2>
+          <p>Your payment is being processed. This may take a few moments.</p>
+
+          @if (orderDetails()) {
+            <div class="subscription-details">
+              <div class="detail-row">
+                <span class="label">Order ID:</span>
+                <span class="value">{{ orderDetails()!.orderId }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-pending">{{ orderDetails()!.status }}</span>
+              </div>
+            </div>
+          }
+        } @else {
+          <h2>Subscription Pending</h2>
+          <p>Your subscription is pending approval. This may take a few moments.</p>
+
+          @if (subscriptionDetails()) {
+            <div class="subscription-details">
+              <div class="detail-row">
+                <span class="label">Subscription ID:</span>
+                <span class="value">{{ subscriptionDetails()!.id }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-pending">{{ getStatusLabel(subscriptionDetails()!.status) }}</span>
+              </div>
+            </div>
+          }
+        }
+
+        <div class="callback-actions">
+          <a routerLink="/settings/billing" class="btn btn-primary">
+            Go to Billing
+          </a>
+          <button type="button" class="btn btn-outline" (click)="retryVerification()">
+            Check Again
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (isError()) {
+      <div class="callback-error">
+        <div class="error-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2>Something Went Wrong</h2>
+        <p>{{ errorMessage() }}</p>
+
+        <div class="callback-actions">
+          <a routerLink="/settings/billing" class="btn btn-primary">
+            Go to Billing
+          </a>
+          <a href="mailto:support@unraveldocs.com" class="btn btn-text">
+            Contact Support
+          </a>
+        </div>
+      </div>
+    }
+  </div>
+</div>

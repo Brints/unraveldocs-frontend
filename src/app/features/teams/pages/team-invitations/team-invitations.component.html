@@ -1,0 +1,100 @@
+<div class="invitations-page">
+  <div class="page-header">
+    <a [routerLink]="['/teams', team()?.id]" class="back-link">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Team
+    </a>
+    <h1 class="page-title">Email Invitations</h1>
+    <p class="page-subtitle">Invite new users to join your team</p>
+  </div>
+
+  @if (!isEnterprise()) {
+    <div class="upgrade-card">
+      <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      <h3>Enterprise Feature</h3>
+      <p>Email invitations are available on the Enterprise plan. Upgrade to invite new users who don't have an account yet.</p>
+      <a [routerLink]="['/teams', team()?.id, 'settings']" class="btn-upgrade">Upgrade to Enterprise</a>
+    </div>
+  } @else {
+    @if (error()) {
+      <div class="alert alert-error">
+        {{ error() }}
+        <button type="button" class="alert-close" (click)="teamState.clearError()">×</button>
+      </div>
+    }
+    @if (successMessage()) {
+      <div class="alert alert-success">
+        {{ successMessage() }}
+        <button type="button" class="alert-close" (click)="teamState.clearSuccessMessage()">×</button>
+      </div>
+    }
+
+    <div class="invite-form-card">
+      <h3>Send Invitation</h3>
+      <p class="form-description">Enter the email address of someone you'd like to invite to your team. They will receive an email with a link to join.</p>
+      <form (ngSubmit)="sendInvitation()" class="invite-form">
+        <input
+          type="email"
+          [(ngModel)]="inviteEmail"
+          name="inviteEmail"
+          placeholder="colleague@company.com"
+          class="invite-input"
+          required
+        />
+        <button type="submit" class="btn-primary" [disabled]="!inviteEmail.trim() || isProcessing()">
+          @if (isProcessing()) {
+            <span class="spinner-small"></span>
+            Sending...
+          } @else {
+            Send Invite
+          }
+        </button>
+      </form>
+    </div>
+
+    <div class="invitations-section">
+      <h3>Recently Sent Invitations</h3>
+      <p class="section-description">Invitations sent during this session. Recipients will receive an email with a link to join.</p>
+      @if (sentInvitations().length === 0) {
+        <div class="empty-state">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+          <p>No invitations sent yet</p>
+          <span class="empty-hint">Use the form above to invite team members</span>
+        </div>
+      } @else {
+        <div class="invitations-list">
+          @for (inv of sentInvitations(); track inv.id) {
+            <div class="invitation-card">
+              <div class="inv-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div class="inv-details">
+                <div class="inv-email">{{ inv.email }}</div>
+                <div class="inv-meta">Sent {{ formatDate(inv.sentAt) }}</div>
+              </div>
+              <span class="inv-status pending">Pending</span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="info-card">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div class="info-content">
+        <strong>How it works</strong>
+        <p>Invitees will receive an email with a unique link. When they click the link and sign in (or create an account), they'll automatically join your team.</p>
+      </div>
+    </div>
+  }
+</div>

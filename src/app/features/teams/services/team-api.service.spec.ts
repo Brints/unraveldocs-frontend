@@ -3,8 +3,6 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { TeamApiService } from './team-api.service';
 import { environment } from '../../../../environments/environment';
 import {
-  Team,
-  TeamSummary,
   TeamMember,
   InitiateTeamRequest
 } from '../models/team.model';
@@ -32,7 +30,7 @@ describe('TeamApiService', () => {
     it('should initiate team creation', () => {
       const request: InitiateTeamRequest = {
         name: 'Test Team',
-        subscriptionType: 'PREMIUM',
+        subscriptionType: 'TEAM_PREMIUM',
         billingCycle: 'MONTHLY',
         paymentGateway: 'stripe'
       };
@@ -46,87 +44,91 @@ describe('TeamApiService', () => {
     });
 
     it('should verify OTP and create team', () => {
-      const mockTeam: Team = {
+      const mockTeamResponse = {
         id: 'team-1',
         name: 'Test Team',
         teamCode: 'TST123',
-        subscriptionType: 'PREMIUM',
-        billingCycle: 'MONTHLY',
-        subscriptionStatus: 'TRIALING',
+        subscriptionType: 'Team Premium',
+        billingCycle: 'Monthly',
+        subscriptionStatus: 'Trial',
         subscriptionPrice: 29,
         currency: 'USD',
-        isActive: true,
-        isVerified: true,
-        isClosed: false,
+        active: true,
+        verified: true,
+        closed: false,
         autoRenew: true,
         createdAt: new Date().toISOString(),
         currentMemberCount: 1,
         maxMembers: 10,
         monthlyDocumentLimit: 200,
-        isOwner: true
+        owner: true
       };
 
       service.verifyAndCreateTeam({ otp: '123456' }).subscribe(team => {
-        expect(team).toEqual(mockTeam);
+        expect(team.id).toBe('team-1');
+        expect(team.subscriptionType).toBe('TEAM_PREMIUM');
+        expect(team.isOwner).toBe(true);
       });
 
       const req = httpMock.expectOne(`${apiUrl}/verify`);
       expect(req.request.method).toBe('POST');
-      req.flush({ statusCode: 201, status: 'success', message: 'Team created', data: mockTeam });
+      req.flush({ statusCode: 201, status: 'success', message: 'Team created', data: mockTeamResponse });
     });
 
     it('should get team by ID', () => {
-      const mockTeam: Team = {
+      const mockTeamResponse = {
         id: 'team-1',
         name: 'Test Team',
         teamCode: 'TST123',
-        subscriptionType: 'PREMIUM',
-        billingCycle: 'MONTHLY',
-        subscriptionStatus: 'ACTIVE',
+        subscriptionType: 'Team Premium',
+        billingCycle: 'Monthly',
+        subscriptionStatus: 'Active',
         subscriptionPrice: 29,
         currency: 'USD',
-        isActive: true,
-        isVerified: true,
-        isClosed: false,
+        active: true,
+        verified: true,
+        closed: false,
         autoRenew: true,
         createdAt: new Date().toISOString(),
         currentMemberCount: 5,
         maxMembers: 10,
         monthlyDocumentLimit: 200,
-        isOwner: true
+        owner: true
       };
 
       service.getTeam('team-1').subscribe(team => {
-        expect(team).toEqual(mockTeam);
+        expect(team.id).toBe('team-1');
+        expect(team.subscriptionType).toBe('TEAM_PREMIUM');
       });
 
       const req = httpMock.expectOne(`${apiUrl}/team-1`);
       expect(req.request.method).toBe('GET');
-      req.flush({ statusCode: 200, status: 'success', message: 'Team retrieved', data: mockTeam });
+      req.flush({ statusCode: 200, status: 'success', message: 'Team retrieved', data: mockTeamResponse });
     });
 
     it('should get my teams', () => {
-      const mockTeams: TeamSummary[] = [
+      const mockTeamsResponse = [
         {
           id: 'team-1',
           name: 'Team 1',
           teamCode: 'TM1',
-          subscriptionType: 'PREMIUM',
-          subscriptionStatus: 'ACTIVE',
+          subscriptionType: 'Team Premium',
+          subscriptionStatus: 'Active',
           currentMemberCount: 5,
           maxMembers: 10,
-          isOwner: true
+          owner: true
         }
       ];
 
       service.getMyTeams().subscribe(teams => {
         expect(teams.length).toBe(1);
         expect(teams[0].name).toBe('Team 1');
+        expect(teams[0].subscriptionType).toBe('TEAM_PREMIUM');
       });
 
       const req = httpMock.expectOne(`${apiUrl}/my`);
       expect(req.request.method).toBe('GET');
-      req.flush({ statusCode: 200, status: 'success', data: mockTeams });
+      req.flush({ statusCode: 200, status: 'success', data: mockTeamsResponse });
     });
   });
 
@@ -135,7 +137,7 @@ describe('TeamApiService', () => {
       const mockMembers: TeamMember[] = [
         {
           id: 'member-1',
-          odId: 'user-1',
+          userId: 'user-1',
           firstName: 'John',
           lastName: 'Doe',
           email: 'john@example.com',
@@ -157,7 +159,7 @@ describe('TeamApiService', () => {
     it('should add member', () => {
       const mockMember: TeamMember = {
         id: 'member-2',
-        odId: 'user-2',
+        userId: 'user-2',
         firstName: 'Jane',
         lastName: 'Smith',
         email: 'jane@example.com',
@@ -185,7 +187,7 @@ describe('TeamApiService', () => {
     it('should promote member to admin', () => {
       const mockMember: TeamMember = {
         id: 'member-1',
-        odId: 'user-1',
+        userId: 'user-1',
         firstName: 'Jane',
         lastName: 'Smith',
         email: 'jane@example.com',
@@ -205,10 +207,23 @@ describe('TeamApiService', () => {
 
   describe('Subscription Management', () => {
     it('should cancel subscription', () => {
-      const mockTeam: Partial<Team> = {
+      const mockTeamResponse = {
         id: 'team-1',
-        subscriptionStatus: 'CANCELLED',
-        autoRenew: false
+        name: 'Test Team',
+        teamCode: 'TST123',
+        subscriptionType: 'Team Premium',
+        billingCycle: 'Monthly',
+        subscriptionStatus: 'Cancelled',
+        subscriptionPrice: 29,
+        currency: 'USD',
+        active: true,
+        verified: true,
+        closed: false,
+        autoRenew: false,
+        currentMemberCount: 1,
+        maxMembers: 10,
+        monthlyDocumentLimit: 200,
+        owner: true
       };
 
       service.cancelSubscription('team-1').subscribe(team => {
@@ -217,14 +232,27 @@ describe('TeamApiService', () => {
 
       const req = httpMock.expectOne(`${apiUrl}/team-1/cancel`);
       expect(req.request.method).toBe('POST');
-      req.flush({ statusCode: 200, status: 'success', data: mockTeam });
+      req.flush({ statusCode: 200, status: 'success', data: mockTeamResponse });
     });
 
     it('should reactivate team', () => {
-      const mockTeam: Partial<Team> = {
+      const mockTeamResponse = {
         id: 'team-1',
-        subscriptionStatus: 'ACTIVE',
-        isActive: true
+        name: 'Test Team',
+        teamCode: 'TST123',
+        subscriptionType: 'Team Premium',
+        billingCycle: 'Monthly',
+        subscriptionStatus: 'Active',
+        subscriptionPrice: 29,
+        currency: 'USD',
+        active: true,
+        verified: true,
+        closed: false,
+        autoRenew: true,
+        currentMemberCount: 1,
+        maxMembers: 10,
+        monthlyDocumentLimit: 200,
+        owner: true
       };
 
       service.reactivateTeam('team-1').subscribe(team => {
@@ -233,7 +261,7 @@ describe('TeamApiService', () => {
 
       const req = httpMock.expectOne(`${apiUrl}/team-1/reactivate`);
       expect(req.request.method).toBe('POST');
-      req.flush({ statusCode: 200, status: 'success', data: mockTeam });
+      req.flush({ statusCode: 200, status: 'success', data: mockTeamResponse });
     });
 
     it('should close team', () => {
@@ -259,7 +287,7 @@ describe('TeamApiService', () => {
     it('should accept invitation', () => {
       const mockMember: TeamMember = {
         id: 'member-1',
-        odId: 'user-1',
+        userId: 'user-1',
         firstName: 'New',
         lastName: 'User',
         email: 'new@example.com',

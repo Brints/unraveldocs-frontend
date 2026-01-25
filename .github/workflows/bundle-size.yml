@@ -49,10 +49,55 @@ jobs:
       - name: Build application
         run: pnpm exec ng build --configuration production
 
-      - name: Analyze bundle size
-        uses: andresz1/size-limit-action@v1
+      - name: Run size-limit
+        id: size-limit
+        run: |
+          echo "size_output<<EOF" >> $GITHUB_OUTPUT
+          pnpm exec size-limit --json >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with bundle size
+        uses: actions/github-script@v7
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          build_script: build
-          directory: dist/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const sizeOutput = JSON.parse(`${{ steps.size-limit.outputs.size_output }}`);
+
+            let comment = '## 📦 Bundle Size Report\n\n';
+            comment += '| File(s) | Size | Limit | Status |\n';
+            comment += '|---------|------|-------|--------|\n';
+
+            for (const entry of sizeOutput) {
+              const files = entry.name.split(', ').length;
+              const sizeKB = (entry.size / 1024).toFixed(2);
+              const limitKB = (entry.sizeLimit / 1024).toFixed(2);
+              const status = entry.passed ? '✅ Pass' : '❌ Fail';
+              comment += `| ${files} file(s) | ${sizeKB} KB | ${limitKB} KB | ${status} |\n`;
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Bundle Size Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
 

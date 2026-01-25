@@ -1,0 +1,7 @@
+[
+  {
+    "path": "dist/unraveldocs-frontend/browser/**/*.js",
+    "limit": "500 kB",
+    "gzip": true
+  }
+]

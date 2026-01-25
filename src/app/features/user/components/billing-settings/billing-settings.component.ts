@@ -6,7 +6,9 @@ import { UserStateService } from '../../services/user-state.service';
 import { UserApiService } from '../../services/user-api.service';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { PaystackStateService } from '../../../payments/services/paystack-state.service';
+import { PayPalStateService } from '../../../payments/services/paypal-state.service';
 import { PricingService } from '../../../../shared/services/pricing.service';
+import { LoggerService } from '../../../../core/services/logger.service';
 import { PaymentMethod, Invoice } from '../../models/user.model';
 import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
 
@@ -22,8 +24,10 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly userApi = inject(UserApiService);
   private readonly authService = inject(AuthService);
   private readonly paystackState = inject(PaystackStateService);
+  private readonly paypalState = inject(PayPalStateService);
   private readonly pricingService = inject(PricingService);
   private readonly route = inject(ActivatedRoute);
+  private readonly logger = inject(LoggerService);
 
   private userSubscription?: Subscription;
 
@@ -48,13 +52,21 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   readonly billingInterval = this.paystackState.billingInterval;
   readonly selectedCurrency = this.paystackState.selectedCurrency;
   readonly isLoading = this.paystackState.isLoading;
-  readonly isProcessing = this.paystackState.isProcessing;
-  readonly error = this.paystackState.error;
-  readonly successMessage = this.paystackState.successMessage;
   readonly paymentHistory = this.paystackState.paymentHistory;
   readonly hasActiveSubscription = this.paystackState.hasActiveSubscription;
   readonly formattedSelectedPrice = this.paystackState.formattedSelectedPrice;
   readonly selectedPlan = this.paystackState.selectedPlan;
+
+  // Combined state for processing/errors across payment gateways
+  readonly isProcessing = computed(() =>
+    this.paystackState.isProcessing() || this.paypalState.isProcessing()
+  );
+  readonly error = computed(() =>
+    this.paystackState.error() || this.paypalState.error()
+  );
+  readonly successMessage = computed(() =>
+    this.paystackState.successMessage() || this.paypalState.successMessage()
+  );
 
   // UI state
   showCheckoutModal = signal(false);
@@ -72,24 +84,24 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       isAvailable: true
     },
     {
+      type: 'paypal' as const,
+      name: 'PayPal',
+      description: 'Pay with PayPal account or card',
+      icon: '🅿️',
+      supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+      isAvailable: true
+    },
+    {
       type: 'stripe' as const,
       name: 'Stripe',
       description: 'International cards and payment methods',
       icon: '💎',
       supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
       isAvailable: false // Coming soon
-    },
-    {
-      type: 'paypal' as const,
-      name: 'PayPal',
-      description: 'Pay with PayPal account or card',
-      icon: '🅿️',
-      supportedCurrencies: ['USD', 'EUR', 'GBP'],
-      isAvailable: false // Coming soon
     }
   ];
 
-  selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>('paystack');
+  selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>(this.loadPersistedGateway());
 
   // Available currencies
   readonly currencies = POPULAR_CURRENCIES.filter(c =>
@@ -116,8 +128,14 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       if (user?.email) {
         this.paystackState.initialize(user.email);
-        // Load billing data with NGN as default for African users
-        this.paystackState.loadBillingData('NGN');
+        // Load billing data with persisted currency or default to NGN
+        const persistedCurrency = this.loadPersistedCurrency();
+        // Explicitly set currency first to update the dropdown
+        this.paystackState.setCurrency(persistedCurrency);
+        // Then load billing data
+        this.paystackState.loadBillingData(persistedCurrency);
+        // Also load PayPal billing data and plans
+        this.paypalState.loadBillingData();
       }
     });
 
@@ -153,7 +171,10 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   setCurrency(event: Event): void {
     const select = event.target as HTMLSelectElement;
-    this.paystackState.setCurrency(select.value);
+    const currency = select.value;
+    // Persist currency to localStorage
+    localStorage.setItem('billing_currency', currency);
+    this.paystackState.setCurrency(currency);
   }
 
   setBillingInterval(interval: 'monthly' | 'yearly'): void {
@@ -167,6 +188,8 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   selectGateway(gateway: 'paystack' | 'stripe' | 'paypal'): void {
     const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
     if (gatewayInfo?.isAvailable) {
+      // Persist gateway to localStorage
+      localStorage.setItem('billing_payment_gateway', gateway);
       this.selectedGateway.set(gateway);
     }
   }
@@ -175,7 +198,9 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   selectPlan(planId: string): void {
     if (this.paystackState.isCurrentPlan(this.getPlanNameById(planId))) return;
+    // Select plan in both state services so it's available regardless of gateway chosen
     this.paystackState.selectPlan(planId);
+    this.paypalState.selectPlan(planId);
     this.showCheckoutModal.set(true);
   }
 
@@ -189,12 +214,37 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   proceedToCheckout(): void {
     this.showCheckoutModal.set(false);
-    this.paystackState.startCheckout();
+
+    const selectedGateway = this.selectedGateway();
+
+    // Get selected plan from the appropriate state based on gateway
+    const selectedPlan = selectedGateway === 'paypal'
+      ? this.paypalState.selectedPlan()
+      : this.paystackState.selectedPlan();
+
+    if (!selectedPlan) {
+      this.logger.warn('Checkout attempted without selected plan', undefined, 'BillingSettings');
+      return;
+    }
+
+    this.logger.debug('Proceeding to checkout', { gateway: selectedGateway, planId: selectedPlan.planId }, 'BillingSettings');
+
+    if (selectedGateway === 'paystack') {
+      this.paystackState.startCheckout();
+    } else if (selectedGateway === 'paypal') {
+      // For PayPal, we need to use the PayPal plan ID
+      // The planId from the pricing service is the internal ID
+      // We need to map it to a PayPal billing plan ID
+      this.paypalState.createSubscription(selectedPlan.planId);
+    } else {
+      this.logger.warn('Unsupported payment gateway selected', { gateway: selectedGateway }, 'BillingSettings');
+    }
   }
 
   cancelCheckout(): void {
     this.showCheckoutModal.set(false);
     this.paystackState.clearSelectedPlan();
+    this.paypalState.clearSelectedPlan();
   }
 
   // ==================== Subscription Management ====================
@@ -208,12 +258,28 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   }
 
   confirmCancelSubscription(): void {
-    this.paystackState.cancelSubscription();
+    const gateway = this.selectedGateway();
+    if (gateway === 'paypal') {
+      const subscription = this.paypalState.activeSubscription();
+      if (subscription) {
+        this.paypalState.cancelSubscription(subscription.id);
+      }
+    } else {
+      this.paystackState.cancelSubscription();
+    }
     this.closeCancelModal();
   }
 
   reactivateSubscription(): void {
-    this.paystackState.reactivateSubscription();
+    const gateway = this.selectedGateway();
+    if (gateway === 'paypal') {
+      const subscription = this.paypalState.activeSubscription();
+      if (subscription) {
+        this.paypalState.activateSubscription(subscription.id);
+      }
+    } else {
+      this.paystackState.reactivateSubscription();
+    }
   }
 
   // ==================== Payment Methods ====================
@@ -297,11 +363,13 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   getCurrentPlan() {
     const planName = this.currentPlanName();
-    // Find matching plan from individual or team plans
+
+    // Try to find matching individual plan
     const individual = this.individualPlans().find(p =>
       p.planName === planName ||
       p.planName.replace('_MONTHLY', '').replace('_YEARLY', '') === planName.replace('_Monthly', '').replace('_Yearly', '')
     );
+
     if (individual) {
       return {
         name: individual.displayName,
@@ -309,20 +377,48 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         features: individual.features
       };
     }
-    // Default to free plan display
+
+    // Try to find matching team plan
+    const team = this.teamPlans().find(p =>
+      p.planName === planName ||
+      p.planName.toUpperCase() === planName.toUpperCase() ||
+      p.displayName.toUpperCase().includes(planName.toUpperCase())
+    );
+
+    if (team) {
+      // For team plans, use the monthly price by default
+      return {
+        name: team.displayName,
+        monthlyPrice: team.monthlyPrice.convertedAmount,
+        features: team.features
+      };
+    }
+
+    // Only return free plan if no active subscription
+    if (!this.hasActiveSubscription()) {
+      return {
+        name: 'Free',
+        monthlyPrice: 0,
+        features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+      };
+    }
+
+    // If we have an active subscription but can't find the plan, return plan name as-is
     return {
-      name: 'Free',
+      name: planName || 'Unknown Plan',
       monthlyPrice: 0,
-      features: ['Basic document processing', 'Limited OCR pages', 'Email support']
+      features: []
     };
   }
 
   clearError(): void {
     this.paystackState.clearError();
+    this.paypalState.clearError();
   }
 
   clearSuccessMessage(): void {
     this.paystackState.clearSuccessMessage();
+    this.paypalState.clearSuccessMessage();
   }
 
   canUpgrade(planId: string): boolean {
@@ -334,6 +430,29 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   // Plan display helpers
   getDisplayPlans() {
     return this.displayPlans();
+  }
+
+  // ==================== Persistence ====================
+
+  private loadPersistedCurrency(): string {
+    const persisted = localStorage.getItem('billing_currency');
+    // Validate persisted currency is supported
+    if (persisted && ['NGN', 'GHS', 'ZAR', 'KES', 'USD'].includes(persisted)) {
+      return persisted;
+    }
+    return 'NGN'; // Default to NGN
+  }
+
+  private loadPersistedGateway(): 'paystack' | 'stripe' | 'paypal' {
+    const persisted = localStorage.getItem('billing_payment_gateway') as 'paystack' | 'stripe' | 'paypal' | null;
+    // Validate persisted gateway is available
+    if (persisted) {
+      const gateway = this.paymentGateways.find(g => g.type === persisted);
+      if (gateway?.isAvailable) {
+        return persisted;
+      }
+    }
+    return 'paystack'; // Default to paystack
   }
 }
 
