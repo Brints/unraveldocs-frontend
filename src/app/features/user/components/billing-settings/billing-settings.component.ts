@@ -8,6 +8,7 @@ import { AuthService } from '../../../../core/auth/services/auth.service';
 import { PaystackStateService } from '../../../payments/services/paystack-state.service';
 import { PayPalStateService } from '../../../payments/services/paypal-state.service';
 import { PricingService } from '../../../../shared/services/pricing.service';
+import { LoggerService } from '../../../../core/services/logger.service';
 import { PaymentMethod, Invoice } from '../../models/user.model';
 import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
 
@@ -26,6 +27,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly paypalState = inject(PayPalStateService);
   private readonly pricingService = inject(PricingService);
   private readonly route = inject(ActivatedRoute);
+  private readonly logger = inject(LoggerService);
 
   private userSubscription?: Subscription;
 
@@ -221,11 +223,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       : this.paystackState.selectedPlan();
 
     if (!selectedPlan) {
-      console.error('No plan selected');
+      this.logger.warn('Checkout attempted without selected plan', undefined, 'BillingSettings');
       return;
     }
 
-    console.log('Proceeding to checkout with gateway:', selectedGateway, 'plan:', selectedPlan.planId);
+    this.logger.debug('Proceeding to checkout', { gateway: selectedGateway, planId: selectedPlan.planId }, 'BillingSettings');
 
     if (selectedGateway === 'paystack') {
       this.paystackState.startCheckout();
@@ -235,7 +237,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       // We need to map it to a PayPal billing plan ID
       this.paypalState.createSubscription(selectedPlan.planId);
     } else {
-      console.error('Unsupported payment gateway:', selectedGateway);
+      this.logger.warn('Unsupported payment gateway selected', { gateway: selectedGateway }, 'BillingSettings');
     }
   }
 
@@ -361,13 +363,13 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   getCurrentPlan() {
     const planName = this.currentPlanName();
-    
+
     // Try to find matching individual plan
     const individual = this.individualPlans().find(p =>
       p.planName === planName ||
       p.planName.replace('_MONTHLY', '').replace('_YEARLY', '') === planName.replace('_Monthly', '').replace('_Yearly', '')
     );
-    
+
     if (individual) {
       return {
         name: individual.displayName,
@@ -375,14 +377,14 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         features: individual.features
       };
     }
-    
+
     // Try to find matching team plan
     const team = this.teamPlans().find(p =>
       p.planName === planName ||
       p.planName.toUpperCase() === planName.toUpperCase() ||
       p.displayName.toUpperCase().includes(planName.toUpperCase())
     );
-    
+
     if (team) {
       // For team plans, use the monthly price by default
       return {
@@ -391,7 +393,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         features: team.features
       };
     }
-    
+
     // Only return free plan if no active subscription
     if (!this.hasActiveSubscription()) {
       return {
@@ -400,7 +402,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         features: ['Basic document processing', 'Limited OCR pages', 'Email support']
       };
     }
-    
+
     // If we have an active subscription but can't find the plan, return plan name as-is
     return {
       name: planName || 'Unknown Plan',

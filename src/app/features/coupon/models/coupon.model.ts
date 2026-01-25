@@ -73,7 +73,7 @@ export function calculateDiscount(
   }
 
   // Apply max discount cap if set
-  if (coupon.maxDiscountAmount && discount > coupon.maxDiscountAmount) {
+  if (coupon.maxDiscountAmount != null && discount > coupon.maxDiscountAmount) {
     discount = coupon.maxDiscountAmount;
   }
 

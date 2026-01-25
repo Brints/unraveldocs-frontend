@@ -298,7 +298,7 @@
           @if (appliedCoupon()) {
             <div class="summary-discount">
               <span>Discount:</span>
-              <strong class="discount-amount">-{{ formatPrice(appliedCoupon()!.discountAmount, appliedCoupon()!.currency) }}</strong>
+              <strong class="discount-amount">-{{ formatPrice(appliedCoupon()!.discountAmount / (billingInterval() === 'yearly' ? 12 : 1), appliedCoupon()!.currency) }}</strong>
             </div>
           }
         </div>

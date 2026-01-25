@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SubscriptionStateService } from '../../services/subscription-state.service';
 import { SubscriptionPlan, PlanTier } from '../../models/subscription.model';
@@ -11,7 +11,7 @@ import { catchError, finalize, of, tap } from 'rxjs';
 @Component({
   selector: 'app-plans-comparison',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './plans-comparison.component.html',
   styleUrls: ['./plans-comparison.component.css']
 })
@@ -194,7 +194,7 @@ export class PlansComparisonComponent implements OnInit {
   getFinalPrice(): number {
     const coupon = this.appliedCoupon();
     if (coupon) {
-      return coupon.finalAmount;
+      return coupon.finalAmount / (this.billingInterval() === 'yearly' ? 12 : 1);
     }
     const plan = this.selectedPlanForCheckout();
     if (!plan) return 0;

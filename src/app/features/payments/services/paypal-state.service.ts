@@ -8,11 +8,9 @@ import { StorageInfo } from '../../user/models/user.model';
 import {
   PayPalSubscriptionDetails,
   PayPalSubscriptionHistoryItem,
-  PayPalSubscriptionStatus,
   PayPalCreateSubscriptionRequest,
   PayPalBillingPlan,
   PayPalCreateOrderRequest,
-  PayPalCreateOrderResponse,
   getPayPalStatusLabel,
   canCancelSubscription,
   canSuspendSubscription,
@@ -256,22 +254,22 @@ export class PayPalStateService {
         if (activeSubscription) {
           // Convert history item to subscription details format
           this._activeSubscription.set({
-            id: activeSubscription.subscription_id || activeSubscription.subscriptionId || '',
-            planId: activeSubscription.plan_id || activeSubscription.planId || '',
+            id: activeSubscription.subscription_id ?? activeSubscription.subscriptionId ?? '',
+            planId: activeSubscription.plan_id ?? activeSubscription.planId ?? '',
             status: activeSubscription.status as any,
-            startTime: activeSubscription.start_time || activeSubscription.startTime || null,
-            createTime: activeSubscription.created_at || activeSubscription.createdAt || '',
+            startTime: activeSubscription.start_time ?? activeSubscription.startTime ?? null,
+            createTime: activeSubscription.created_at ?? activeSubscription.createdAt ?? '',
             updateTime: null,
             approvalUrl: null,
-            customId: activeSubscription.custom_id || null,
+            customId: activeSubscription.custom_id ?? null,
             billingInfo: {
-              outstandingBalance: activeSubscription.outstanding_balance || 0,
-              currency: activeSubscription.currency || 'USD',
-              cycleExecutionsCount: activeSubscription.cycles_completed || null,
-              failedPaymentsCount: activeSubscription.failed_payments_count || 0,
-              lastPaymentTime: activeSubscription.last_payment_time || null,
-              lastPaymentAmount: activeSubscription.last_payment_amount || null,
-              nextBillingTime: activeSubscription.next_billing_time || activeSubscription.nextBillingTime || null
+              outstandingBalance: activeSubscription.outstanding_balance ?? 0,
+              currency: activeSubscription.currency ?? 'USD',
+              cycleExecutionsCount: activeSubscription.cycles_completed ?? null,
+              failedPaymentsCount: activeSubscription.failed_payments_count ?? 0,
+              lastPaymentTime: activeSubscription.last_payment_time ?? null,
+              lastPaymentAmount: activeSubscription.last_payment_amount ?? null,
+              nextBillingTime: activeSubscription.next_billing_time ?? activeSubscription.nextBillingTime ?? null
             },
             subscriber: null,
             links: [],
@@ -281,6 +279,9 @@ export class PayPalStateService {
             pendingApproval: activeSubscription.status === 'APPROVAL_PENDING',
             suspended: activeSubscription.status === 'SUSPENDED'
           });
+        } else {
+          // Clear stale subscription data when no active record exists
+          this._activeSubscription.set(null);
         }
 
         this._pagination.set({

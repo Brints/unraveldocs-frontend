@@ -1,5 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { Router } from '@angular/router';
+import { Observable, tap, catchError } from 'rxjs';
 import { TeamApiService } from './team-api.service';
 import {
   Team,
@@ -373,20 +374,21 @@ export class TeamStateService {
 
   // ==================== Invitations ====================
 
-  sendInvitation(teamId: string, email: string): void {
+  sendInvitation(teamId: string, email: string): Observable<string> {
     this._isProcessing.set(true);
     this._error.set(null);
 
-    this.teamApi.sendInvitation(teamId, { email }).subscribe({
-      next: () => {
+    return this.teamApi.sendInvitation(teamId, { email }).pipe(
+      tap(() => {
         this._successMessage.set(`Invitation sent to ${email}`);
         this._isProcessing.set(false);
-      },
-      error: (err) => {
+      }),
+      catchError((err) => {
         this._error.set(err.error?.message || 'Failed to send invitation');
         this._isProcessing.set(false);
-      }
-    });
+        throw err;
+      })
+    );
   }
 
   acceptInvitation(token: string): void {
