@@ -4,11 +4,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentStateService } from '../../services/document-state.service';
 import { DocumentFile, ViewMode, MoveDocumentRequest } from '../../models/document.model';
+import { DocumentViewerComponent } from '../../../../shared/components/document-viewer/document-viewer.component';
 
 @Component({
   selector: 'app-collection-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, DocumentViewerComponent],
   templateUrl: './collection-detail.component.html',
   styleUrls: ['./collection-detail.component.css']
 })
@@ -37,6 +38,11 @@ export class CollectionDetailComponent implements OnInit {
   showMoveModal = signal(false);
   documentToMove = signal<DocumentFile | null>(null);
   targetCollectionId = signal('');
+
+  // Document viewer
+  showDocumentViewer = signal(false);
+  documentViewerUrl = signal<string | null>(null);
+  documentViewerFileName = signal<string | null>(null);
 
   // From state service
   readonly collection = this.documentState.currentCollection;
@@ -211,9 +217,23 @@ export class CollectionDetailComponent implements OnInit {
     this.targetCollectionId.set('');
   }
 
-  // Get other collections for move dropdown
   getOtherCollections() {
     return this.collections().filter(c => c.id !== this.collectionId());
+  }
+
+  // Open file in document viewer
+  openFileViewer(document: DocumentFile): void {
+    if (document.fileUrl) {
+      this.documentViewerUrl.set(document.fileUrl);
+      this.documentViewerFileName.set(this.getDocumentDisplayName(document));
+      this.showDocumentViewer.set(true);
+    }
+  }
+
+  closeDocumentViewer(): void {
+    this.showDocumentViewer.set(false);
+    this.documentViewerUrl.set(null);
+    this.documentViewerFileName.set(null);
   }
 
   // Get display name for document

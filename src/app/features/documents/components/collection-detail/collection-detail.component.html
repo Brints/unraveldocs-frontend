@@ -4,7 +4,7 @@
   <div class="page-header">
     <a routerLink="/documents" class="back-link">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
       </svg>
       <span>Back to Collections</span>
     </a>
@@ -12,45 +12,45 @@
       <div class="header-info">
         <div class="title-row">
           <h1 class="page-title">{{ collection()?.name || 'Collection' }}</h1>
-          <button
-            type="button"
-            class="rename-btn"
-            title="Rename collection"
-            (click)="openRenameCollectionModal()">
+          <button type="button" class="rename-btn" title="Rename collection" (click)="openRenameCollectionModal()">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </button>
           @if (collection()?.hasEncryptedFiles) {
-            <span class="encryption-indicator" title="Contains encrypted files">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-              </svg>
-              Encrypted
-            </span>
+          <span class="encryption-indicator" title="Contains encrypted files">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Encrypted
+          </span>
           }
         </div>
         <p class="collection-id">
           <code>{{ collectionId() }}</code>
           <button type="button" class="copy-btn" (click)="copyToClipboard(collectionId())" title="Copy ID">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
             </svg>
           </button>
         </p>
       </div>
       <div class="header-actions">
         @if (hasSelection()) {
-          <button type="button" class="btn-danger-outline" (click)="deleteSelectedDocuments()">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-            </svg>
-            <span>Delete {{ selectedCount() }} selected</span>
-          </button>
+        <button type="button" class="btn-danger-outline" (click)="deleteSelectedDocuments()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          <span>Delete {{ selectedCount() }} selected</span>
+        </button>
         }
         <a routerLink="/documents/upload" class="btn-primary">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
           <span>Add Files</span>
         </a>
@@ -60,67 +60,56 @@
 
   <!-- Success Message -->
   @if (successMessage()) {
-    <div class="alert alert-success">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <span>{{ successMessage() }}</span>
-    </div>
+  <div class="alert alert-success">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ successMessage() }}</span>
+  </div>
   }
 
   <!-- Error Message -->
   @if (error()) {
-    <div class="alert alert-error">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <span>{{ error() }}</span>
-    </div>
+  <div class="alert alert-error">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ error() }}</span>
+  </div>
   }
 
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="toolbar-left">
       <label class="select-all-checkbox">
-        <input
-          type="checkbox"
-          [checked]="allSelected()"
-          (change)="selectAll()"/>
+        <input type="checkbox" [checked]="allSelected()" (change)="selectAll()" />
         <span class="checkmark"></span>
       </label>
 
       <div class="search-box">
         <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search files..."
-          [value]="searchQuery()"
-          (input)="onSearch($event)"/>
+        <input type="text" class="search-input" placeholder="Search files..." [value]="searchQuery()"
+          (input)="onSearch($event)" />
       </div>
     </div>
     <div class="toolbar-right">
       <span class="file-count">{{ filteredDocuments().length }} files</span>
 
       <div class="view-toggle">
-        <button
-          type="button"
-          class="view-btn"
-          [class.active]="viewMode() === 'grid'"
-          (click)="setViewMode('grid')">
+        <button type="button" class="view-btn" [class.active]="viewMode() === 'grid'" (click)="setViewMode('grid')">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
         </button>
-        <button
-          type="button"
-          class="view-btn"
-          [class.active]="viewMode() === 'list'"
-          (click)="setViewMode('list')">
+        <button type="button" class="view-btn" [class.active]="viewMode() === 'list'" (click)="setViewMode('list')">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
           </svg>
         </button>
       </div>
@@ -129,374 +118,339 @@
 
   <!-- Content -->
   @if (isLoading()) {
-    <div class="documents-grid">
-      @for (i of [1,2,3,4,5,6]; track i) {
-        <div class="document-card skeleton">
-          <div class="skeleton-icon"></div>
-          <div class="skeleton-content">
-            <div class="skeleton-line w-full h-4 mb-2"></div>
-            <div class="skeleton-line w-24 h-3"></div>
-          </div>
-        </div>
-      }
+  <div class="documents-grid">
+    @for (i of [1,2,3,4,5,6]; track i) {
+    <div class="document-card skeleton">
+      <div class="skeleton-icon"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-line w-full h-4 mb-2"></div>
+        <div class="skeleton-line w-24 h-3"></div>
+      </div>
     </div>
+    }
+  </div>
   } @else if (filteredDocuments().length === 0) {
-    <div class="empty-state">
-      @if (searchQuery()) {
-        <div class="empty-icon">
-          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </div>
-        <h3 class="empty-title">No files found</h3>
-        <p class="empty-description">No files match "{{ searchQuery() }}"</p>
-        <button type="button" class="btn-secondary" (click)="searchQuery.set(''); documentState.clearFilter()">
-          Clear search
-        </button>
-      } @else {
-        <div class="empty-icon">
-          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-        </div>
-        <h3 class="empty-title">No files in this collection</h3>
-        <p class="empty-description">Upload files to get started</p>
-        <a routerLink="/documents/upload" class="btn-primary">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-          </svg>
-          <span>Upload Files</span>
-        </a>
-      }
+  <div class="empty-state">
+    @if (searchQuery()) {
+    <div class="empty-icon">
+      <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      </svg>
     </div>
+    <h3 class="empty-title">No files found</h3>
+    <p class="empty-description">No files match "{{ searchQuery() }}"</p>
+    <button type="button" class="btn-secondary" (click)="searchQuery.set(''); documentState.clearFilter()">
+      Clear search
+    </button>
+    } @else {
+    <div class="empty-icon">
+      <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </div>
+    <h3 class="empty-title">No files in this collection</h3>
+    <p class="empty-description">Upload files to get started</p>
+    <a routerLink="/documents/upload" class="btn-primary">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+      <span>Upload Files</span>
+    </a>
+    }
+  </div>
   } @else {
-    <!-- Documents Grid/List -->
-    <div [class]="viewMode() === 'grid' ? 'documents-grid' : 'documents-list'">
-      @for (document of filteredDocuments(); track document.documentId) {
-        <div
-          class="document-card"
-          [class.selected]="isSelected(document.documentId)"
-          [class.list-view]="viewMode() === 'list'">
+  <!-- Documents Grid/List -->
+  <div [class]="viewMode() === 'grid' ? 'documents-grid' : 'documents-list'">
+    @for (document of filteredDocuments(); track document.documentId) {
+    <div class="document-card" [class.selected]="isSelected(document.documentId)"
+      [class.list-view]="viewMode() === 'list'">
 
-          <!-- Selection Checkbox -->
-          <label class="doc-checkbox">
-            <input
-              type="checkbox"
-              [checked]="isSelected(document.documentId)"
-              (change)="toggleDocumentSelection(document.documentId)"/>
-            <span class="checkmark"></span>
-          </label>
+      <!-- Selection Checkbox -->
+      <label class="doc-checkbox">
+        <input type="checkbox" [checked]="isSelected(document.documentId)"
+          (change)="toggleDocumentSelection(document.documentId)" />
+        <span class="checkmark"></span>
+      </label>
 
-          <!-- Document Preview -->
-          <div class="doc-preview" [class]="getFileTypeClass(document.mimeType)">
-            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" [attr.d]="getFileIcon(document.mimeType)"/>
+      <!-- Document Preview -->
+      <div class="doc-preview" [class]="getFileTypeClass(document.mimeType)">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            [attr.d]="getFileIcon(document.mimeType)" />
+        </svg>
+      </div>
+
+      <!-- Document Info -->
+      <div class="doc-info">
+        <h3 class="doc-name" [title]="document.originalFileName">{{ getDocumentDisplayName(document) }}</h3>
+        @if (document.displayName && document.displayName !== document.originalFileName) {
+        <p class="doc-original-name">{{ document.originalFileName }}</p>
+        }
+        <div class="doc-meta">
+          <span class="doc-size">{{ formatFileSize(document.fileSize) }}</span>
+          <span class="separator">·</span>
+          <span class="doc-date">{{ getRelativeTime(document.createdAt) }}</span>
+          @if (document.encrypted) {
+          <span class="separator">·</span>
+          <span class="encrypted-badge" title="AES-256 encrypted">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-          </div>
-
-          <!-- Document Info -->
-          <div class="doc-info">
-            <h3 class="doc-name" [title]="document.originalFileName">{{ getDocumentDisplayName(document) }}</h3>
-            @if (document.displayName && document.displayName !== document.originalFileName) {
-              <p class="doc-original-name">{{ document.originalFileName }}</p>
-            }
-            <div class="doc-meta">
-              <span class="doc-size">{{ formatFileSize(document.fileSize) }}</span>
-              <span class="separator">·</span>
-              <span class="doc-date">{{ getRelativeTime(document.createdAt) }}</span>
-              @if (document.encrypted) {
-                <span class="separator">·</span>
-                <span class="encrypted-badge" title="AES-256 encrypted">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-                  </svg>
-                  Encrypted
-                </span>
-              }
-            </div>
-            <div class="doc-status">
-              @if (document.ocrProcessed) {
-                <span class="status-badge ocr-done">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                  </svg>
-                  OCR Complete
-                </span>
-              } @else {
-                <span class="status-badge" [class]="getStatusClass(document.status)">
-                  {{ getStatusLabel(document.status) }}
-                </span>
-              }
-            </div>
-          </div>
-
-          <!-- Document Actions -->
-          <div class="doc-actions">
-            <button
-              type="button"
-              class="action-btn"
-              title="Rename document"
-              (click)="openRenameDocModal(document)">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-              </svg>
-            </button>
-            @if (getOtherCollections().length > 0) {
-              <button
-                type="button"
-                class="action-btn"
-                title="Move to another collection (Premium)"
-                (click)="openMoveModal(document)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                </svg>
-              </button>
-            }
-            @if (!document.ocrProcessed && document.status !== 'processing') {
-              <button
-                type="button"
-                class="action-btn primary"
-                title="Extract text (OCR)"
-                [disabled]="isProcessingOcr()"
-                (click)="extractText(document)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-              </button>
-            }
-            @if (document.ocrProcessed) {
-              <button
-                type="button"
-                class="action-btn"
-                title="View extracted text"
-                (click)="viewOcrResult(document)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="action-btn"
-                title="Download as Word"
-                (click)="downloadAsDocx(document)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-              </button>
-            }
-            <a
-              [href]="document.fileUrl"
-              target="_blank"
-              class="action-btn"
-              title="Open file">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-              </svg>
-            </a>
-            <button
-              type="button"
-              class="action-btn danger"
-              title="Delete file"
-              (click)="confirmDeleteDocument(document)">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
-          </div>
+            Encrypted
+          </span>
+          }
         </div>
-      }
+        <div class="doc-status">
+          @if (document.ocrProcessed) {
+          <span class="status-badge ocr-done">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            OCR Complete
+          </span>
+          } @else {
+          <span class="status-badge" [class]="getStatusClass(document.status)">
+            {{ getStatusLabel(document.status) }}
+          </span>
+          }
+        </div>
+      </div>
+
+      <!-- Document Actions -->
+      <div class="doc-actions">
+        <button type="button" class="action-btn" title="Rename document" (click)="openRenameDocModal(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        @if (getOtherCollections().length > 0) {
+        <button type="button" class="action-btn" title="Move to another collection (Premium)"
+          (click)="openMoveModal(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+          </svg>
+        </button>
+        }
+        @if (!document.ocrProcessed && document.status !== 'processing') {
+        <button type="button" class="action-btn primary" title="Extract text (OCR)" [disabled]="isProcessingOcr()"
+          (click)="extractText(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </button>
+        }
+        @if (document.ocrProcessed) {
+        <button type="button" class="action-btn" title="View extracted text" (click)="viewOcrResult(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn" title="Download as Word" (click)="downloadAsDocx(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+        }
+        <button type="button" class="action-btn" title="Open file" (click)="openFileViewer(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn danger" title="Delete file" (click)="confirmDeleteDocument(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
     </div>
+    }
+  </div>
   }
 </div>
 
 <!-- Delete Confirmation Modal -->
 @if (showDeleteModal()) {
-  <div class="modal-overlay" (click)="closeDeleteModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-icon danger">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Delete File</h3>
+<div class="modal-overlay" (click)="closeDeleteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon danger">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
       </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete <strong>{{ documentToDelete()?.originalFileName }}</strong>?</p>
-        <p class="warning-text">This action cannot be undone.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
-        <button type="button" class="btn-danger" (click)="deleteDocument()">Delete File</button>
-      </div>
+      <h3 class="modal-title">Delete File</h3>
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete <strong>{{ documentToDelete()?.originalFileName }}</strong>?</p>
+      <p class="warning-text">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeDeleteModal()">Cancel</button>
+      <button type="button" class="btn-danger" (click)="deleteDocument()">Delete File</button>
     </div>
   </div>
+</div>
 }
 
 <!-- OCR Result Modal -->
 @if (showOcrModal() && selectedDocument()) {
-  <div class="modal-overlay" (click)="closeOcrModal()">
-    <div class="modal-content ocr-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-icon success">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Extracted Text</h3>
-        <p class="modal-subtitle">{{ selectedDocument()?.originalFileName }}</p>
+<div class="modal-overlay" (click)="closeOcrModal()">
+  <div class="modal-content ocr-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon success">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
       </div>
-      <div class="modal-body">
-        <div class="ocr-text-container">
-          <pre class="ocr-text">{{ selectedDocument()?.extractedText || 'No text extracted' }}</pre>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="copyToClipboard(selectedDocument()?.extractedText || '')">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-          </svg>
-          Copy Text
-        </button>
-        <button
-          type="button"
-          class="btn-primary"
-          (click)="downloadAsDocx(selectedDocument()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-          Download Word
-        </button>
-        <button type="button" class="btn-secondary" (click)="closeOcrModal()">Close</button>
+      <h3 class="modal-title">Extracted Text</h3>
+      <p class="modal-subtitle">{{ selectedDocument()?.originalFileName }}</p>
+    </div>
+    <div class="modal-body">
+      <div class="ocr-text-container">
+        <pre class="ocr-text">{{ selectedDocument()?.extractedText || 'No text extracted' }}</pre>
       </div>
     </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="copyToClipboard(selectedDocument()?.extractedText || '')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        Copy Text
+      </button>
+      <button type="button" class="btn-primary" (click)="downloadAsDocx(selectedDocument()!)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Download Word
+      </button>
+      <button type="button" class="btn-secondary" (click)="closeOcrModal()">Close</button>
+    </div>
   </div>
+</div>
 }
 
 <!-- Rename Collection Modal -->
 @if (showRenameCollectionModal()) {
-  <div class="modal-overlay" (click)="closeRenameCollectionModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-icon primary">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Rename Collection</h3>
+<div class="modal-overlay" (click)="closeRenameCollectionModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon primary">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
       </div>
-      <div class="modal-body">
-        <label class="input-label" for="collectionName">Collection Name</label>
-        <input
-          type="text"
-          id="collectionName"
-          class="input-field"
-          [value]="newCollectionName()"
-          (input)="newCollectionName.set($any($event.target).value)"
-          placeholder="Enter collection name"
-          maxlength="255"/>
-        <p class="input-hint">Maximum 255 characters</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeRenameCollectionModal()">Cancel</button>
-        <button
-          type="button"
-          class="btn-primary"
-          [disabled]="!newCollectionName().trim() || newCollectionName() === collection()?.name"
-          (click)="renameCollection()">
-          Rename
-        </button>
-      </div>
+      <h3 class="modal-title">Rename Collection</h3>
+    </div>
+    <div class="modal-body">
+      <label class="input-label" for="collectionName">Collection Name</label>
+      <input type="text" id="collectionName" class="input-field" [value]="newCollectionName()"
+        (input)="newCollectionName.set($any($event.target).value)" placeholder="Enter collection name"
+        maxlength="255" />
+      <p class="input-hint">Maximum 255 characters</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeRenameCollectionModal()">Cancel</button>
+      <button type="button" class="btn-primary"
+        [disabled]="!newCollectionName().trim() || newCollectionName() === collection()?.name"
+        (click)="renameCollection()">
+        Rename
+      </button>
     </div>
   </div>
+</div>
 }
 
 <!-- Rename Document Modal -->
 @if (showRenameDocModal()) {
-  <div class="modal-overlay" (click)="closeRenameDocModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-icon primary">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Rename Document</h3>
-        <p class="modal-subtitle">{{ documentToRename()?.originalFileName }}</p>
+<div class="modal-overlay" (click)="closeRenameDocModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon primary">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
       </div>
-      <div class="modal-body">
-        <label class="input-label" for="displayName">Display Name</label>
-        <input
-          type="text"
-          id="displayName"
-          class="input-field"
-          [value]="newDisplayName()"
-          (input)="newDisplayName.set($any($event.target).value)"
-          placeholder="Enter display name"
-          maxlength="255"/>
-        <p class="input-hint">This changes how the document is displayed, not the original file name.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeRenameDocModal()">Cancel</button>
-        <button
-          type="button"
-          class="btn-primary"
-          [disabled]="!newDisplayName().trim()"
-          (click)="renameDocument()">
-          Rename
-        </button>
-      </div>
+      <h3 class="modal-title">Rename Document</h3>
+      <p class="modal-subtitle">{{ documentToRename()?.originalFileName }}</p>
+    </div>
+    <div class="modal-body">
+      <label class="input-label" for="displayName">Display Name</label>
+      <input type="text" id="displayName" class="input-field" [value]="newDisplayName()"
+        (input)="newDisplayName.set($any($event.target).value)" placeholder="Enter display name" maxlength="255" />
+      <p class="input-hint">This changes how the document is displayed, not the original file name.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeRenameDocModal()">Cancel</button>
+      <button type="button" class="btn-primary" [disabled]="!newDisplayName().trim()" (click)="renameDocument()">
+        Rename
+      </button>
     </div>
   </div>
+</div>
 }
 
 <!-- Move Document Modal -->
 @if (showMoveModal()) {
-  <div class="modal-overlay" (click)="closeMoveModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-icon primary">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-          </svg>
-        </div>
-        <h3 class="modal-title">Move Document</h3>
-        <p class="modal-subtitle">{{ getDocumentDisplayName(documentToMove()!) }}</p>
+<div class="modal-overlay" (click)="closeMoveModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon primary">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+        </svg>
       </div>
-      <div class="modal-body">
-        <div class="premium-notice">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <span>This feature requires a Starter or higher subscription.</span>
-        </div>
-        <label class="input-label" for="targetCollection">Target Collection</label>
-        <select
-          id="targetCollection"
-          class="input-field"
-          [value]="targetCollectionId()"
-          (change)="targetCollectionId.set($any($event.target).value)">
-          <option value="">Select a collection...</option>
-          @for (col of getOtherCollections(); track col.id) {
-            <option [value]="col.id">{{ col.name }} ({{ col.fileCount }} files)</option>
-          }
-        </select>
+      <h3 class="modal-title">Move Document</h3>
+      <p class="modal-subtitle">{{ getDocumentDisplayName(documentToMove()!) }}</p>
+    </div>
+    <div class="modal-body">
+      <div class="premium-notice">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>This feature requires a Starter or higher subscription.</span>
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeMoveModal()">Cancel</button>
-        <button
-          type="button"
-          class="btn-primary"
-          [disabled]="!targetCollectionId()"
-          (click)="moveDocument()">
-          Move Document
-        </button>
-      </div>
+      <label class="input-label" for="targetCollection">Target Collection</label>
+      <select id="targetCollection" class="input-field" [value]="targetCollectionId()"
+        (change)="targetCollectionId.set($any($event.target).value)">
+        <option value="">Select a collection...</option>
+        @for (col of getOtherCollections(); track col.id) {
+        <option [value]="col.id">{{ col.name }} ({{ col.fileCount }} files)</option>
+        }
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeMoveModal()">Cancel</button>
+      <button type="button" class="btn-primary" [disabled]="!targetCollectionId()" (click)="moveDocument()">
+        Move Document
+      </button>
     </div>
   </div>
+</div>
 }
 
+<!-- Document Viewer -->
+@if (showDocumentViewer() && documentViewerUrl()) {
+<app-document-viewer [fileUrl]="documentViewerUrl()" [fileName]="documentViewerFileName()"
+  (closed)="closeDocumentViewer()" />
+}

@@ -47,6 +47,13 @@ export class PaystackStateService {
     totalPages: 0
   });
 
+  // Coupon-related state
+  private readonly _couponCode = signal<string | null>(null);
+  private readonly _discountAmount = signal<number>(0);
+  private readonly _originalAmount = signal<number>(0);
+  private readonly _discountedAmount = signal<number>(0);
+  private readonly _discountPercentage = signal<number>(0);
+
   // ==================== Public Readonly Signals ====================
 
   readonly userEmail = this._userEmail.asReadonly();
@@ -60,6 +67,14 @@ export class PaystackStateService {
   readonly error = this._error.asReadonly();
   readonly successMessage = this._successMessage.asReadonly();
   readonly pagination = this._pagination.asReadonly();
+
+  // Coupon readonly signals
+  readonly couponCode = this._couponCode.asReadonly();
+  readonly discountAmount = this._discountAmount.asReadonly();
+  readonly originalAmount = this._originalAmount.asReadonly();
+  readonly discountedAmount = this._discountedAmount.asReadonly();
+  readonly discountPercentage = this._discountPercentage.asReadonly();
+  readonly hasCoupon = computed(() => !!this._couponCode());
 
   // Plans from pricing service
   readonly individualPlans = this.pricingService.individualPlans;
@@ -263,6 +278,35 @@ export class PaystackStateService {
     this._selectedPlanId.set(null);
   }
 
+  // ==================== Coupon Management ====================
+
+  /**
+   * Set coupon code and discount details
+   */
+  setCoupon(
+    couponCode: string,
+    discountPercentage: number,
+    discountAmount: number,
+    originalAmount: number
+  ): void {
+    this._couponCode.set(couponCode);
+    this._discountPercentage.set(discountPercentage);
+    this._discountAmount.set(discountAmount);
+    this._originalAmount.set(originalAmount);
+    this._discountedAmount.set(originalAmount - discountAmount);
+  }
+
+  /**
+   * Clear coupon
+   */
+  clearCoupon(): void {
+    this._couponCode.set(null);
+    this._discountPercentage.set(0);
+    this._discountAmount.set(0);
+    this._originalAmount.set(0);
+    this._discountedAmount.set(0);
+  }
+
   /**
    * Start checkout process - initializes Paystack transaction and redirects
    */
@@ -307,7 +351,10 @@ export class PaystackStateService {
     }
 
     // Convert to kobo (amount from API is already in main currency unit)
-    const amountInKobo = toKobo(amount);
+    // If coupon is applied, use the discounted amount
+    const couponCode = this._couponCode();
+    const finalAmount = couponCode ? this._discountedAmount() : amount;
+    const amountInKobo = toKobo(finalAmount);
 
     // Generate callback URL
     const callbackUrl = `${window.location.origin}/settings/billing/paystack/callback`;
@@ -323,7 +370,13 @@ export class PaystackStateService {
         planCode: planName,
         billingInterval: this._billingInterval(),
         userId: email,
-        source: 'billing_page'
+        source: 'billing_page',
+        ...(couponCode && {
+          couponCode,
+          originalAmount: amount,
+          discountAmount: this._discountAmount(),
+          discountPercentage: this._discountPercentage()
+        })
       }
     }).pipe(
       tap(response => {
@@ -342,6 +395,9 @@ export class PaystackStateService {
         sessionStorage.setItem('paystack_reference', response.reference);
         sessionStorage.setItem('paystack_plan_name', planName);
         sessionStorage.setItem('paystack_interval', this._billingInterval());
+        if (couponCode) {
+          sessionStorage.setItem('paystack_coupon_code', couponCode);
+        }
 
         // Redirect to Paystack checkout page
         console.log('Redirecting to:', authUrl);
@@ -375,6 +431,10 @@ export class PaystackStateService {
           sessionStorage.removeItem('paystack_reference');
           sessionStorage.removeItem('paystack_plan_name');
           sessionStorage.removeItem('paystack_interval');
+          sessionStorage.removeItem('paystack_coupon_code');
+
+          // Clear coupon state
+          this.clearCoupon();
 
           // Reload billing data to get updated subscription
           const currency = this.selectedCurrency();

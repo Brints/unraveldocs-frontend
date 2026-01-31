@@ -107,14 +107,23 @@ function handleUnauthorizedError(
             isRefreshing = false;
             // Refresh failed, logout and redirect to login
             authService.logout().then(() => {
-              // Preserve the current URL so user can return after login
-              const currentUrl = window.location.pathname + window.location.search;
-              router.navigate(['/auth/login'], {
-                queryParams: {
-                  sessionExpired: 'true',
-                  returnUrl: currentUrl
-                }
-              });
+              // Only capture returnUrl if not already on the login page
+              const currentPath = window.location.pathname;
+              if (!currentPath.startsWith('/auth/login')) {
+                router.navigate(['/auth/login'], {
+                  queryParams: {
+                    sessionExpired: 'true',
+                    returnUrl: currentPath
+                  }
+                });
+              } else {
+                // Already on login page, just navigate without returnUrl to break the loop
+                router.navigate(['/auth/login'], {
+                  queryParams: {
+                    sessionExpired: 'true'
+                  }
+                });
+              }
             });
             observer.error(refreshError);
           });
@@ -123,14 +132,23 @@ function handleUnauthorizedError(
       // No refresh token available, logout
       isRefreshing = false;
       authService.logout().then(() => {
-        // Preserve the current URL so user can return after login
-        const currentUrl = window.location.pathname + window.location.search;
-        router.navigate(['/auth/login'], {
-          queryParams: {
-            sessionExpired: 'true',
-            returnUrl: currentUrl
-          }
-        });
+        // Only capture returnUrl if not already on the login page
+        const currentPath = window.location.pathname;
+        if (!currentPath.startsWith('/auth/login')) {
+          router.navigate(['/auth/login'], {
+            queryParams: {
+              sessionExpired: 'true',
+              returnUrl: currentPath
+            }
+          });
+        } else {
+          // Already on login page, just navigate without returnUrl to break the loop
+          router.navigate(['/auth/login'], {
+            queryParams: {
+              sessionExpired: 'true'
+            }
+          });
+        }
       });
       return throwError(() => new Error('No refresh token available'));
     }

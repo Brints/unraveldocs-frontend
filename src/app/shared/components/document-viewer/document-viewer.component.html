@@ -1,0 +1,57 @@
+<!-- Document Viewer Modal -->
+<div class="document-viewer-overlay" (click)="close()">
+    <div class="document-viewer-container" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="document-viewer-header">
+            <div class="document-viewer-title">
+                <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span>{{ fileName }}</span>
+            </div>
+            <div class="document-viewer-actions">
+                <!-- Zoom Controls -->
+                <div class="zoom-controls">
+                    <button type="button" class="viewer-action-btn" title="Zoom out (−)" (click)="zoomOut()"
+                        [disabled]="zoomLevel() <= 25">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                    </button>
+                    <button type="button" class="zoom-level-btn" title="Reset zoom" (click)="resetZoom()">
+                        {{ zoomLevel() }}%
+                    </button>
+                    <button type="button" class="viewer-action-btn" title="Zoom in (+)" (click)="zoomIn()"
+                        [disabled]="zoomLevel() >= 300">
+                        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="viewer-divider"></div>
+
+                <button type="button" class="viewer-action-btn" title="Open in new tab" (click)="openInNewTab()">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                </button>
+                <button type="button" class="viewer-close-btn" title="Close" (click)="close()">
+                    <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Document Content -->
+        <div class="document-viewer-content">
+            <div class="image-wrapper" [style.width.%]="zoomLevel()">
+                <img [src]="fileUrl" [alt]="fileName" class="document-image" />
+            </div>
+        </div>
+    </div>
+</div>

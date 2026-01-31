@@ -168,6 +168,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         if (this.googleError()) {
           this.googleError.set(null);
         }
+        // Clear session expired message when user starts typing
+        if (this.sessionExpired()) {
+          this.sessionExpired.set(false);
+        }
       })
     );
 
@@ -224,6 +228,9 @@ export class LoginComponent implements OnInit, OnDestroy {
   onGoogleLoginSuccess(response: GoogleSignupResponse): void {
     this.socialLoading.set(null);
     console.log('Google login successful:', response);
+
+    // Clear session expired message
+    this.sessionExpired.set(false);
 
     // Track login event
     if (environment.features.socialLoginTracking) {
@@ -303,6 +310,8 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginAttempts.set(0);
     this.attemptsRemaining.set(null);
     this.isRateLimited.set(false);
+    // Clear session expired message
+    this.sessionExpired.set(false);
 
     // Handle two-factor authentication if required
     if (response.requiresTwoFactor) {

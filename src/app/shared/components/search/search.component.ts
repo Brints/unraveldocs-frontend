@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { SearchStateService } from '../../services/search-state.service';
 import { SearchResult, SORT_OPTIONS, PAGE_SIZE_OPTIONS } from '../../models/search.model';
+import { DocumentViewerComponent } from '../document-viewer/document-viewer.component';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, DocumentViewerComponent],
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.css']
 })
@@ -20,6 +21,9 @@ export class SearchComponent implements OnInit, OnDestroy {
   showFilters = signal(false);
   selectedResult = signal<SearchResult | null>(null);
   showPreviewModal = signal(false);
+  showDocumentViewerModal = signal(false);
+  documentViewerUrl = signal<string | null>(null);
+  documentViewerFileName = signal<string | null>(null);
 
   // From state service
   readonly results = this.searchState.results;
@@ -120,8 +124,16 @@ export class SearchComponent implements OnInit, OnDestroy {
 
   openDocument(result: SearchResult): void {
     if (result.fileUrl) {
-      window.open(result.fileUrl, '_blank');
+      this.documentViewerUrl.set(result.fileUrl);
+      this.documentViewerFileName.set(result.fileName);
+      this.showDocumentViewerModal.set(true);
     }
+  }
+
+  closeDocumentViewer(): void {
+    this.showDocumentViewerModal.set(false);
+    this.documentViewerUrl.set(null);
+    this.documentViewerFileName.set(null);
   }
 
   // Helpers
