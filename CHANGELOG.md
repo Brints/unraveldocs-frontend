@@ -1,3 +1,10 @@
+# [2.1.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.0.0...v2.1.0) (2026-01-31)
+
+
+### Features
+
+* add document viewer, coupon system, and billing improvements ([09c1992](https://github.com/Brints/unraveldocs-frontend/commit/09c1992dcfab88d1ed060e1ee4a302573849d0c3))
+
 # [2.0.0](https://github.com/Brints/unraveldocs-frontend/compare/v1.8.0...v2.0.0) (2026-01-25)
 
 
