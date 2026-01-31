@@ -1,12 +1,14 @@
 import { Component, inject, signal, OnInit, OnDestroy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { UserStateService } from '../../services/user-state.service';
 import { UserApiService } from '../../services/user-api.service';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { PaystackStateService } from '../../../payments/services/paystack-state.service';
 import { PayPalStateService } from '../../../payments/services/paypal-state.service';
+import { CouponStateService } from '../../../payments/services/coupon-state.service';
 import { PricingService } from '../../../../shared/services/pricing.service';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { PaymentMethod, Invoice } from '../../models/user.model';
@@ -15,7 +17,7 @@ import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared
 @Component({
   selector: 'app-billing-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './billing-settings.component.html',
   styleUrls: ['./billing-settings.component.css']
 })
@@ -25,6 +27,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly authService = inject(AuthService);
   private readonly paystackState = inject(PaystackStateService);
   private readonly paypalState = inject(PayPalStateService);
+  private readonly couponState = inject(CouponStateService);
   private readonly pricingService = inject(PricingService);
   private readonly route = inject(ActivatedRoute);
   private readonly logger = inject(LoggerService);
@@ -72,6 +75,30 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   showCheckoutModal = signal(false);
   showCancelModal = signal(false);
   activeTab = signal<'individual' | 'team'>('individual');
+  couponInput = signal('');
+  
+  // Local currency signal for dropdown - initialized directly from localStorage
+  // This ensures the dropdown shows the correct value immediately, bypassing async signal chain
+  readonly displayCurrency = signal<string>(this.getPersistedCurrencySync());
+
+  // Coupon state from coupon service
+  readonly couponValidationStatus = this.couponState.validationStatus;
+  readonly couponError = this.couponState.error;
+  readonly appliedCoupon = this.couponState.appliedCoupon;
+  readonly hasCouponApplied = this.couponState.hasCouponApplied;
+  readonly isValidatingCoupon = this.couponState.isValidating;
+  readonly isApplyingCoupon = this.couponState.isApplying;
+  readonly availableCoupons = this.couponState.availableCoupons;
+  readonly hasAvailableCoupons = this.couponState.hasAvailableCoupons;
+
+  // Computed: display price (with or without coupon discount)
+  readonly displayPrice = computed(() => {
+    const appliedCoupon = this.appliedCoupon();
+    if (appliedCoupon) {
+      return this.formatCurrency(appliedCoupon.finalAmount, this.selectedCurrency());
+    }
+    return this.formattedSelectedPrice();
+  });
 
   // Payment Gateway Selection
   readonly paymentGateways = [
@@ -80,7 +107,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       name: 'Paystack',
       description: 'Pay with card, bank transfer, or USSD',
       icon: '💳',
-      supportedCurrencies: ['NGN', 'GHS', 'ZAR', 'KES', 'USD'],
+      supportedCurrencies: ['NGN', 'GHS', 'KES', 'ZAR'],
       isAvailable: true
     },
     {
@@ -88,7 +115,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       name: 'PayPal',
       description: 'Pay with PayPal account or card',
       icon: '🅿️',
-      supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+      supportedCurrencies: ['USD', 'EUR', 'GBP'],
       isAvailable: true
     },
     {
@@ -96,17 +123,23 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       name: 'Stripe',
       description: 'International cards and payment methods',
       icon: '💎',
-      supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD'],
+      supportedCurrencies: ['USD', 'EUR', 'GBP'],
       isAvailable: false // Coming soon
     }
   ];
 
   selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>(this.loadPersistedGateway());
 
-  // Available currencies
-  readonly currencies = POPULAR_CURRENCIES.filter(c =>
-    ['NGN', 'GHS', 'ZAR', 'KES', 'USD'].includes(c.code)
-  );
+  // Available currencies - filtered based on selected gateway
+  readonly filteredCurrencies = computed(() => {
+    const gateway = this.selectedGateway();
+    const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
+    const supportedCodes = gatewayInfo?.supportedCurrencies || ['USD', 'EUR', 'GBP'];
+    return POPULAR_CURRENCIES.filter(c => supportedCodes.includes(c.code));
+  });
+
+  // Keep full list for reference (used internally)
+  readonly currencies = POPULAR_CURRENCIES;
 
   // Display plans based on tab and interval
   readonly displayPlans = computed(() => {
@@ -117,6 +150,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
+    // CRITICAL: Load and set persisted currency IMMEDIATELY before any async operations
+    // This ensures the dropdown shows the correct currency on first render
+    const persistedCurrency = this.loadPersistedCurrency();
+    this.paystackState.setCurrency(persistedCurrency);
+
     // Check for success query param from callback
     this.route.queryParams.subscribe(params => {
       if (params['success'] === 'true') {
@@ -128,11 +166,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.userSubscription = this.authService.currentUser$.subscribe(user => {
       if (user?.email) {
         this.paystackState.initialize(user.email);
-        // Load billing data with persisted currency or default to NGN
-        const persistedCurrency = this.loadPersistedCurrency();
-        // Explicitly set currency first to update the dropdown
-        this.paystackState.setCurrency(persistedCurrency);
-        // Then load billing data
+        // Load billing data with the persisted currency (already set above)
         this.paystackState.loadBillingData(persistedCurrency);
         // Also load PayPal billing data and plans
         this.paypalState.loadBillingData();
@@ -174,6 +208,9 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     const currency = select.value;
     // Persist currency to localStorage
     localStorage.setItem('billing_currency', currency);
+    // Update local signal for dropdown
+    this.displayCurrency.set(currency);
+    // Update paystack state to reload plans
     this.paystackState.setCurrency(currency);
   }
 
@@ -191,6 +228,18 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       // Persist gateway to localStorage
       localStorage.setItem('billing_payment_gateway', gateway);
       this.selectedGateway.set(gateway);
+      
+      // Check if current currency is supported by the new gateway
+      const currentCurrency = this.displayCurrency();
+      const supportedCurrencies = gatewayInfo.supportedCurrencies;
+      
+      if (!supportedCurrencies.includes(currentCurrency)) {
+        // Switch to the first supported currency for this gateway
+        const defaultCurrency = supportedCurrencies[0];
+        this.displayCurrency.set(defaultCurrency);
+        localStorage.setItem('billing_currency', defaultCurrency);
+        this.paystackState.setCurrency(defaultCurrency);
+      }
     }
   }
 
@@ -201,6 +250,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     // Select plan in both state services so it's available regardless of gateway chosen
     this.paystackState.selectPlan(planId);
     this.paypalState.selectPlan(planId);
+    // Clear any previously applied coupon when selecting a new plan
+    this.couponState.clearCoupon();
+    this.couponInput.set('');
+    // Load available coupons for the user
+    this.couponState.loadAvailableCoupons();
     this.showCheckoutModal.set(true);
   }
 
@@ -227,7 +281,31 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.logger.debug('Proceeding to checkout', { gateway: selectedGateway, planId: selectedPlan.planId }, 'BillingSettings');
+    // Sync coupon state to payment gateways before checkout
+    const appliedCoupon = this.appliedCoupon();
+    if (appliedCoupon) {
+      if (selectedGateway === 'paystack') {
+        this.paystackState.setCoupon(
+          appliedCoupon.code,
+          appliedCoupon.discountPercentage,
+          appliedCoupon.discountAmount,
+          appliedCoupon.originalAmount
+        );
+      } else if (selectedGateway === 'paypal') {
+        this.paypalState.setCoupon(
+          appliedCoupon.code,
+          appliedCoupon.discountAmount,
+          appliedCoupon.originalAmount
+        );
+      }
+    }
+
+    this.logger.debug('Proceeding to checkout', { 
+      gateway: selectedGateway, 
+      planId: selectedPlan.planId,
+      hasCoupon: !!appliedCoupon,
+      couponCode: appliedCoupon?.code
+    }, 'BillingSettings');
 
     if (selectedGateway === 'paystack') {
       this.paystackState.startCheckout();
@@ -245,6 +323,86 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.showCheckoutModal.set(false);
     this.paystackState.clearSelectedPlan();
     this.paypalState.clearSelectedPlan();
+    // Clear coupon state when cancelling checkout
+    this.couponState.clearCoupon();
+    this.couponInput.set('');
+    this.paystackState.clearCoupon();
+    this.paypalState.clearCoupon();
+  }
+
+  // ==================== Coupon Management ====================
+
+  /**
+   * Update coupon input value (called from template)
+   */
+  updateCouponInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.couponInput.set(input.value.toUpperCase());
+  }
+
+  /**
+   * Apply coupon to the current plan
+   */
+  applyCoupon(): void {
+    const code = this.couponInput();
+    if (!code || code.trim().length === 0) {
+      return;
+    }
+
+    // Get the plan price to apply the coupon to
+    const selectedPlan = this.selectedPlan();
+    if (!selectedPlan) {
+      return;
+    }
+
+    // Get the plan price
+    let amount: number;
+    if ('price' in selectedPlan) {
+      amount = (selectedPlan as IndividualPlan).price.convertedAmount;
+    } else {
+      const interval = this.billingInterval();
+      const teamPlan = selectedPlan as TeamPlan;
+      amount = interval === 'monthly'
+        ? teamPlan.monthlyPrice.convertedAmount
+        : teamPlan.yearlyPrice.convertedAmount;
+    }
+
+    this.couponState.applyCoupon(code.trim(), amount);
+  }
+
+  /**
+   * Remove applied coupon
+   */
+  removeCoupon(): void {
+    this.couponState.clearCoupon();
+    this.couponInput.set('');
+    this.paystackState.clearCoupon();
+    this.paypalState.clearCoupon();
+  }
+
+  /**
+   * Select an available coupon from the list
+   */
+  selectAvailableCoupon(couponCode: string): void {
+    this.couponInput.set(couponCode);
+    this.applyCoupon();
+  }
+
+  /**
+   * Clear coupon error
+   */
+  clearCouponError(): void {
+    this.couponState.clearError();
+  }
+
+  /**
+   * Get currency symbol for display
+   */
+  getCurrencySymbol(): string {
+    const currency = this.selectedCurrency();
+    // Find symbol from the full currency list
+    const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
+    return currencyInfo?.symbol || '$';
   }
 
   // ==================== Subscription Management ====================
@@ -350,14 +508,8 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   formatPaystackAmount(amount: number, currency: string): string {
     // Amount from Paystack API is in kobo, convert to main unit
     const mainAmount = amount / 100;
-    const currencySymbols: Record<string, string> = {
-      NGN: '₦',
-      GHS: '₵',
-      ZAR: 'R',
-      KES: 'KSh',
-      USD: '$',
-    };
-    const symbol = currencySymbols[currency] || currency;
+    const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
+    const symbol = currencyInfo?.symbol || currency;
     return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
   }
 
@@ -434,13 +586,25 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   // ==================== Persistence ====================
 
-  private loadPersistedCurrency(): string {
+  /**
+   * Get persisted currency synchronously - used for initial signal value
+   * This is called during class property initialization before ngOnInit
+   */
+  private getPersistedCurrencySync(): string {
     const persisted = localStorage.getItem('billing_currency');
-    // Validate persisted currency is supported
-    if (persisted && ['NGN', 'GHS', 'ZAR', 'KES', 'USD'].includes(persisted)) {
+    if (persisted && POPULAR_CURRENCIES.some(c => c.code === persisted)) {
       return persisted;
     }
-    return 'NGN'; // Default to NGN
+    return 'USD';
+  }
+
+  private loadPersistedCurrency(): string {
+    const persisted = localStorage.getItem('billing_currency');
+    // Validate persisted currency is in the supported currency list
+    if (persisted && POPULAR_CURRENCIES.some(c => c.code === persisted)) {
+      return persisted;
+    }
+    return 'USD'; // Default to USD
   }
 
   private loadPersistedGateway(): 'paystack' | 'stripe' | 'paypal' {

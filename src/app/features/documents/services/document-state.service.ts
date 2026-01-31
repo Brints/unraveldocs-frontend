@@ -182,7 +182,7 @@ export class DocumentStateService {
     this._uploadProgress.set(progressItems);
 
     const uploadObservable = extractOcr
-      ? this.api.uploadAndExtractAll(files)
+      ? this.api.uploadAndExtractAll(files, options)
       : this.api.uploadDocuments(files, options);
 
     uploadObservable.pipe(

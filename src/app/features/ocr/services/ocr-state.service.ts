@@ -525,12 +525,33 @@ export class OcrStateService {
   }
 
   /**
-   * Remove job from list
+   * Remove job from list and delete from backend
    */
   removeJob(jobId: string): void {
+    const job = this._jobs().find(j => j.id === jobId);
+    if (!job) return;
+
+    // Optimistically remove from local state
     this._jobs.update(jobs => jobs.filter(j => j.id !== jobId));
     if (this._selectedJob()?.id === jobId) {
       this._selectedJob.set(null);
+    }
+
+    // If we have collection and document IDs, delete from backend
+    if (job.collectionId && job.documentId) {
+      this.api.deleteDocument(job.collectionId, job.documentId).pipe(
+        tap(() => {
+          this._successMessage.set(`"${job.fileName}" deleted successfully`);
+          setTimeout(() => this._successMessage.set(null), 3000);
+        }),
+        catchError(error => {
+          console.error('Failed to delete document:', error);
+          // Restore the job if delete failed
+          this._jobs.update(jobs => [job, ...jobs]);
+          this._error.set(`Failed to delete "${job.fileName}"`);
+          return of(null);
+        })
+      ).subscribe();
     }
   }
 

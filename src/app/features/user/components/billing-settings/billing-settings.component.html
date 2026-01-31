@@ -10,9 +10,9 @@
     <!-- Currency Selector -->
     <div class="currency-selector">
       <label for="currency">Currency:</label>
-      <select id="currency" [value]="selectedCurrency()" (change)="setCurrency($event)">
-        @for (currency of currencies; track currency.code) {
-        <option [value]="currency.code">
+      <select id="currency" (change)="setCurrency($event)">
+        @for (currency of filteredCurrencies(); track currency.code) {
+        <option [value]="currency.code" [selected]="currency.code === displayCurrency()">
           {{ currency.symbol }} {{ currency.code }}
         </option>
         }
@@ -74,7 +74,7 @@
         <div class="plan-details">
           <div class="plan-name">{{ getCurrentPlan().name }} Plan</div>
           <div class="plan-price">
-            <span class="price">{{ getCurrentPlan().monthlyPrice | currency:selectedCurrency() }}</span>
+            <span class="price">{{ getCurrentPlan().monthlyPrice | currency:displayCurrency() }}</span>
             <span class="period">/{{ currentBillingInterval() === 'monthly' ? 'month' : 'year' }}</span>
           </div>
         </div>
@@ -461,10 +461,102 @@
             'Stripe' : 'Paystack' }}</span>
         </div>
 
+        <!-- Coupon Section -->
+        <div class="coupon-section">
+          <div class="coupon-header">
+            <span class="coupon-label">Have a coupon code?</span>
+          </div>
+
+          @if (!hasCouponApplied()) {
+          <!-- Coupon Input -->
+          <div class="coupon-input-group">
+            <input type="text" class="coupon-input" placeholder="Enter coupon code" [value]="couponInput()"
+              (input)="updateCouponInput($event)" (keyup.enter)="applyCoupon()"
+              [disabled]="isApplyingCoupon() || isValidatingCoupon()" />
+            <button type="button" class="btn-apply-coupon" (click)="applyCoupon()"
+              [disabled]="!couponInput() || isApplyingCoupon() || isValidatingCoupon()">
+              @if (isApplyingCoupon() || isValidatingCoupon()) {
+              <span class="spinner-small"></span>
+              } @else {
+              Apply
+              }
+            </button>
+          </div>
+
+          <!-- Coupon Error -->
+          @if (couponError()) {
+          <div class="coupon-error">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ couponError() || 'Invalid coupon code. Please try again.' }}</span>
+          </div>
+          }
+
+          <!-- Available Coupons -->
+          @if (hasAvailableCoupons()) {
+          <div class="available-coupons">
+            <span class="available-coupons-label">Available for you:</span>
+            <div class="coupon-tags">
+              @for (coupon of availableCoupons(); track coupon.code) {
+              <button type="button" class="coupon-tag" (click)="selectAvailableCoupon(coupon.code)"
+                [title]="coupon.description">
+                {{ coupon.code }} ({{ coupon.discountPercentage }}% off)
+              </button>
+              }
+            </div>
+          </div>
+          }
+          } @else {
+          <!-- Applied Coupon -->
+          <div class="applied-coupon">
+            <div class="applied-coupon-info">
+              <svg class="coupon-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span class="coupon-code">{{ appliedCoupon()!.code }}</span>
+              <span class="coupon-discount">{{ appliedCoupon()!.discountPercentage }}% off</span>
+            </div>
+            <button type="button" class="btn-remove-coupon" (click)="removeCoupon()">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Remove
+            </button>
+          </div>
+          }
+        </div>
+
+        <!-- Price Breakdown -->
+        @if (hasCouponApplied()) {
+        <div class="price-breakdown">
+          <div class="summary-row subtotal">
+            <span class="summary-label">Original Price</span>
+            <span class="summary-value original-price">{{ getCurrencySymbol() }}{{
+              appliedCoupon()!.originalAmount.toFixed(2) }}</span>
+          </div>
+          <div class="summary-row discount">
+            <span class="summary-label">Discount ({{ appliedCoupon()!.discountPercentage }}%)</span>
+            <span class="summary-value discount-amount">-{{ getCurrencySymbol() }}{{
+              appliedCoupon()!.discountAmount.toFixed(2) }}</span>
+          </div>
+          <div class="summary-row total with-savings">
+            <span class="summary-label">Total</span>
+            <span class="summary-value final-price">{{ getCurrencySymbol() }}{{ appliedCoupon()!.finalAmount.toFixed(2)
+              }}</span>
+          </div>
+          <div class="savings-badge">
+            🎉 You save {{ getCurrencySymbol() }}{{ appliedCoupon()!.discountAmount.toFixed(2) }}!
+          </div>
+        </div>
+        } @else {
         <div class="summary-row total">
           <span class="summary-label">Total</span>
           <span class="summary-value">{{ formattedSelectedPrice() }}</span>
         </div>
+        }
       </div>
 
       <p class="checkout-note">

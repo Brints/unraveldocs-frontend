@@ -53,9 +53,16 @@ export class DocumentApiService {
    * Upload documents and extract text from all
    * POST /collections/upload/extract-all
    */
-  uploadAndExtractAll(files: File[]): Observable<HttpEvent<DocumentApiResponse<UploadResponse>>> {
+  uploadAndExtractAll(files: File[], options?: UploadOptions): Observable<HttpEvent<DocumentApiResponse<UploadResponse>>> {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
+
+    if (options?.collectionName) {
+      formData.append('collectionName', options.collectionName);
+    }
+    if (options?.enableEncryption !== undefined) {
+      formData.append('enableEncryption', String(options.enableEncryption));
+    }
 
     const req = new HttpRequest('POST', `${this.apiUrl}/collections/upload/extract-all`, formData, {
       reportProgress: true

@@ -259,6 +259,26 @@ export class OcrApiService {
     this.downloadBlob(blob, `${fileName}.json`);
   }
 
+  // ==================== Delete Operations ====================
+
+  /**
+   * Delete a specific document
+   * DELETE /documents/collection/{collectionId}/document/{documentId}
+   */
+  deleteDocument(collectionId: string, documentId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/documents/collection/${collectionId}/document/${documentId}`
+    );
+  }
+
+  /**
+   * Clear all documents
+   * DELETE /documents/clear-all
+   */
+  clearAllDocuments(): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/documents/clear-all`);
+  }
+
   private downloadBlob(blob: Blob, fileName: string): void {
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
