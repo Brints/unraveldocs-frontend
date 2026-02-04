@@ -46,7 +46,6 @@ export class UserStateService {
   readonly profile = this._profile.asReadonly();
   readonly stats = this._stats.asReadonly();
   readonly storageInfo = this._storageInfo.asReadonly();
-  readonly recentCollections = this._recentCollections.asReadonly();
   readonly activities = this._activities.asReadonly();
   readonly notifications = this._notifications.asReadonly();
   readonly subscription = this._subscription.asReadonly();
@@ -54,7 +53,6 @@ export class UserStateService {
   readonly documents = this._documents.asReadonly();
   readonly isLoading = this._isLoading.asReadonly();
   readonly error = this._error.asReadonly();
-  readonly lastUpdated = this._lastUpdated.asReadonly();
 
   // ==================== Computed Properties ====================
 
@@ -398,6 +396,24 @@ export class UserStateService {
         console.error('Storage info refresh error:', error);
         return of(null);
       })
+    ).subscribe();
+  }
+
+  /**
+   * Load storage info with loading state
+   */
+  loadStorageInfo(): void {
+    this._isLoading.set(true);
+    this._error.set(null);
+
+    this.api.getStorageInfo().pipe(
+      tap(storageInfo => this._storageInfo.set(storageInfo)),
+      catchError(error => {
+        this._error.set('Failed to load storage information');
+        console.error('Storage info load error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isLoading.set(false))
     ).subscribe();
   }
 

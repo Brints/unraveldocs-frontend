@@ -16,6 +16,8 @@ import {
   StripePaymentIntent,
   PaystackInitializeResponse,
   PaystackSubscription,
+  TrialActivationResponse,
+  UserSubscriptionDetails,
 } from '../models/subscription.model';
 
 @Injectable({
@@ -264,6 +266,29 @@ export class SubscriptionApiService {
   downloadReceipt(receiptNumber: string): Observable<string> {
     return this.http.get<SubscriptionApiResponse<string>>(
       `${this.apiUrl}/receipts/${receiptNumber}/download`
+    ).pipe(map(response => response.data));
+  }
+
+  // ==================== Trial ====================
+
+  /**
+   * Activate a free trial for a plan
+   * POST /subscriptions/trial/{planId}
+   */
+  activateTrial(planId: string): Observable<TrialActivationResponse> {
+    return this.http.post<TrialActivationResponse>(
+      `${this.apiUrl}/subscriptions/trial/${planId}`,
+      null
+    );
+  }
+
+  /**
+   * Get user's subscription details including trial info
+   * GET /subscriptions/me
+   */
+  getUserSubscriptionDetails(): Observable<UserSubscriptionDetails> {
+    return this.http.get<SubscriptionApiResponse<UserSubscriptionDetails>>(
+      `${this.apiUrl}/subscriptions/me`
     ).pipe(map(response => response.data));
   }
 }

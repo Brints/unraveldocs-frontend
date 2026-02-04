@@ -216,9 +216,9 @@ export class SecuritySettingsComponent implements OnInit {
 
     const formValue = this.passwordForm.value;
     const request: ChangePasswordRequest = {
-      currentPassword: formValue.currentPassword,
+      oldPassword: formValue.currentPassword,
       newPassword: formValue.newPassword,
-      confirmPassword: formValue.confirmPassword
+      confirmNewPassword: formValue.confirmPassword
     };
 
     this.userApi.changePassword(request).subscribe({

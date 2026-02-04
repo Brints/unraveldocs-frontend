@@ -205,9 +205,10 @@ export class DocumentStateService {
         }
       }),
       catchError(error => {
-        this._error.set('Failed to upload files');
+        const errorMessage = error?.error?.message || error?.message || 'Failed to upload files';
+        this._error.set(errorMessage);
         this._uploadProgress.update(items =>
-          items.map(item => ({ ...item, status: 'error' as const, error: 'Upload failed' }))
+          items.map(item => ({ ...item, status: 'error' as const, error: errorMessage }))
         );
         console.error('Upload error:', error);
         return of(null);

@@ -72,6 +72,9 @@ export class OcrApiService {
       return [];
     }
 
+    // Use collection's upload timestamp as fallback for file createdAt
+    const collectionTimestamp = collection.uploadTimestamp || collection.createdAt;
+
     return results.files.map((file, index) => ({
       id: `${collection.id}-${file.documentId}`,
       collectionId: collection.id,
@@ -88,7 +91,7 @@ export class OcrApiService {
       error: file.errorMessage || undefined,
       startedAt: undefined,
       completedAt: file.status === 'completed' ? file.createdAt : undefined,
-      createdAt: file.createdAt
+      createdAt: file.createdAt || collectionTimestamp
     }));
   }
 
@@ -216,7 +219,7 @@ export class OcrApiService {
       status: data.status || 'pending',
       extractedText: data.extractedText || null,
       errorMessage: data.errorMessage || null,
-      createdAt: data.createdAt || new Date().toISOString()
+      createdAt: data.createdAt || data.uploadedAt || ''
     };
   }
 

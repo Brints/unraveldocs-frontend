@@ -51,6 +51,12 @@ export const userRoutes: Routes = [
             loadComponent: () => import('./components/notification-settings/notification-settings.component')
               .then(m => m.NotificationSettingsComponent),
             title: 'Notification Preferences - UnravelDocs'
+          },
+          {
+            path: 'storage',
+            loadComponent: () => import('./components/storage-usage/storage-usage.component')
+              .then(m => m.StorageUsageComponent),
+            title: 'Storage & Usage - UnravelDocs'
           }
         ]
       }

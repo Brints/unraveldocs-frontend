@@ -93,25 +93,43 @@
           </svg>
         </div>
         <div class="stat-content">
-          <span class="stat-value">{{ stats()?.pagesRemaining }}</span>
+          @if (stats()?.pagesRemaining === -1) {
+            <span class="stat-value">∞</span>
+          } @else {
+            <span class="stat-value">{{ stats()?.pagesRemaining }}</span>
+          }
           <span class="stat-label">Pages Remaining</span>
         </div>
       </div>
     </div>
 
     <!-- Usage Progress -->
-    <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
-        <span class="text-sm text-gray-500">{{ stats()!.monthlyLimit - stats()!.pagesRemaining }} / {{ stats()?.monthlyLimit }} pages</span>
-      </div>
-      <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
-          [style.width.%]="getUsagePercentage()">
+    @if (stats()?.monthlyLimit !== -1) {
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
+          <span class="text-sm text-gray-500">{{ stats()!.monthlyLimit - stats()!.pagesRemaining }} / {{ stats()?.monthlyLimit }} pages</span>
+        </div>
+        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div
+            class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
+            [style.width.%]="getUsagePercentage()">
+          </div>
         </div>
       </div>
-    </div>
+    } @else {
+      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
+          <div class="flex items-center gap-2 text-indigo-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+            </svg>
+            <span class="text-sm font-medium">Unlimited</span>
+          </div>
+        </div>
+      </div>
+    }
   }
 
   <!-- Drop Zone -->

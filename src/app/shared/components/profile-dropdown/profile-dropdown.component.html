@@ -1,0 +1,65 @@
+<div class="profile-dropdown-container">
+    <!-- Trigger Button -->
+    <button type="button" class="profile-trigger" (click)="toggleDropdown()">
+        <div class="user-avatar">
+            @if (user?.profilePicture) {
+            <img [src]="user?.profilePicture" [alt]="fullName" class="avatar-img" />
+            } @else {
+            <span class="avatar-initials">{{ initials }}</span>
+            }
+        </div>
+        @if (showUserInfo) {
+        <div class="user-info">
+            <span class="user-name">{{ fullName }}</span>
+            <span class="user-email">{{ user?.email || '' }}</span>
+        </div>
+        <svg class="dropdown-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+        }
+    </button>
+
+    <!-- Dropdown Menu -->
+    @if (isOpen()) {
+    <div class="dropdown-menu">
+        <!-- User Header -->
+        <div class="dropdown-header">
+            <div class="user-avatar large">
+                @if (user?.profilePicture) {
+                <img [src]="user?.profilePicture" [alt]="fullName" class="avatar-img" />
+                } @else {
+                <span class="avatar-initials">{{ initials }}</span>
+                }
+            </div>
+            <div>
+                <p class="header-name">{{ fullName }}</p>
+                <p class="header-email">{{ user?.email }}</p>
+            </div>
+        </div>
+
+        <!-- Menu Items -->
+        <div class="dropdown-content">
+            @for (item of activeMenuItems; track item.id) {
+            @if (item.dividerBefore) {
+            <div class="dropdown-divider"></div>
+            }
+            @if (item.route && item.id !== 'logout') {
+            <a [routerLink]="item.route" class="dropdown-item" [class.danger]="item.isDanger" (click)="closeDropdown()">
+                <svg class="item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                </svg>
+                <span>{{ item.label }}</span>
+            </a>
+            } @else {
+            <button type="button" class="dropdown-item" [class.danger]="item.isDanger" (click)="onItemClick(item)">
+                <svg class="item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" />
+                </svg>
+                <span>{{ item.label }}</span>
+            </button>
+            }
+            }
+        </div>
+    </div>
+    }
+</div>

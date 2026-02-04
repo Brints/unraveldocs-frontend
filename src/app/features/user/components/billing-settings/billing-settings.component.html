@@ -52,6 +52,37 @@
   </div>
   }
 
+  <!-- Trial Alert Messages -->
+  @if (trialError()) {
+  <div class="alert alert-error">
+    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ trialError() }}</span>
+    <button class="alert-close" (click)="clearTrialError()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  }
+
+  @if (trialSuccessMessage()) {
+  <div class="alert alert-success">
+    <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span>{{ trialSuccessMessage() }}</span>
+    <button class="alert-close" (click)="clearTrialSuccessMessage()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+  }
+
   <!-- Current Plan Section -->
   <div class="settings-card">
     <div class="card-header">
@@ -79,6 +110,15 @@
           </div>
         </div>
         <div class="plan-status">
+          @if (isOnTrial()) {
+          <span class="status-badge trial">
+            <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Trial - {{ trialDaysRemaining() }} days left
+          </span>
+          } @else {
           <span class="status-badge active">
             <svg class="status-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -86,6 +126,7 @@
             </svg>
             Active
           </span>
+          }
         </div>
         } @else {
         <div class="plan-badge plan-free">Free</div>
@@ -97,6 +138,25 @@
         </div>
         }
       </div>
+
+      <!-- Trial Info Banner -->
+      @if (isOnTrial()) {
+      <div class="trial-info-banner">
+        <div class="trial-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div class="trial-content">
+          <h4>You're on a Free Trial</h4>
+          <p>Your trial ends on {{ trialEndsAt() | date:'mediumDate' }}. {{ trialDaysRemaining() }} days remaining to explore all features.</p>
+        </div>
+        <div class="trial-action">
+          <span class="trial-cta">Subscribe now to continue after your trial ends</span>
+        </div>
+      </div>
+      }
 
       <!-- Storage Info from API -->
       @if (storageInfo()) {
@@ -248,9 +308,24 @@
           } @else if (plan.price.convertedAmount === 0) {
           <button type="button" class="plan-btn" disabled>Free Plan</button>
           } @else {
-          <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
-            {{ getPlanButtonText(plan.planName) }}
-          </button>
+          <div class="plan-buttons">
+            @if (canStartTrial() && plan.price.convertedAmount > 0) {
+            <button type="button" class="plan-btn trial" (click)="activateTrial(plan.planId)" [disabled]="isActivatingTrial()">
+              @if (isActivatingTrial()) {
+              <span class="btn-loading">Activating...</span>
+              } @else {
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Start 10-Day Free Trial
+              }
+            </button>
+            }
+            <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
+              {{ getPlanButtonText(plan.planName) }}
+            </button>
+          </div>
           }
         </div>
         }
@@ -289,9 +364,24 @@
           @if (isCurrentPlan(plan.planName)) {
           <button type="button" class="plan-btn current" disabled>Current Plan</button>
           } @else {
-          <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
-            Subscribe
-          </button>
+          <div class="plan-buttons">
+            @if (canStartTrial()) {
+            <button type="button" class="plan-btn trial" (click)="activateTrial(plan.planId)" [disabled]="isActivatingTrial()">
+              @if (isActivatingTrial()) {
+              <span class="btn-loading">Activating...</span>
+              } @else {
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Start 10-Day Free Trial
+              }
+            </button>
+            }
+            <button type="button" class="plan-btn upgrade" (click)="selectPlan(plan.planId)" [disabled]="isProcessing()">
+              Subscribe
+            </button>
+          </div>
           }
         </div>
         }
