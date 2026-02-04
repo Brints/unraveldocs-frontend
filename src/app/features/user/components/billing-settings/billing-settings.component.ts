@@ -11,6 +11,8 @@ import { PayPalStateService } from '../../../payments/services/paypal-state.serv
 import { CouponStateService } from '../../../payments/services/coupon-state.service';
 import { PricingService } from '../../../../shared/services/pricing.service';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { SubscriptionApiService } from '../../../subscription/services/subscription-api.service';
+import { UserSubscriptionDetails } from '../../../subscription/models/subscription.model';
 import { PaymentMethod, Invoice } from '../../models/user.model';
 import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
 
@@ -31,12 +33,34 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly pricingService = inject(PricingService);
   private readonly route = inject(ActivatedRoute);
   private readonly logger = inject(LoggerService);
+  private readonly subscriptionApi = inject(SubscriptionApiService);
 
   private userSubscription?: Subscription;
 
   // State from user state service
   readonly subscription = this.userState.subscription;
   readonly subscriptionStatus = this.userState.subscriptionStatus;
+
+  // Trial-related state
+  readonly userSubscriptionDetails = signal<UserSubscriptionDetails | null>(null);
+  readonly isLoadingSubscriptionDetails = signal(false);
+  readonly isActivatingTrial = signal(false);
+  readonly trialError = signal<string | null>(null);
+  readonly trialSuccessMessage = signal<string | null>(null);
+
+  // Computed trial state
+  readonly isOnTrial = computed(() => this.userSubscriptionDetails()?.isOnTrial ?? false);
+  readonly hasUsedTrial = computed(() => this.userSubscriptionDetails()?.hasUsedTrial ?? false);
+  readonly trialDaysRemaining = computed(() => this.userSubscriptionDetails()?.trialDaysRemaining ?? 0);
+  readonly trialEndsAt = computed(() => this.userSubscriptionDetails()?.trialEndsAt ?? null);
+  readonly canStartTrial = computed(() => {
+    const details = this.userSubscriptionDetails();
+    // Can start trial if:
+    // 1. User has not used their trial
+    // 2. User is not currently on a trial
+    // 3. User doesn't have an active paid subscription
+    return details && !details.hasUsedTrial && !details.isOnTrial && details.status !== 'ACTIVE';
+  });
 
   // Payment methods and invoices (local state)
   paymentMethods = signal<PaymentMethod[]>([]);
@@ -76,7 +100,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   showCancelModal = signal(false);
   activeTab = signal<'individual' | 'team'>('individual');
   couponInput = signal('');
-  
+
   // Local currency signal for dropdown - initialized directly from localStorage
   // This ensures the dropdown shows the correct value immediately, bypassing async signal chain
   readonly displayCurrency = signal<string>(this.getPersistedCurrencySync());
@@ -175,10 +199,79 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
     this.loadPaymentMethods();
     this.loadInvoices();
+    this.loadUserSubscriptionDetails();
   }
 
   ngOnDestroy(): void {
     this.userSubscription?.unsubscribe();
+  }
+
+  // ==================== Trial Management ====================
+
+  /**
+   * Load user subscription details including trial information
+   */
+  private loadUserSubscriptionDetails(): void {
+    this.isLoadingSubscriptionDetails.set(true);
+    this.trialError.set(null);
+
+    this.subscriptionApi.getUserSubscriptionDetails().subscribe({
+      next: (details) => {
+        this.userSubscriptionDetails.set(details);
+        this.isLoadingSubscriptionDetails.set(false);
+        this.logger.debug('User subscription details loaded', { details }, 'BillingSettings');
+      },
+      error: (error) => {
+        this.logger.warn('Failed to load subscription details', { error }, 'BillingSettings');
+        this.isLoadingSubscriptionDetails.set(false);
+        // Don't show error to user - they might just not have a subscription yet
+        this.userSubscriptionDetails.set(null);
+      }
+    });
+  }
+
+  /**
+   * Activate a free trial for a specific plan
+   */
+  activateTrial(planId: string): void {
+    this.isActivatingTrial.set(true);
+    this.trialError.set(null);
+    this.trialSuccessMessage.set(null);
+
+    this.subscriptionApi.activateTrial(planId).subscribe({
+      next: (response) => {
+        this.isActivatingTrial.set(false);
+        this.trialSuccessMessage.set(response.message || 'Trial activated successfully! You now have 10 days to explore all features.');
+        this.logger.info('Trial activated successfully', { planId, response }, 'BillingSettings');
+
+        // Reload subscription details to reflect the trial status
+        this.loadUserSubscriptionDetails();
+
+        // Reload billing data to update the UI
+        const persistedCurrency = this.loadPersistedCurrency();
+        this.paystackState.loadBillingData(persistedCurrency);
+      },
+      error: (error) => {
+        this.isActivatingTrial.set(false);
+        const errorMessage = error?.error?.message || error?.message || 'Failed to activate trial. Please try again.';
+        this.trialError.set(errorMessage);
+        this.logger.error('Failed to activate trial', { planId, error }, 'BillingSettings');
+      }
+    });
+  }
+
+  /**
+   * Clear trial error message
+   */
+  clearTrialError(): void {
+    this.trialError.set(null);
+  }
+
+  /**
+   * Clear trial success message
+   */
+  clearTrialSuccessMessage(): void {
+    this.trialSuccessMessage.set(null);
   }
 
   private loadPaymentMethods(): void {
@@ -228,11 +321,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       // Persist gateway to localStorage
       localStorage.setItem('billing_payment_gateway', gateway);
       this.selectedGateway.set(gateway);
-      
+
       // Check if current currency is supported by the new gateway
       const currentCurrency = this.displayCurrency();
       const supportedCurrencies = gatewayInfo.supportedCurrencies;
-      
+
       if (!supportedCurrencies.includes(currentCurrency)) {
         // Switch to the first supported currency for this gateway
         const defaultCurrency = supportedCurrencies[0];
@@ -300,8 +393,8 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       }
     }
 
-    this.logger.debug('Proceeding to checkout', { 
-      gateway: selectedGateway, 
+    this.logger.debug('Proceeding to checkout', {
+      gateway: selectedGateway,
       planId: selectedPlan.planId,
       hasCoupon: !!appliedCoupon,
       couponCode: appliedCoupon?.code

@@ -329,7 +329,7 @@ export class OcrProcessingComponent implements OnInit {
 
   getUsagePercentage(): number {
     const s = this.stats();
-    if (!s) return 0;
+    if (!s || s.monthlyLimit === -1 || s.monthlyLimit === 0) return 0;
     return Math.round(((s.monthlyLimit - s.pagesRemaining) / s.monthlyLimit) * 100);
   }
 }

@@ -2,10 +2,10 @@ import { Component, inject, signal, computed, OnInit, OnDestroy, HostListener } 
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { NotificationBellComponent } from '../../../notifications/components/notification-bell/notification-bell.component';
+import { ProfileDropdownComponent } from '../../../../shared/components/profile-dropdown/profile-dropdown.component';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { UserStateService } from '../../services/user-state.service';
-import { AuthService } from '../../../../core/auth/services/auth.service';
 
 
 interface NavItem {
@@ -21,13 +21,12 @@ interface NavItem {
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationBellComponent],
+  imports: [CommonModule, RouterModule, NotificationBellComponent, ProfileDropdownComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.css']
 })
 export class DashboardLayoutComponent implements OnInit, OnDestroy {
   protected readonly userState = inject(UserStateService);
-  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private routerSubscription?: Subscription;
 
@@ -35,9 +34,6 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
   sidebarCollapsed = signal(false);
   sidebarMobileOpen = signal(false);
   activeRoute = signal('');
-
-  // User dropdown
-  userDropdownOpen = signal(false);
 
   // Screen size
   isMobile = signal(window.innerWidth < 1024);
@@ -109,6 +105,13 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
       route: '/settings/billing'
     },
     {
+      id: 'settings-storage',
+      label: 'Storage & Usage',
+      icon: 'database',
+      iconPath: 'M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4',
+      route: '/settings/storage'
+    },
+    {
       id: 'settings-notifications',
       label: 'Notifications',
       icon: 'bell',
@@ -168,22 +171,5 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
   closeMobileSidebar(): void {
     this.sidebarMobileOpen.set(false);
-  }
-
-  toggleUserDropdown(): void {
-    this.userDropdownOpen.update(v => !v);
-  }
-
-  closeDropdowns(): void {
-    this.userDropdownOpen.set(false);
-  }
-
-  async logout(): Promise<void> {
-    try {
-      await this.authService.logout();
-      this.router.navigate(['/auth/login']);
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
   }
 }

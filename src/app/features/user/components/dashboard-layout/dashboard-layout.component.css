@@ -789,7 +789,7 @@
 .click-outside-overlay {
   position: fixed;
   inset: 0;
-  z-index: 45;
+  z-index: 49;
 }
 
 /* ==================== Main Content ==================== */

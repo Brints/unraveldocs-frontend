@@ -63,6 +63,7 @@ export interface StorageInfo {
   documentsUnlimited: boolean;
   subscriptionPlan: string;
   billingInterval: string;
+  quotaResetDate: string;
   documentQuotaExceeded: boolean;
   ocrQuotaExceeded: boolean;
   quotaExceeded: boolean;
@@ -364,9 +365,9 @@ export interface Session {
 }
 
 export interface ChangePasswordRequest {
-  currentPassword: string;
+  oldPassword: string;
   newPassword: string;
-  confirmPassword: string;
+  confirmNewPassword: string;
 }
 
 // ==================== Teams ====================

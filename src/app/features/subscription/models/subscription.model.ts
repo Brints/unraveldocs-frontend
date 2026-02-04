@@ -155,6 +155,41 @@ export interface SubscriptionApiResponse<T> {
   data: T;
 }
 
+// ==================== Trial ====================
+
+export interface TrialActivationResponse {
+  statusCode: number;
+  status: 'success' | 'error';
+  message: string;
+  data: null;
+}
+
+export interface UserSubscriptionDetails {
+  subscriptionId: string;
+  status: 'TRIAL' | 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE';
+  planId: string;
+  planName: string;
+  planDisplayName: string;
+  planPrice: number;
+  currency: string;
+  billingInterval: 'monthly' | 'yearly';
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  autoRenew: boolean;
+  isOnTrial: boolean;
+  trialEndsAt: string | null;
+  hasUsedTrial: boolean;
+  trialDaysRemaining: number;
+  storageLimit: number;
+  storageUsed: number;
+  documentUploadLimit: number;
+  documentsUploaded: number;
+  ocrPageLimit: number;
+  ocrPagesUsed: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ==================== Paystack Specific ====================
 
 export interface PaystackInitializeResponse {

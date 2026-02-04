@@ -1,7 +1,8 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { catchError, of, tap, finalize } from 'rxjs';
+import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { OcrApiService } from './ocr-api.service';
+import { UserApiService } from '../../user/services/user-api.service';
 import {
   OcrJob,
   OcrStatus,
@@ -17,6 +18,7 @@ import {
 })
 export class OcrStateService {
   private readonly api = inject(OcrApiService);
+  private readonly userApi = inject(UserApiService);
 
   // ==================== State Signals ====================
 
@@ -59,7 +61,15 @@ export class OcrStateService {
 
     if (currentFilter.status) {
       const filterStatus = currentFilter.status.toUpperCase();
-      jobs = jobs.filter(job => job.status.toUpperCase() === filterStatus);
+      // When filtering by PROCESSING, also include PENDING jobs
+      if (filterStatus === 'PROCESSING') {
+        jobs = jobs.filter(job => {
+          const jobStatus = job.status.toUpperCase();
+          return jobStatus === 'PROCESSING' || jobStatus === 'PENDING';
+        });
+      } else {
+        jobs = jobs.filter(job => job.status.toUpperCase() === filterStatus);
+      }
     }
 
     if (currentFilter.searchQuery) {
@@ -163,25 +173,28 @@ export class OcrStateService {
     this._error.set(null);
     this._jobs.set([]);
 
-    // Fetch all collections and get OCR results for each
-    this.api.getAllCollectionsWithOcrResults().pipe(
-      tap(jobs => {
+    // Fetch all collections with OCR results and storage info in parallel
+    forkJoin({
+      jobs: this.api.getAllCollectionsWithOcrResults().pipe(catchError(() => of([]))),
+      storage: this.userApi.getStorageInfo().pipe(catchError(() => of(null)))
+    }).pipe(
+      tap(({ jobs, storage }) => {
         this._jobs.set(jobs);
-        this.calculateStats();
+        this.calculateStats(storage);
       }),
       catchError(error => {
         console.error('Failed to load OCR jobs:', error);
         this._error.set('Failed to load OCR history');
-        return of([]);
+        return of(null);
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
   }
 
   /**
-   * Calculate stats from current jobs
+   * Calculate stats from current jobs and storage info
    */
-  private calculateStats(): void {
+  private calculateStats(storageInfo?: { ocrPageLimit: number; ocrPagesUsed: number; ocrPagesRemaining: number; ocrUnlimited: boolean } | null): void {
     const jobs = this._jobs();
     const completed = jobs.filter(j => j.status.toUpperCase() === 'COMPLETED');
     const failed = jobs.filter(j => j.status.toUpperCase() === 'FAILED');
@@ -201,14 +214,18 @@ export class OcrStateService {
       ? Math.round(completed.reduce((sum, j) => sum + (j.confidence || 0.9), 0) / completed.length * 100)
       : 0;
 
+    // Use storage info from API if available, otherwise use defaults
+    const monthlyLimit = storageInfo?.ocrUnlimited ? -1 : (storageInfo?.ocrPageLimit ?? 500);
+    const pagesRemaining = storageInfo?.ocrUnlimited ? -1 : (storageInfo?.ocrPagesRemaining ?? 500);
+
     this._stats.set({
       totalProcessed: completed.length,
       totalPending: pending.length,
       totalFailed: failed.length,
       averageConfidence: avgConfidence,
       pagesProcessedToday: processedToday,
-      pagesRemaining: 500 - completed.length, // This could come from a subscription/plan API
-      monthlyLimit: 500 // This could come from a subscription/plan API
+      pagesRemaining: pagesRemaining,
+      monthlyLimit: monthlyLimit
     });
   }
 
@@ -465,15 +482,21 @@ export class OcrStateService {
       ? Math.round(completed.reduce((sum, j) => sum + (j.confidence || 0.9), 0) / completed.length * 100)
       : 0;
 
-    this._stats.update(current => ({
-      totalProcessed: (current?.totalProcessed || 0) + completed.length,
-      totalPending: pending.length,
-      totalFailed: failed.length,
-      averageConfidence: avgConfidence || current?.averageConfidence || 0,
-      pagesProcessedToday: (current?.pagesProcessedToday || 0) + completed.length,
-      pagesRemaining: current?.pagesRemaining || 500,
-      monthlyLimit: current?.monthlyLimit || 500
-    }));
+    this._stats.update(current => {
+      // For unlimited plans, pagesRemaining is -1
+      const isUnlimited = current?.pagesRemaining === -1 || current?.monthlyLimit === -1;
+      const pagesRemaining = isUnlimited ? -1 : Math.max(0, (current?.pagesRemaining ?? 500) - completed.length);
+
+      return {
+        totalProcessed: (current?.totalProcessed || 0) + completed.length,
+        totalPending: pending.length,
+        totalFailed: failed.length,
+        averageConfidence: avgConfidence || current?.averageConfidence || 0,
+        pagesProcessedToday: (current?.pagesProcessedToday || 0) + completed.length,
+        pagesRemaining: pagesRemaining,
+        monthlyLimit: current?.monthlyLimit ?? 500
+      };
+    });
   }
 
   /**

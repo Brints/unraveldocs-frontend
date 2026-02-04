@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, OnDestroy, HostListener, ElementRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NotificationStateService } from '../../services/notification-state.service';
 import { PushNotificationService } from '../../services/push-notification.service';
@@ -9,7 +9,7 @@ import { Notification as AppNotification, NOTIFICATION_CATEGORY_MAP, Notificatio
 @Component({
   selector: 'app-notification-bell',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule],
   templateUrl: './notification-bell.component.html',
   styleUrl: './notification-bell.component.css'
 })

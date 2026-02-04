@@ -2,7 +2,7 @@ import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserStateService } from '../../services/user-state.service';
-import { StatCard, Activity, QuickAction } from '../../models/user.model';
+import { QuickAction } from '../../models/user.model';
 
 @Component({
   selector: 'app-dashboard-overview',
@@ -19,7 +19,6 @@ export class DashboardOverviewComponent implements OnInit {
 
   // State from service
   readonly profile = this.userState.profile;
-  readonly fullName = this.userState.fullName;
   readonly stats = this.userState.stats;
   readonly storageInfo = this.userState.storageInfo;
   readonly statCards = this.userState.statCards;

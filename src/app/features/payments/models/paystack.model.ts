@@ -46,10 +46,11 @@ export const PAYSTACK_CURRENCIES: { code: PaystackCurrency; name: string; symbol
 export interface PaystackInitializeRequest {
   email: string;
   amount: number; // Amount in kobo (lowest currency unit)
-  callbackUrl?: string;
+  callback_url?: string;
   reference?: string;
   currency?: PaystackCurrency;
   planCode?: string;
+  coupon_code?: string;
   subscriptionStartDate?: string;
   channels?: PaystackChannel[];
   metadata?: Record<string, unknown>;
