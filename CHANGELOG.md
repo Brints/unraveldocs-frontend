@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.1.0...v2.2.0) (2026-02-04)
+
+
+### Features
+
+* **billing:** implement trial activation feature with complete UI ([22c5ed6](https://github.com/Brints/unraveldocs-frontend/commit/22c5ed61c0b2698d42af211ab92ad951d12f0f37))
+
 # [2.1.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.0.0...v2.1.0) (2026-01-31)
 
 
