@@ -59,7 +59,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     // 1. User has not used their trial
     // 2. User is not currently on a trial
     // 3. User doesn't have an active paid subscription
-    return details && !details.hasUsedTrial && !details.isOnTrial && details.status !== 'ACTIVE';
+    return details && !details.hasUsedTrial && !details.isOnTrial && details.status !== 'active';
   });
 
   // Payment methods and invoices (local state)
