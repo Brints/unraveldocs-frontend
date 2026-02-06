@@ -58,10 +58,14 @@
         </div>
         <div class="plan-info">
           <div class="plan-name-row">
-            <h2 class="plan-name">{{ currentSubscription()?.planName || 'Free' }} Plan</h2>
-            <span class="status-badge" [class]="getStatusClass(currentSubscription()?.status || 'active')">
-              {{ getStatusLabel(currentSubscription()?.status || 'active') }}
+            <h2 class="plan-name">{{ subscriptionDetails()?.planDisplayName || 'Free' }} Plan</h2>
+            <span class="status-badge" [class]="getStatusClass(subscriptionDetails()?.status || 'active')">
+              {{ getStatusLabel(subscriptionDetails()?.status || 'active') }}
             </span>
+          </div>
+          <div class="plan-price-info">
+            <span class="plan-price">{{ subscriptionDetails()?.currency || 'USD' }} {{ subscriptionDetails()?.planPrice || 0 }}</span>
+            <span class="plan-interval">/ {{ subscriptionDetails()?.billingInterval || 'monthly' }}</span>
           </div>
           <p class="plan-description">
             @if (isTrialing()) {
@@ -73,10 +77,14 @@
               </span>
             } @else if (isCanceled()) {
               <span class="cancel-notice">
-                Access until {{ formatDate(currentSubscription()?.currentPeriodEnd) }}
+                Access until {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
               </span>
             } @else if (isSubscribed()) {
-              Renews on {{ formatDate(currentSubscription()?.currentPeriodEnd) }}
+              @if (subscriptionDetails()?.autoRenew) {
+                Renews on {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
+              } @else {
+                Expires on {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
+              }
             } @else {
               Upgrade to unlock more features
             }
@@ -113,8 +121,31 @@
     <div class="usage-section">
       <h3 class="section-title">Current Usage</h3>
       <p class="section-description">
-        Usage for this billing period ({{ formatDate(usage()?.periodStart) }} - {{ formatDate(usage()?.periodEnd) }})
+        @if (storageInfo()?.quotaResetDate) {
+          Quota resets on {{ formatDate(storageInfo()!.quotaResetDate!) }}
+        } @else {
+          Usage for current billing period ({{ formatDate(subscriptionDetails()?.currentPeriodStart) }} - {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }})
+        }
       </p>
+
+      @if (storageInfo()?.quotaExceeded) {
+        <div class="alert alert-warning">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <span>
+            @if (storageInfo()?.documentQuotaExceeded && storageInfo()?.ocrQuotaExceeded) {
+              Document and OCR quota exceeded. Please upgrade your plan.
+            } @else if (storageInfo()?.documentQuotaExceeded) {
+              Document upload quota exceeded. Please upgrade your plan.
+            } @else if (storageInfo()?.ocrQuotaExceeded) {
+              OCR pages quota exceeded. Please upgrade your plan.
+            } @else {
+              Quota exceeded. Please upgrade your plan.
+            }
+          </span>
+        </div>
+      }
 
       <div class="usage-grid">
         <!-- Documents -->
@@ -128,14 +159,14 @@
             <span class="usage-title">Documents</span>
           </div>
           <div class="usage-values">
-            <span class="usage-current">{{ usage()?.documentsUsed || 0 }}</span>
-            @if ((usage()?.documentsLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ usage()?.documentsLimit }}</span>
-            } @else {
+            <span class="usage-current">{{ storageInfo()?.documentsUploaded || 0 }}</span>
+            @if (!storageInfo()?.documentsUnlimited && (storageInfo()?.documentUploadLimit || 0) > 0) {
+              <span class="usage-limit">/ {{ storageInfo()?.documentUploadLimit }}</span>
+            } @else if (storageInfo()?.documentsUnlimited) {
               <span class="usage-unlimited">Unlimited</span>
             }
           </div>
-          @if ((usage()?.documentsLimit || 0) > 0) {
+          @if (!storageInfo()?.documentsUnlimited && (storageInfo()?.documentUploadLimit || 0) > 0) {
             <div class="usage-bar">
               <div
                 class="usage-fill"
@@ -143,6 +174,7 @@
                 [style.width.%]="documentsUsagePercent()">
               </div>
             </div>
+            <div class="usage-remaining">{{ storageInfo()?.documentsRemaining || 0 }} remaining</div>
           }
         </div>
 
@@ -157,14 +189,14 @@
             <span class="usage-title">OCR Pages</span>
           </div>
           <div class="usage-values">
-            <span class="usage-current">{{ usage()?.ocrPagesUsed || 0 }}</span>
-            @if ((usage()?.ocrPagesLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ usage()?.ocrPagesLimit }}</span>
-            } @else {
+            <span class="usage-current">{{ storageInfo()?.ocrPagesUsed || 0 }}</span>
+            @if (!storageInfo()?.ocrUnlimited && (storageInfo()?.ocrPageLimit || 0) > 0) {
+              <span class="usage-limit">/ {{ storageInfo()?.ocrPageLimit }}</span>
+            } @else if (storageInfo()?.ocrUnlimited) {
               <span class="usage-unlimited">Unlimited</span>
             }
           </div>
-          @if ((usage()?.ocrPagesLimit || 0) > 0) {
+          @if (!storageInfo()?.ocrUnlimited && (storageInfo()?.ocrPageLimit || 0) > 0) {
             <div class="usage-bar">
               <div
                 class="usage-fill"
@@ -172,6 +204,7 @@
                 [style.width.%]="ocrUsagePercent()">
               </div>
             </div>
+            <div class="usage-remaining">{{ storageInfo()?.ocrPagesRemaining || 0 }} remaining</div>
           }
         </div>
 
@@ -186,14 +219,14 @@
             <span class="usage-title">Storage</span>
           </div>
           <div class="usage-values">
-            <span class="usage-current">{{ formatBytes(usage()?.storageUsedBytes || 0) }}</span>
-            @if ((usage()?.storageLimitBytes || 0) > 0) {
-              <span class="usage-limit">/ {{ formatBytes(usage()?.storageLimitBytes || 0) }}</span>
-            } @else {
+            <span class="usage-current">{{ storageInfo()?.storageUsedFormatted || '0 B' }}</span>
+            @if (!storageInfo()?.unlimited && (storageInfo()?.storageLimit || 0) > 0) {
+              <span class="usage-limit">/ {{ storageInfo()?.storageLimitFormatted }}</span>
+            } @else if (storageInfo()?.unlimited) {
               <span class="usage-unlimited">Unlimited</span>
             }
           </div>
-          @if ((usage()?.storageLimitBytes || 0) > 0) {
+          @if (!storageInfo()?.unlimited && (storageInfo()?.storageLimit || 0) > 0) {
             <div class="usage-bar">
               <div
                 class="usage-fill"
@@ -201,27 +234,8 @@
                 [style.width.%]="storageUsagePercent()">
               </div>
             </div>
+            <div class="usage-remaining">{{ formatBytes(storageInfo()?.remainingStorage || 0) }} remaining</div>
           }
-        </div>
-
-        <!-- Team Members -->
-        <div class="usage-card">
-          <div class="usage-header">
-            <div class="usage-icon team">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-              </svg>
-            </div>
-            <span class="usage-title">Team Members</span>
-          </div>
-          <div class="usage-values">
-            <span class="usage-current">{{ usage()?.teamMembersUsed || 0 }}</span>
-            @if ((usage()?.teamMembersLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ usage()?.teamMembersLimit }}</span>
-            } @else {
-              <span class="usage-unlimited">Unlimited</span>
-            }
-          </div>
         </div>
       </div>
     </div>
@@ -307,7 +321,7 @@
 
         @if (!cancelImmediately()) {
           <p class="cancel-note">
-            Your subscription will remain active until {{ formatDate(currentSubscription()?.currentPeriodEnd) }}
+            Your subscription will remain active until {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
           </p>
         }
       </div>

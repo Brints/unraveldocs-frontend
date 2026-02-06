@@ -19,6 +19,8 @@ export class SubscriptionOverviewComponent implements OnInit {
 
   // From state service
   readonly currentSubscription = this.subState.currentSubscription;
+  readonly subscriptionDetails = this.subState.subscriptionDetails;
+  readonly storageInfo = this.subState.storageInfo;
   readonly currentPlan = this.subState.currentPlan;
   readonly currentTier = this.subState.currentTier;
   readonly usage = this.subState.usage;
