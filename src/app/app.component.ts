@@ -10,11 +10,11 @@ import { Subscription } from 'rxjs';
   imports: [
     RouterOutlet
   ],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css',
+  templateUrl: 'app.component.html',
+  styleUrl: 'app.component.css',
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'UnravelDocs - AI-Powered Document Conversion';
+  title = 'ReDraft - Unlock Your Text. Edit Anything.';
 
   private readonly tokenRefreshService = inject(TokenRefreshService);
   private readonly authService = inject(AuthService);

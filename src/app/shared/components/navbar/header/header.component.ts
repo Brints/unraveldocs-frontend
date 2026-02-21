@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {AuthService} from '../../../../core/auth/services/auth.service';
+import { Logo } from '../../logo/logo';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, Logo],
   templateUrl: 'header.component.html',
   styleUrls: ['header.component.css']
 })

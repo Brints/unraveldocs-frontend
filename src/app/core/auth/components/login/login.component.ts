@@ -23,6 +23,7 @@ import {
 import {FooterComponent} from '../../../../shared/components/navbar/footer/footer.component';
 import {FormInputComponent} from '../../../../shared/ui/form-input/form-input.component';
 import {ButtonComponent} from '../../../../shared/ui/button/button.component';
+import {Logo} from '../../../../shared/components/logo/logo';
 import {environment} from '../../../../../environments/environment';
 
 interface LoginFormData {
@@ -40,7 +41,8 @@ interface LoginFormData {
     GoogleSignupComponent,
     FooterComponent,
     FormInputComponent,
-    ButtonComponent
+    ButtonComponent,
+    Logo
 ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']

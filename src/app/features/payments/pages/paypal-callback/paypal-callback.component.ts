@@ -147,7 +147,7 @@ import { catchError, of, tap, finalize } from 'rxjs';
               <a routerLink="/settings/billing" class="btn btn-primary">
                 Go to Billing
               </a>
-              <a href="mailto:support@unraveldocs.com" class="btn btn-text">
+              <a href="mailto:support@unraveldocs.xyz" class="btn btn-text">
                 Contact Support
               </a>
             </div>

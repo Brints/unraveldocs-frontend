@@ -1,0 +1,33 @@
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  flex-shrink: 0;
+}
+
+.logo-text-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.logo-text {
+  color: #1B5E7D;
+  letter-spacing: -0.025em;
+}
+
+.logo-tagline {
+  color: #4BA3C7;
+  font-style: italic;
+  margin-top: -2px;
+}
+
+/* Dark theme */
+.logo-dark .logo-text {
+  color: #ffffff;
+}
+
+.logo-dark .logo-tagline {
+  color: #93C5FD;
+}

@@ -1,7 +1,7 @@
 export const Testimonials = [
   {
     id: '1',
-    text: 'UnravelDocs has revolutionized how we handle document digitization. The accuracy is incredible and saves us hours of manual work.',
+    text: 'ReDraft has revolutionized how we handle document digitization. The accuracy is incredible and saves us hours of manual work.',
     author: 'Sarah Chen',
     role: 'Operations Manager',
     company: 'TechCorp'
@@ -43,14 +43,14 @@ export const Testimonials = [
   },
   {
     id: '7',
-    text: 'UnravelDocs has revolutionized how I handle document digitization. The accuracy is incredible, and it saves me hours of manual typing every week.',
+    text: 'ReDraft has revolutionized how I handle document digitization. The accuracy is incredible, and it saves me hours of manual typing every week.',
     author: 'Sarah Johnson',
     role: 'Research Assistant',
     company: 'Arise Marlard'
   },
   {
     id: '8',
-    text: 'As a lawyer, I deal with tons of scanned documents. UnravelDocs makes it easy to convert them to editable formats quickly and accurately.',
+    text: 'As a lawyer, I deal with tons of scanned documents. ReDraft makes it easy to convert them to editable formats quickly and accurately.',
     author: 'Michael Chen',
     role: 'Legal Professional',
     company: 'International Corp',
@@ -78,7 +78,7 @@ export const Testimonials = [
   },
   {
     id: '12',
-    text: "Fast, accurate, and secure. UnravelDocs has made digitizing our company's paper archives so much easier.",
+    text: "Fast, accurate, and secure. ReDraft has made digitizing our company's paper archives so much easier.",
     author: 'Robert Martinez',
     role: 'IT Manager',
     company: 'International Corp',

@@ -146,7 +146,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     });
     this.meta.updateTag({
       property: 'og:url',
-      content: 'https://unraveldocs.com'
+      content: 'https://unraveldocs.xyz'
     });
     this.meta.updateTag({
       name: 'twitter:card',
@@ -269,9 +269,9 @@ export class LandingComponent implements OnInit, OnDestroy {
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      'name': 'UnravelDocs',
-      'description': 'Documentation collaboration and publishing platform',
-      'url': 'https://unraveldocs.com',
+      'name': 'ReDraft',
+      'description': 'Unlock Your Text. Edit Anything. AI-powered document processing platform.',
+      'url': 'https://unraveldocs.xyz',
       'applicationCategory': 'BusinessApplication',
       'operatingSystem': 'Web',
       'offers': {

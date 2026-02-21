@@ -19,6 +19,7 @@ import {ButtonComponent} from '../../../../shared/ui/button/button.component';
 import {FormInputComponent} from '../../../../shared/ui/form-input/form-input.component';
 import {FormSelectComponent} from '../../../../shared/ui/form-select/form-select.component';
 import {PasswordStrengthComponent} from '../../../../shared/ui/password-strength/password-strength.component';
+import {Logo} from '../../../../shared/components/logo/logo';
 import {environment} from '../../../../../environments/environment';
 import {CustomValidators} from '../../../../shared/validators/custom-validators';
 import {Professions} from '../../../../shared/ui/form-select/data/professions';
@@ -51,6 +52,7 @@ interface SignupFormData {
     PasswordGeneratorComponent,
     GoogleSignupComponent,
     FooterComponent,
+    Logo,
   ],
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.css'],

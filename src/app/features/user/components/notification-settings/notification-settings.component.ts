@@ -2,13 +2,13 @@ import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { PushNotificationService } from '../../../notifications/services/push-notification.service';
-import { NotificationStateService } from '../../../notifications/services/notification-state.service';
+import { environment } from '../../../../../environments/environment';
 import {
   NotificationPreferences,
+  NotificationStateService,
+  PushNotificationService,
   UpdatePreferencesRequest
-} from '../../../notifications/models/notification.model';
-import { environment } from '../../../../../environments/environment';
+} from '../../../notifications';
 
 @Component({
   selector: 'app-notification-settings',
@@ -68,10 +68,10 @@ export class NotificationSettingsComponent implements OnInit {
     }
   ];
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.notificationState.loadPreferences();
     this.notificationState.loadDevices();
-    this.pushService.checkSubscriptionStatus();
+    await this.pushService.checkSubscriptionStatus();
   }
 
   // Get value for a specific preference
