@@ -1,3 +1,15 @@
+# [2.3.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.2.0...v2.3.0) (2026-02-21)
+
+
+### Bug Fixes
+
+* clean up ([8940182](https://github.com/Brints/unraveldocs-frontend/commit/8940182276f830f9e899abfdef66f46893c906ed))
+
+
+### Features
+
+* integrate subscription page with backend APIs ([0daf069](https://github.com/Brints/unraveldocs-frontend/commit/0daf069d5cd2412ba0bd881340e9a5721aaab78a))
+
 # [2.2.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.1.0...v2.2.0) (2026-02-04)
 
 
