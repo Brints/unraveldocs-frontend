@@ -1,0 +1,94 @@
+<div class="logo-container" [class.logo-dark]="theme === 'dark'">
+  <!-- Icon Only or Full Logo -->
+  @if (variant === 'icon' || variant === 'full') {
+  <svg [attr.width]="iconSize.width" [attr.height]="iconSize.height" viewBox="0 0 64 64" fill="none"
+    xmlns="http://www.w3.org/2000/svg" class="logo-icon">
+    <!-- Fountain Pen forming the R -->
+    <defs>
+      <linearGradient id="penGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#2E86AB;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#1B5E7D;stop-opacity:1" />
+      </linearGradient>
+      <linearGradient id="swooshGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#2E86AB;stop-opacity:1" />
+        <stop offset="50%" style="stop-color:#4BA3C7;stop-opacity:0.8" />
+        <stop offset="100%" style="stop-color:#2E86AB;stop-opacity:0.6" />
+      </linearGradient>
+      <linearGradient id="penBodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" style="stop-color:#2E86AB;stop-opacity:1" />
+        <stop offset="60%" style="stop-color:#1B5E7D;stop-opacity:1" />
+        <stop offset="100%" style="stop-color:#0D3B4D;stop-opacity:1" />
+      </linearGradient>
+    </defs>
+
+    <!-- Pen grip/body (vertical stroke of R) -->
+    <path d="M20 18 L20 46 Q20 47 21 47.5 L24 47.5 Q25 47 25 46 L25 18 Q25 17 24 16.5 L21 16.5 Q20 17 20 18Z"
+      fill="url(#penBodyGradient)" />
+
+    <!-- Pen clip detail -->
+    <path d="M25 20 L26.5 19 L26.5 30 L25 31" stroke="#2E86AB" stroke-width="1" fill="none" opacity="0.6" />
+
+    <!-- Pen band/ring detail -->
+    <rect x="19.5" y="44" width="6" height="1.5" rx="0.5" fill="#4BA3C7" opacity="0.8" />
+    <rect x="19.5" y="46" width="6" height="1" rx="0.3" fill="#2E86AB" opacity="0.6" />
+
+    <!-- Pen nib (fountain pen tip) -->
+    <path d="M20 47.5 Q20 49 19 51 L22.5 60 L26 51 Q25 49 25 47.5Z" fill="url(#penGradient)" />
+
+    <!-- Nib breather hole -->
+    <circle cx="22.5" cy="51" r="0.8" fill="#0D3B4D" />
+
+    <!-- Nib slit -->
+    <line x1="22.5" y1="52" x2="22.5" y2="59" stroke="#0D3B4D" stroke-width="0.6" />
+
+    <!-- Nib edge details -->
+    <path d="M20.5 49 Q21 50 21 52 L22.5 59" stroke="#1B5E7D" stroke-width="0.4" fill="none" opacity="0.5" />
+    <path d="M24.5 49 Q24 50 24 52 L22.5 59" stroke="#1B5E7D" stroke-width="0.4" fill="none" opacity="0.5" />
+
+    <!-- Cap top -->
+    <path d="M19.5 18 Q19.5 14 22.5 10 Q25.5 14 25.5 18Z" fill="url(#penGradient)" />
+
+    <!-- R bowl curve (large sweeping calligraphic arc) -->
+    <path d="M25 17 Q28 8 40 6 Q52 5 54 14 Q56 22 46 28 Q38 32 28 34" stroke="url(#swooshGradient)" stroke-width="4"
+      fill="none" stroke-linecap="round" />
+
+    <!-- R leg (bold diagonal kick with calligraphic sweep) -->
+    <path d="M28 34 Q34 38 42 48 Q48 56 56 58 Q60 58 62 55" stroke="url(#swooshGradient)" stroke-width="3.5" fill="none"
+      stroke-linecap="round" />
+
+    <!-- Primary sweeping swoosh (wraps from R top around upper right) -->
+    <path d="M40 6 Q50 2 58 4 Q62 6 60 10 Q56 8 50 8" stroke="url(#swooshGradient)" stroke-width="2.5" fill="none"
+      stroke-linecap="round" opacity="0.85" />
+
+    <!-- Secondary decorative swoosh (mid-right flowing line) -->
+    <path d="M54 14 Q58 12 62 14 Q64 16 62 20" stroke="url(#swooshGradient)" stroke-width="2" fill="none"
+      stroke-linecap="round" opacity="0.7" />
+
+    <!-- Tertiary swoosh (lower right area) -->
+    <path d="M46 28 Q54 26 60 30 Q62 32 60 36" stroke="url(#swooshGradient)" stroke-width="1.5" fill="none"
+      stroke-linecap="round" opacity="0.5" />
+
+    <!-- Fine detail swoosh (top) -->
+    <path d="M36 8 Q42 4 50 3" stroke="url(#swooshGradient)" stroke-width="1" fill="none" stroke-linecap="round"
+      opacity="0.4" />
+
+    <!-- Ink splash accent near nib -->
+    <circle cx="24" cy="61" r="1" fill="#2E86AB" opacity="0.5" />
+    <circle cx="21" cy="60.5" r="0.6" fill="#4BA3C7" opacity="0.4" />
+  </svg>
+  }
+
+  <!-- Text Only or Full Logo -->
+  @if (variant === 'text' || variant === 'full') {
+  <div class="logo-text-container" [class.ml-2]="variant === 'full'">
+    <span class="logo-text font-bold" [ngClass]="textClass">
+      ReDraft
+    </span>
+    @if (showTagline) {
+    <span class="logo-tagline" [ngClass]="taglineClass">
+      {{ tagline }}
+    </span>
+    }
+  </div>
+  }
+</div>

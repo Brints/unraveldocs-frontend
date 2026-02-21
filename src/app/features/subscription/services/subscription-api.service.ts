@@ -18,6 +18,7 @@ import {
   PaystackSubscription,
   TrialActivationResponse,
   UserSubscriptionDetails,
+  StorageInfo,
 } from '../models/subscription.model';
 
 @Injectable({
@@ -289,6 +290,16 @@ export class SubscriptionApiService {
   getUserSubscriptionDetails(): Observable<UserSubscriptionDetails> {
     return this.http.get<SubscriptionApiResponse<UserSubscriptionDetails>>(
       `${this.apiUrl}/subscriptions/me`
+    ).pipe(map(response => response.data));
+  }
+
+  /**
+   * Get storage and usage information
+   * GET /storage
+   */
+  getStorageInfo(): Observable<StorageInfo> {
+    return this.http.get<SubscriptionApiResponse<StorageInfo>>(
+      `${this.apiUrl}/storage`
     ).pipe(map(response => response.data));
   }
 }

@@ -8,8 +8,9 @@ export const routes: Routes = [
   { path: 'home', component: LandingComponent, canActivate: [redirectIfAuthenticatedGuard] },
   {
     path: 'pricing',
-    loadComponent: () => import('./pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
-    title: 'Pricing - UnravelDocs'
+    loadComponent: () => import(
+      './pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
+    title: 'Pricing - ReDraft'
   },
   {
     path: 'auth',
@@ -57,7 +58,7 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./shared/components/search/search.component')
           .then(m => m.SearchComponent),
-        title: 'Search - UnravelDocs'
+        title: 'Search - ReDraft'
       }
     ]
   },

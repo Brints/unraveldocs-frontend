@@ -8,8 +8,8 @@ import { QuickAction } from '../../models/user.model';
   selector: 'app-dashboard-overview',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  templateUrl: './dashboard-overview.component.html',
-  styleUrls: ['./dashboard-overview.component.css']
+  templateUrl: 'dashboard-overview.component.html',
+  styleUrls: ['dashboard-overview.component.css']
 })
 export class DashboardOverviewComponent implements OnInit {
   private readonly userState = inject(UserStateService);

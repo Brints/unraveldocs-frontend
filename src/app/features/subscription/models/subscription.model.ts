@@ -166,7 +166,7 @@ export interface TrialActivationResponse {
 
 export interface UserSubscriptionDetails {
   subscriptionId: string;
-  status: 'TRIAL' | 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE';
+  status: 'trial' | 'active' | 'cancelled' | 'expired' | 'past_due';
   planId: string;
   planName: string;
   planDisplayName: string;
@@ -177,9 +177,9 @@ export interface UserSubscriptionDetails {
   currentPeriodEnd: string;
   autoRenew: boolean;
   isOnTrial: boolean;
-  trialEndsAt: string | null;
+  trialEndsAt?: string | null;
   hasUsedTrial: boolean;
-  trialDaysRemaining: number;
+  trialDaysRemaining?: number;
   storageLimit: number;
   storageUsed: number;
   documentUploadLimit: number;
@@ -188,6 +188,32 @@ export interface UserSubscriptionDetails {
   ocrPagesUsed: number;
   createdAt: string;
   updatedAt: string;
+}
+
+// ==================== Storage Info ====================
+
+export interface StorageInfo {
+  storageUsed: number;
+  storageLimit: number;
+  storageUsedFormatted: string;
+  storageLimitFormatted: string;
+  percentageUsed: number;
+  ocrPageLimit: number;
+  ocrPagesUsed: number;
+  ocrPagesRemaining: number;
+  ocrUnlimited: boolean;
+  documentUploadLimit: number;
+  documentsUploaded: number;
+  documentsRemaining: number;
+  documentsUnlimited: boolean;
+  subscriptionPlan: string;
+  billingInterval: string;
+  quotaResetDate: string | null;
+  documentQuotaExceeded: boolean;
+  ocrQuotaExceeded: boolean;
+  quotaExceeded: boolean;
+  remainingStorage: number;
+  unlimited: boolean;
 }
 
 // ==================== Paystack Specific ====================
@@ -245,7 +271,7 @@ export const DEFAULT_PLANS: Partial<SubscriptionPlan>[] = [
     price: 0,
     currency: 'USD',
     interval: 'monthly',
-    description: 'Perfect for trying out UnravelDocs',
+    description: 'Perfect for trying out ReDraft',
     isPopular: false,
     features: [
       { id: 'f1', name: '50 Documents/month', included: true },

@@ -1,5 +1,5 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { catchError, of, tap, finalize } from 'rxjs';
+import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { SubscriptionApiService } from './subscription-api.service';
 import {
   SubscriptionPlan,
@@ -10,6 +10,8 @@ import {
   PlanTier,
   DEFAULT_PLANS,
   CreateCheckoutRequest,
+  UserSubscriptionDetails,
+  StorageInfo,
 } from '../models/subscription.model';
 
 @Injectable({
@@ -22,6 +24,8 @@ export class SubscriptionStateService {
 
   private readonly _plans = signal<SubscriptionPlan[]>([]);
   private readonly _currentSubscription = signal<UserSubscription | null>(null);
+  private readonly _subscriptionDetails = signal<UserSubscriptionDetails | null>(null);
+  private readonly _storageInfo = signal<StorageInfo | null>(null);
   private readonly _usage = signal<SubscriptionUsage | null>(null);
   private readonly _paymentMethods = signal<PaymentMethod[]>([]);
   private readonly _invoices = signal<Invoice[]>([]);
@@ -36,6 +40,8 @@ export class SubscriptionStateService {
 
   readonly plans = this._plans.asReadonly();
   readonly currentSubscription = this._currentSubscription.asReadonly();
+  readonly subscriptionDetails = this._subscriptionDetails.asReadonly();
+  readonly storageInfo = this._storageInfo.asReadonly();
   readonly usage = this._usage.asReadonly();
   readonly paymentMethods = this._paymentMethods.asReadonly();
   readonly invoices = this._invoices.asReadonly();
@@ -55,38 +61,43 @@ export class SubscriptionStateService {
   });
 
   readonly currentTier = computed<PlanTier>(() => {
-    const sub = this._currentSubscription();
-    return sub?.planTier || 'free';
+    const details = this._subscriptionDetails();
+    if (!details) return 'free';
+    const planName = details.planName.toLowerCase();
+    if (planName.includes('enterprise')) return 'enterprise';
+    if (planName.includes('pro')) return 'pro';
+    if (planName.includes('starter')) return 'starter';
+    return 'free';
   });
 
   readonly isSubscribed = computed(() => {
-    const sub = this._currentSubscription();
-    return sub !== null && ['active', 'trialing'].includes(sub.status);
+    const details = this._subscriptionDetails();
+    return details !== null && ['active', 'trial'].includes(details.status);
   });
 
   readonly isTrialing = computed(() => {
-    const sub = this._currentSubscription();
-    return sub?.status === 'trialing';
+    const details = this._subscriptionDetails();
+    return details?.isOnTrial === true || details?.status === 'trial';
   });
 
   readonly isCanceled = computed(() => {
-    const sub = this._currentSubscription();
-    return sub?.cancelAtPeriodEnd === true;
+    const details = this._subscriptionDetails();
+    return details?.autoRenew === false || details?.status === 'cancelled';
   });
 
   readonly trialDaysRemaining = computed(() => {
-    const sub = this._currentSubscription();
-    if (!sub?.trialEnd) return 0;
-    const trialEnd = new Date(sub.trialEnd);
+    const details = this._subscriptionDetails();
+    if (!details?.trialEndsAt) return details?.trialDaysRemaining || 0;
+    const trialEnd = new Date(details.trialEndsAt);
     const now = new Date();
     const diffMs = trialEnd.getTime() - now.getTime();
     return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   });
 
   readonly daysUntilRenewal = computed(() => {
-    const sub = this._currentSubscription();
-    if (!sub?.currentPeriodEnd) return 0;
-    const periodEnd = new Date(sub.currentPeriodEnd);
+    const details = this._subscriptionDetails();
+    if (!details?.currentPeriodEnd) return 0;
+    const periodEnd = new Date(details.currentPeriodEnd);
     const now = new Date();
     const diffMs = periodEnd.getTime() - now.getTime();
     return Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
@@ -113,21 +124,21 @@ export class SubscriptionStateService {
 
   // Usage computations
   readonly documentsUsagePercent = computed(() => {
-    const u = this._usage();
-    if (!u || u.documentsLimit <= 0) return 0;
-    return Math.min(100, Math.round((u.documentsUsed / u.documentsLimit) * 100));
+    const storage = this._storageInfo();
+    if (!storage || storage.documentsUnlimited || storage.documentUploadLimit <= 0) return 0;
+    return Math.min(100, Math.round((storage.documentsUploaded / storage.documentUploadLimit) * 100));
   });
 
   readonly ocrUsagePercent = computed(() => {
-    const u = this._usage();
-    if (!u || u.ocrPagesLimit <= 0) return 0;
-    return Math.min(100, Math.round((u.ocrPagesUsed / u.ocrPagesLimit) * 100));
+    const storage = this._storageInfo();
+    if (!storage || storage.ocrUnlimited || storage.ocrPageLimit <= 0) return 0;
+    return Math.min(100, Math.round((storage.ocrPagesUsed / storage.ocrPageLimit) * 100));
   });
 
   readonly storageUsagePercent = computed(() => {
-    const u = this._usage();
-    if (!u || u.storageLimitBytes <= 0) return 0;
-    return Math.min(100, Math.round((u.storageUsedBytes / u.storageLimitBytes) * 100));
+    const storage = this._storageInfo();
+    if (!storage || storage.unlimited || storage.storageLimit <= 0) return 0;
+    return storage.percentageUsed;
   });
 
   // ==================== Actions ====================
@@ -139,8 +150,61 @@ export class SubscriptionStateService {
     this._isLoading.set(true);
     this._error.set(null);
 
-    // Load mock data for now
-    this.loadMockData();
+    // Load subscription details and storage info from real APIs
+    forkJoin({
+      subscription: this.api.getUserSubscriptionDetails().pipe(
+        catchError(error => {
+          console.error('Failed to load subscription details:', error);
+          return of(null);
+        })
+      ),
+      storage: this.api.getStorageInfo().pipe(
+        catchError(error => {
+          console.error('Failed to load storage info:', error);
+          return of(null);
+        })
+      )
+    }).pipe(
+      tap(({ subscription, storage }) => {
+        if (subscription) {
+          this._subscriptionDetails.set(subscription);
+          // Also update the usage signal with data from subscription for backwards compatibility
+          this._usage.set({
+            documentsUsed: subscription.documentsUploaded,
+            documentsLimit: subscription.documentUploadLimit,
+            ocrPagesUsed: subscription.ocrPagesUsed,
+            ocrPagesLimit: subscription.ocrPageLimit,
+            storageUsedBytes: subscription.storageUsed,
+            storageLimitBytes: subscription.storageLimit,
+            apiCallsUsed: 0,
+            apiCallsLimit: 0,
+            teamMembersUsed: 0,
+            teamMembersLimit: 0,
+            periodStart: subscription.currentPeriodStart,
+            periodEnd: subscription.currentPeriodEnd,
+          });
+        }
+        if (storage) {
+          this._storageInfo.set(storage);
+          // Update usage signal with more accurate storage data
+          if (storage) {
+            this._usage.update(u => u ? {
+              ...u,
+              documentsUsed: storage.documentsUploaded,
+              documentsLimit: storage.documentsUnlimited ? -1 : storage.documentUploadLimit,
+              ocrPagesUsed: storage.ocrPagesUsed,
+              ocrPagesLimit: storage.ocrUnlimited ? -1 : storage.ocrPageLimit,
+              storageUsedBytes: storage.storageUsed,
+              storageLimitBytes: storage.unlimited ? -1 : storage.storageLimit,
+            } : u);
+          }
+        }
+      }),
+      finalize(() => this._isLoading.set(false))
+    ).subscribe();
+
+    // Load plans for reference
+    this.loadPlans();
   }
 
   /**

@@ -37,8 +37,8 @@ export class FaqComponent {
     {
       id: '1',
       category: 'general',
-      question: 'What is UnravelDocs and how does it work?',
-      answer: 'UnravelDocs is a powerful document processing platform that uses advanced AI to extract, analyze, and transform your documents. Simply upload your files, and our AI processes them instantly with 99.5% accuracy, preserving formatting and structure.',
+      question: 'What is ReDraft and how does it work?',
+      answer: 'ReDraft is a powerful document processing platform that uses advanced AI to extract, analyze, and transform your documents. Simply upload your files, and our AI processes them instantly with 99.5% accuracy, preserving formatting and structure.',
       isOpen: false,
       icon: '🚀',
       tags: ['platform', 'AI', 'processing']

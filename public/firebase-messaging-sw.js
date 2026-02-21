@@ -20,11 +20,11 @@ self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push received:', event);
 
   let notificationData = {
-    title: 'UnravelDocs',
+    title: 'ReDraft',
     body: 'You have a new notification',
     icon: '/assets/logo.svg',
     badge: '/assets/logo.svg',
-    tag: 'unraveldocs-notification',
+    tag: 'redraft-notification',
     data: {}
   };
 

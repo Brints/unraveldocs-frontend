@@ -1,5 +1,4 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
-import { toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { UserApiService } from './user-api.service';
 import { AuthService } from '../../../core/auth/services/auth.service';
@@ -14,7 +13,6 @@ import {
   Team,
   DocumentSummary,
   RecentCollection,
-  UpdateProfileRequest,
   StatCard,
   QuickAction,
 } from '../models/user.model';
@@ -66,10 +64,6 @@ export class UserStateService {
     const profile = this._profile();
     if (!profile) return '';
     return `${profile.firstName.charAt(0)}${profile.lastName.charAt(0)}`.toUpperCase();
-  });
-
-  readonly unreadNotificationsCount = computed(() => {
-    return this._notifications().filter(n => !n.read).length;
   });
 
   readonly storagePercentage = computed(() => {
@@ -216,11 +210,6 @@ export class UserStateService {
       }
     ];
   });
-
-  // ==================== Observable Streams (for components that need them) ====================
-
-  readonly profile$ = toObservable(this._profile);
-  readonly isLoading$ = toObservable(this._isLoading);
 
   // ==================== Actions ====================
 
@@ -387,19 +376,6 @@ export class UserStateService {
   }
 
   /**
-   * Refresh storage info from API
-   */
-  refreshStorageInfo(): void {
-    this.api.getStorageInfo().pipe(
-      tap(storageInfo => this._storageInfo.set(storageInfo)),
-      catchError(error => {
-        console.error('Storage info refresh error:', error);
-        return of(null);
-      })
-    ).subscribe();
-  }
-
-  /**
    * Load storage info with loading state
    */
   loadStorageInfo(): void {
@@ -411,27 +387,6 @@ export class UserStateService {
       catchError(error => {
         this._error.set('Failed to load storage information');
         console.error('Storage info load error:', error);
-        return of(null);
-      }),
-      finalize(() => this._isLoading.set(false))
-    ).subscribe();
-  }
-
-  /**
-   * Update profile
-   */
-  updateProfile(data: UpdateProfileRequest): void {
-    const profile = this._profile();
-    if (!profile) return;
-
-    this._isLoading.set(true);
-    this.api.updateProfile(profile.id, data).pipe(
-      tap(updatedProfile => {
-        this._profile.set(updatedProfile);
-      }),
-      catchError(error => {
-        this._error.set('Failed to update profile');
-        console.error('Profile update error:', error);
         return of(null);
       }),
       finalize(() => this._isLoading.set(false))
@@ -459,47 +414,6 @@ export class UserStateService {
     ).subscribe();
   }
 
-  /**
-   * Mark notification as read
-   */
-  markNotificationAsRead(notificationId: string): void {
-    this._notifications.update(notifications =>
-      notifications.map(n =>
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-
-    this.api.markNotificationAsRead(notificationId).pipe(
-      catchError(error => {
-        console.error('Mark notification error:', error);
-        return of(null);
-      })
-    ).subscribe();
-  }
-
-  /**
-   * Mark all notifications as read
-   */
-  markAllNotificationsAsRead(): void {
-    this._notifications.update(notifications =>
-      notifications.map(n => ({ ...n, read: true }))
-    );
-
-    this.api.markAllNotificationsAsRead().pipe(
-      catchError(error => {
-        console.error('Mark all notifications error:', error);
-        return of(null);
-      })
-    ).subscribe();
-  }
-
-  /**
-   * Clear error
-   */
-  clearError(): void {
-    this._error.set(null);
-  }
-
   // ==================== Mock Data Methods (temporary until API is ready) ====================
 
 
@@ -522,36 +436,6 @@ export class UserStateService {
         { name: 'Team collaboration', included: false }
       ]
     });
-  }
-
-  private loadMockNotifications(): void {
-    this._notifications.set([
-      {
-        id: '1',
-        type: 'success',
-        title: 'OCR Complete',
-        message: 'Your document has been processed successfully',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-        read: false,
-        actionUrl: '/documents/doc1'
-      },
-      {
-        id: '2',
-        type: 'info',
-        title: 'New Feature',
-        message: 'Check out our new batch processing feature',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        read: false
-      },
-      {
-        id: '3',
-        type: 'warning',
-        title: 'Storage Warning',
-        message: 'You are using 80% of your storage',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-        read: true
-      }
-    ]);
   }
 }
 

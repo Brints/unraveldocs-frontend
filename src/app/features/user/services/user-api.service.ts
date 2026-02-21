@@ -7,20 +7,11 @@ import {
   ApiResponse,
   UserProfile,
   UpdateProfileRequest,
-  DashboardStats,
   StorageInfo,
-  Activity,
-  Notification,
   Subscription,
   Team,
-  DocumentSummary,
   RecentCollection,
-  PaymentMethod,
-  Invoice,
-  SecuritySettings,
   ChangePasswordRequest,
-  NotificationPreferences,
-  PaginatedResponse,
 } from '../models/user.model';
 
 @Injectable({
@@ -88,13 +79,6 @@ export class UserApiService {
     return this.http.delete<void>(`${this.apiUrl}/user/profile/${userId}/delete`);
   }
 
-  /**
-   * Delete user account
-   */
-  deleteAccount(userId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/user/profile/${userId}`);
-  }
-
   // ==================== Dashboard Stats ====================
 
   /**
@@ -105,78 +89,6 @@ export class UserApiService {
       .pipe(map(response => response.data));
   }
 
-  /**
-   * Get dashboard statistics
-   */
-  getDashboardStats(): Observable<DashboardStats> {
-    return this.http.get<ApiResponse<DashboardStats>>(`${this.apiUrl}/user/dashboard/stats`)
-      .pipe(map(response => response.data));
-  }
-
-  // ==================== Activities ====================
-
-  /**
-   * Get recent activities
-   */
-  getActivities(page = 0, size = 10): Observable<PaginatedResponse<Activity>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<ApiResponse<PaginatedResponse<Activity>>>(
-      `${this.apiUrl}/user/activities`,
-      { params }
-    ).pipe(map(response => response.data));
-  }
-
-  // ==================== Notifications ====================
-
-  /**
-   * Get notifications
-   */
-  getNotifications(page = 0, size = 20): Observable<PaginatedResponse<Notification>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<ApiResponse<PaginatedResponse<Notification>>>(
-      `${this.apiUrl}/user/notifications`,
-      { params }
-    ).pipe(map(response => response.data));
-  }
-
-  /**
-   * Mark notification as read
-   */
-  markNotificationAsRead(notificationId: string): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/user/notifications/${notificationId}/read`, {});
-  }
-
-  /**
-   * Mark all notifications as read
-   */
-  markAllNotificationsAsRead(): Observable<void> {
-    return this.http.patch<void>(`${this.apiUrl}/user/notifications/read-all`, {});
-  }
-
-  /**
-   * Get notification preferences
-   */
-  getNotificationPreferences(): Observable<NotificationPreferences> {
-    return this.http.get<ApiResponse<NotificationPreferences>>(`${this.apiUrl}/user/notifications/preferences`)
-      .pipe(map(response => response.data));
-  }
-
-  /**
-   * Update notification preferences
-   */
-  updateNotificationPreferences(preferences: NotificationPreferences): Observable<NotificationPreferences> {
-    return this.http.put<ApiResponse<NotificationPreferences>>(
-      `${this.apiUrl}/user/notifications/preferences`,
-      preferences
-    ).pipe(map(response => response.data));
-  }
-
   // ==================== Subscription ====================
 
   /**
@@ -184,14 +96,6 @@ export class UserApiService {
    */
   getSubscription(): Observable<Subscription> {
     return this.http.get<ApiResponse<Subscription>>(`${this.apiUrl}/subscriptions/current`)
-      .pipe(map(response => response.data));
-  }
-
-  /**
-   * Get available plans
-   */
-  getAvailablePlans(): Observable<Subscription[]> {
-    return this.http.get<ApiResponse<Subscription[]>>(`${this.apiUrl}/subscriptions/plans`)
       .pipe(map(response => response.data));
   }
 
@@ -208,14 +112,6 @@ export class UserApiService {
   // ==================== Documents ====================
 
   /**
-   * Get document summary for dashboard
-   */
-  getDocumentSummary(): Observable<DocumentSummary> {
-    return this.http.get<ApiResponse<DocumentSummary>>(`${this.apiUrl}/documents/summary`)
-      .pipe(map(response => response.data));
-  }
-
-  /**
    * Get user collections
    */
   getCollections(): Observable<RecentCollection[]> {
@@ -224,14 +120,6 @@ export class UserApiService {
   }
 
   // ==================== Billing ====================
-
-  /**
-   * Get payment methods
-   */
-  getPaymentMethods(): Observable<PaymentMethod[]> {
-    return this.http.get<ApiResponse<PaymentMethod[]>>(`${this.apiUrl}/stripe/customer/details`)
-      .pipe(map(response => response.data as unknown as PaymentMethod[]));
-  }
 
   /**
    * Add payment method
@@ -249,29 +137,7 @@ export class UserApiService {
     return this.http.post<void>(`${this.apiUrl}/stripe/customer/payment-method/set-default`, null, { params });
   }
 
-  /**
-   * Get invoices/payment history
-   */
-  getInvoices(page = 0, size = 10): Observable<PaginatedResponse<Invoice>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<ApiResponse<PaginatedResponse<Invoice>>>(
-      `${this.apiUrl}/stripe/payment/history`,
-      { params }
-    ).pipe(map(response => response.data));
-  }
-
   // ==================== Security ====================
-
-  /**
-   * Get security settings
-   */
-  getSecuritySettings(): Observable<SecuritySettings> {
-    return this.http.get<ApiResponse<SecuritySettings>>(`${this.apiUrl}/user/security`)
-      .pipe(map(response => response.data));
-  }
 
   /**
    * Change password
@@ -296,28 +162,6 @@ export class UserApiService {
    */
   disableTwoFactor(): Observable<void> {
     return this.http.post<void>(`${this.apiUrl}/user/security/2fa/disable`, {});
-  }
-
-  /**
-   * Get login history
-   */
-  getLoginHistory(page = 0, size = 10): Observable<PaginatedResponse<unknown>> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<ApiResponse<PaginatedResponse<unknown>>>(
-      `${this.apiUrl}/user/security/login-history`,
-      { params }
-    ).pipe(map(response => response.data));
-  }
-
-  /**
-   * Get active sessions
-   */
-  getActiveSessions(): Observable<unknown[]> {
-    return this.http.get<ApiResponse<unknown[]>>(`${this.apiUrl}/user/security/sessions`)
-      .pipe(map(response => response.data));
   }
 
   /**

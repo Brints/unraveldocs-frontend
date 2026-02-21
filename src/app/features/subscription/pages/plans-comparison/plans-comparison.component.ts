@@ -51,7 +51,7 @@ export class PlansComparisonComponent implements OnInit {
   selectPlan(plan: SubscriptionPlan): void {
     if (plan.tier === this.currentTier()) return;
     if (plan.tier === 'enterprise') {
-      window.location.href = 'mailto:sales@unraveldocs.com?subject=Enterprise%20Plan%20Inquiry';
+      window.location.href = 'mailto:sales@unraveldocs.xyz?subject=Enterprise%20Plan%20Inquiry';
       return;
     }
 

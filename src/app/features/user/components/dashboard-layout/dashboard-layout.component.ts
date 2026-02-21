@@ -1,11 +1,12 @@
 import { Component, inject, signal, computed, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
-import { NotificationBellComponent } from '../../../notifications/components/notification-bell/notification-bell.component';
 import { ProfileDropdownComponent } from '../../../../shared/components/profile-dropdown/profile-dropdown.component';
+import { Logo } from '../../../../shared/components/logo/logo';
 import { filter } from 'rxjs/operators';
 import { Subscription } from 'rxjs';
 import { UserStateService } from '../../services/user-state.service';
+import {NotificationBellComponent} from '../../../notifications';
 
 
 interface NavItem {
@@ -21,7 +22,7 @@ interface NavItem {
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NotificationBellComponent, ProfileDropdownComponent],
+  imports: [CommonModule, RouterModule, NotificationBellComponent, ProfileDropdownComponent, Logo],
   templateUrl: './dashboard-layout.component.html',
   styleUrls: ['./dashboard-layout.component.css']
 })
@@ -40,8 +41,6 @@ export class DashboardLayoutComponent implements OnInit, OnDestroy {
 
   // User data from state
   readonly profile = this.userState.profile;
-  readonly fullName = this.userState.fullName;
-  readonly initials = this.userState.initials;
 
   // Navigation items
   readonly mainNavItems = signal<NavItem[]>([

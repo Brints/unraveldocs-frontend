@@ -145,7 +145,7 @@ import { Receipt } from '../../models/payment.model';
               <a routerLink="/payments/history" class="btn btn-outline">
                 View Payment History
               </a>
-              <a href="mailto:support@unraveldocs.com" class="btn btn-text">
+              <a href="mailto:support@unraveldocs.xyz" class="btn btn-text">
                 Contact Support
               </a>
             </div>

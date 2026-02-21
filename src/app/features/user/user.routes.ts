@@ -12,7 +12,7 @@ export const userRoutes: Routes = [
         path: 'dashboard',
         loadComponent: () => import('./components/dashboard-overview/dashboard-overview.component')
           .then(m => m.DashboardOverviewComponent),
-        title: 'Dashboard - UnravelDocs'
+        title: 'Dashboard - ReDraft'
       },
       {
         path: 'settings',
@@ -26,37 +26,37 @@ export const userRoutes: Routes = [
             path: 'profile',
             loadComponent: () => import('./components/profile-settings/profile-settings.component')
               .then(m => m.ProfileSettingsComponent),
-            title: 'Profile Settings - UnravelDocs'
+            title: 'Profile Settings - ReDraft'
           },
           {
             path: 'security',
             loadComponent: () => import('./components/security-settings/security-settings.component')
               .then(m => m.SecuritySettingsComponent),
-            title: 'Security Settings - UnravelDocs'
+            title: 'Security Settings - ReDraft'
           },
           {
             path: 'billing',
             loadComponent: () => import('./components/billing-settings/billing-settings.component')
               .then(m => m.BillingSettingsComponent),
-            title: 'Billing & Subscription - UnravelDocs'
+            title: 'Billing & Subscription - ReDraft'
           },
           {
             path: 'billing/paystack/callback',
             loadComponent: () => import('../payments/pages/paystack-callback/paystack-callback.component')
               .then(m => m.PaystackCallbackComponent),
-            title: 'Payment Processing - UnravelDocs'
+            title: 'Payment Processing - ReDraft'
           },
           {
             path: 'notifications',
             loadComponent: () => import('./components/notification-settings/notification-settings.component')
               .then(m => m.NotificationSettingsComponent),
-            title: 'Notification Preferences - UnravelDocs'
+            title: 'Notification Preferences - ReDraft'
           },
           {
             path: 'storage',
             loadComponent: () => import('./components/storage-usage/storage-usage.component')
               .then(m => m.StorageUsageComponent),
-            title: 'Storage & Usage - UnravelDocs'
+            title: 'Storage & Usage - ReDraft'
           }
         ]
       }
