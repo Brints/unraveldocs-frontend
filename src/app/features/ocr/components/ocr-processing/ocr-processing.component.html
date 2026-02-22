@@ -8,14 +8,11 @@
     </div>
     <div class="flex gap-3">
       <label class="btn-primary cursor-pointer">
-        <input
-          type="file"
-          class="hidden"
-          multiple
-          accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.doc,.docx"
-          (change)="onFileSelect($event)"/>
+        <input type="file" class="hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.doc,.docx"
+          (change)="onFileSelect($event)" />
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
         </svg>
         <span>Upload & Extract</span>
       </label>
@@ -24,125 +21,128 @@
 
   <!-- Success Message -->
   @if (successMessage()) {
-    <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-800">
-      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-      </svg>
-      <span class="font-medium">{{ successMessage() }}</span>
-    </div>
+  <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 text-green-800">
+    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="font-medium">{{ successMessage() }}</span>
+  </div>
   }
 
   <!-- Error Message -->
   @if (error()) {
-    <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-800">
-      <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+  <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 text-red-800">
+    <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    <span class="font-medium">{{ error() }}</span>
+    <button type="button" class="ml-auto text-red-600 hover:text-red-800" (click)="ocrState.clearError()">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
       </svg>
-      <span class="font-medium">{{ error() }}</span>
-      <button type="button" class="ml-auto text-red-600 hover:text-red-800" (click)="ocrState.clearError()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-        </svg>
-      </button>
-    </div>
+    </button>
+  </div>
   }
 
   <!-- Stats Cards -->
   @if (stats()) {
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div class="stat-card">
-        <div class="stat-icon bg-gradient-to-br from-indigo-500 to-purple-600">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()?.totalProcessed }}</span>
-          <span class="stat-label">Total Processed</span>
-        </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <div class="stat-card">
+      <div class="stat-icon bg-gradient-to-br from-indigo-500 to-purple-600">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
       </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-gradient-to-br from-blue-500 to-cyan-500">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()?.pagesProcessedToday }}</span>
-          <span class="stat-label">Processed Today</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-gradient-to-br from-emerald-500 to-teal-500">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          <span class="stat-value">{{ stats()?.averageConfidence }}%</span>
-          <span class="stat-label">Avg. Confidence</span>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon bg-gradient-to-br from-amber-500 to-orange-500">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </div>
-        <div class="stat-content">
-          @if (stats()?.pagesRemaining === -1) {
-            <span class="stat-value">∞</span>
-          } @else {
-            <span class="stat-value">{{ stats()?.pagesRemaining }}</span>
-          }
-          <span class="stat-label">Pages Remaining</span>
-        </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats()?.totalProcessed }}</span>
+        <span class="stat-label">Total Processed</span>
       </div>
     </div>
 
-    <!-- Usage Progress -->
-    @if (stats()?.monthlyLimit !== -1) {
-      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <div class="flex items-center justify-between mb-2">
-          <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
-          <span class="text-sm text-gray-500">{{ stats()!.monthlyLimit - stats()!.pagesRemaining }} / {{ stats()?.monthlyLimit }} pages</span>
-        </div>
-        <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
-            [style.width.%]="getUsagePercentage()">
-          </div>
-        </div>
+    <div class="stat-card">
+      <div class="stat-icon bg-gradient-to-br from-blue-500 to-cyan-500">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
       </div>
-    } @else {
-      <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
-          <div class="flex items-center gap-2 text-indigo-600">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-            </svg>
-            <span class="text-sm font-medium">Unlimited</span>
-          </div>
-        </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats()?.pagesProcessedToday }}</span>
+        <span class="stat-label">Processed Today</span>
       </div>
-    }
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-gradient-to-br from-emerald-500 to-teal-500">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats()?.averageConfidence }}%</span>
+        <span class="stat-label">Avg. Confidence</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon bg-gradient-to-br from-amber-500 to-orange-500">
+        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        @if (stats()?.pagesRemaining === -1) {
+        <span class="stat-value">∞</span>
+        } @else {
+        <span class="stat-value">{{ stats()?.pagesRemaining }}</span>
+        }
+        <span class="stat-label">Pages Remaining</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Usage Progress -->
+  @if (stats()?.monthlyLimit !== -1) {
+  <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+    <div class="flex items-center justify-between mb-2">
+      <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
+      <span class="text-sm text-gray-500">{{ stats()!.monthlyLimit - stats()!.pagesRemaining }} / {{
+        stats()?.monthlyLimit }} pages</span>
+    </div>
+    <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+      <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-500"
+        [style.width.%]="getUsagePercentage()">
+      </div>
+    </div>
+  </div>
+  } @else {
+  <div class="bg-white rounded-xl border border-gray-200 p-4 mb-6">
+    <div class="flex items-center justify-between">
+      <span class="text-sm font-medium text-gray-700">Monthly Usage</span>
+      <div class="flex items-center gap-2 text-indigo-600">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        <span class="text-sm font-medium">Unlimited</span>
+      </div>
+    </div>
+  </div>
+  }
   }
 
   <!-- Drop Zone -->
-  <div
-    class="drop-zone mb-6"
-    [class.drag-over]="isDragOver()"
-    (dragover)="onDragOver($event)"
-    (dragleave)="onDragLeave($event)"
-    (drop)="onDrop($event)">
+  <div class="drop-zone mb-6" [class.drag-over]="isDragOver()" (dragover)="onDragOver($event)"
+    (dragleave)="onDragLeave($event)" (drop)="onDrop($event)">
     <div class="drop-zone-content">
       <div class="drop-zone-icon">
         <svg class="w-12 h-12 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
       </div>
       <p class="text-gray-600 font-medium">Drop files here to extract text</p>
@@ -152,35 +152,21 @@
 
   <!-- Tabs -->
   <div class="flex items-center gap-1 border-b border-gray-200 mb-4">
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'all'"
-      (click)="setActiveTab('all')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
       All
       <span class="tab-badge">{{ jobs().length }}</span>
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'processing'"
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'processing'"
       (click)="setActiveTab('processing')">
       Processing
       <span class="tab-badge processing">{{ processingJobs().length + pendingJobs().length }}</span>
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'completed'"
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'completed'"
       (click)="setActiveTab('completed')">
       Completed
       <span class="tab-badge completed">{{ completedJobs().length }}</span>
     </button>
-    <button
-      type="button"
-      class="tab-btn"
-      [class.active]="activeTab() === 'failed'"
-      (click)="setActiveTab('failed')">
+    <button type="button" class="tab-btn" [class.active]="activeTab() === 'failed'" (click)="setActiveTab('failed')">
       Failed
       <span class="tab-badge failed">{{ failedJobs().length }}</span>
     </button>
@@ -188,357 +174,804 @@
     <!-- Bulk Actions -->
     <div class="ml-auto flex gap-2">
       @if (completedJobs().length > 0 && activeTab() === 'completed') {
-        <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearCompleted()">
-          Clear completed
-        </button>
+      <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearCompleted()">
+        Clear completed
+      </button>
       }
       @if (failedJobs().length > 0 && activeTab() === 'failed') {
-        <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearFailed()">
-          Clear failed
-        </button>
+      <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearFailed()">
+        Clear failed
+      </button>
       }
     </div>
   </div>
 
   <!-- Jobs List -->
   @if (isLoading()) {
-    <div class="space-y-3">
-      @for (i of [1,2,3]; track i) {
-        <div class="job-card animate-pulse">
-          <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
-          <div class="flex-1 space-y-2">
-            <div class="h-4 bg-gray-200 rounded w-1/3"></div>
-            <div class="h-3 bg-gray-200 rounded w-1/4"></div>
-          </div>
-        </div>
-      }
+  <div class="space-y-3">
+    @for (i of [1,2,3]; track i) {
+    <div class="job-card animate-pulse">
+      <div class="w-12 h-12 bg-gray-200 rounded-lg"></div>
+      <div class="flex-1 space-y-2">
+        <div class="h-4 bg-gray-200 rounded w-1/3"></div>
+        <div class="h-3 bg-gray-200 rounded w-1/4"></div>
+      </div>
     </div>
+    }
+  </div>
   } @else if (getTabJobs().length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+  <div class="empty-state">
+    <div class="empty-icon">
+      <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    </div>
+    <h3 class="text-lg font-semibold text-gray-900 mt-4">No OCR jobs</h3>
+    <p class="text-gray-500 mt-1">Upload documents to start extracting text</p>
+  </div>
+  } @else {
+  <div class="space-y-3">
+    @for (job of getTabJobs(); track job.id) {
+    <div class="job-card" [class.processing]="isProcessingStatus(job.status)"
+      [class.failed]="isFailedStatus(job.status)">
+      <!-- File Icon -->
+      <div class="job-icon" [class]="getStatusColor(job.status)">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(job.mimeType)" />
         </svg>
       </div>
-      <h3 class="text-lg font-semibold text-gray-900 mt-4">No OCR jobs</h3>
-      <p class="text-gray-500 mt-1">Upload documents to start extracting text</p>
-    </div>
-  } @else {
-    <div class="space-y-3">
-      @for (job of getTabJobs(); track job.id) {
-        <div class="job-card" [class.processing]="isProcessingStatus(job.status)" [class.failed]="isFailedStatus(job.status)">
-          <!-- File Icon -->
-          <div class="job-icon" [class]="getStatusColor(job.status)">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(job.mimeType)"/>
-            </svg>
-          </div>
 
-          <!-- Job Info -->
-          <div class="job-info">
-            <div class="flex items-center gap-2">
-              <h3 class="font-semibold text-gray-900 truncate">{{ job.fileName }}</h3>
-              <span class="status-badge" [class]="getStatusColor(job.status)">
-                {{ getStatusLabel(job.status) }}
-              </span>
-            </div>
-            <div class="flex items-center gap-3 text-sm text-gray-500 mt-1">
-              <span>{{ formatFileSize(job.fileSize) }}</span>
-              <span>·</span>
-              <span>{{ getRelativeTime(job.createdAt) }}</span>
-              @if (job.confidence) {
-                <span>·</span>
-                <span [class]="getConfidenceColor(job.confidence)">
-                  {{ formatConfidence(job.confidence) }} confidence
-                </span>
-              }
-              @if (job.language) {
-                <span>·</span>
-                <span>{{ getLanguageName(job.language) }}</span>
-              }
-            </div>
-
-            <!-- Progress Bar -->
-            @if (isProcessingStatus(job.status)) {
-              <div class="mt-2">
-                <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
-                    [class.animate-pulse]="job.status.toUpperCase() === 'PENDING'"
-                    [style.width.%]="job.progress">
-                  </div>
-                </div>
-              </div>
-            }
-
-            <!-- Error Message -->
-            @if (job.error) {
-              <p class="text-sm text-red-600 mt-1">{{ job.error }}</p>
-            }
-          </div>
-
-          <!-- Actions -->
-          <div class="job-actions">
-            @if (isCompletedStatus(job.status) && job.extractedText) {
-              <button
-                type="button"
-                class="action-btn"
-                title="View result"
-                (click)="viewResult(job)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="action-btn"
-                title="Copy text"
-                (click)="copyText(job.extractedText!)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                </svg>
-              </button>
-              <button
-                type="button"
-                class="action-btn"
-                title="Download as TXT"
-                (click)="downloadText(job)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-              </button>
-              @if (job.collectionId && job.documentId) {
-                <button
-                  type="button"
-                  class="action-btn"
-                  title="Download as Word"
-                  (click)="downloadDocx(job)">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                  </svg>
-                </button>
-              }
-            }
-            @if (isFailedStatus(job.status)) {
-              <button
-                type="button"
-                class="action-btn text-amber-600 hover:bg-amber-50"
-                title="Retry"
-                (click)="retryJob(job)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                </svg>
-              </button>
-            }
-            <button
-              type="button"
-              class="action-btn text-red-500 hover:bg-red-50"
-              title="Remove"
-              (click)="removeJob(job)">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      }
-    </div>
-
-    <!-- Pagination -->
-    @if (totalPages() > 1 || filteredJobs().length > 0) {
-      <div class="pagination">
-        <div class="pagination-info">
-          <span class="text-sm text-gray-500">
-            Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ filteredJobs().length }} results
+      <!-- Job Info -->
+      <div class="job-info">
+        <div class="flex items-center gap-2">
+          <h3 class="font-semibold text-gray-900 truncate">{{ job.fileName }}</h3>
+          <span class="status-badge" [class]="getStatusColor(job.status)">
+            {{ getStatusLabel(job.status) }}
           </span>
-          <div class="page-size-selector">
-            <label class="text-sm text-gray-500">Show</label>
-            <select
-              class="page-size-select"
-              [value]="pageSize()"
-              (change)="onPageSizeChange($event)">
-              @for (size of pageSizeOptions; track size) {
-                <option [value]="size">{{ size }}</option>
-              }
-            </select>
-            <span class="text-sm text-gray-500">per page</span>
+        </div>
+        <div class="flex items-center gap-3 text-sm text-gray-500 mt-1">
+          <span>{{ formatFileSize(job.fileSize) }}</span>
+          <span>·</span>
+          <span>{{ getRelativeTime(job.createdAt) }}</span>
+          @if (job.confidence) {
+          <span>·</span>
+          <span [class]="getConfidenceColor(job.confidence)">
+            {{ formatConfidence(job.confidence) }} confidence
+          </span>
+          }
+          @if (job.language) {
+          <span>·</span>
+          <span>{{ getLanguageName(job.language) }}</span>
+          }
+        </div>
+
+        <!-- Progress Bar -->
+        @if (isProcessingStatus(job.status)) {
+        <div class="mt-2">
+          <div class="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full transition-all duration-300"
+              [class.animate-pulse]="job.status.toUpperCase() === 'PENDING'" [style.width.%]="job.progress">
+            </div>
           </div>
         </div>
-        @if (totalPages() > 1) {
-          <div class="pagination-controls">
-            <button
-              type="button"
-              class="pagination-btn"
-              [disabled]="!hasPreviousPage()"
-              (click)="previousPage()">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-              </svg>
-            </button>
+        }
 
-            @for (page of pageNumbers(); track page) {
-              @if (page === '...') {
-                <span class="pagination-ellipsis">...</span>
-              } @else {
-                <button
-                  type="button"
-                  class="pagination-btn"
-                  [class.active]="page === currentPage()"
-                  (click)="goToPage(page)">
-                  {{ page }}
-                </button>
-              }
-            }
-
-            <button
-              type="button"
-              class="pagination-btn"
-              [disabled]="!hasNextPage()"
-              (click)="nextPage()">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-              </svg>
-            </button>
-          </div>
+        <!-- Error Message -->
+        @if (job.error) {
+        <p class="text-sm text-red-600 mt-1">{{ job.error }}</p>
         }
       </div>
+
+      <!-- Actions -->
+      <div class="job-actions">
+        @if (isCompletedStatus(job.status) && job.extractedText) {
+        <button type="button" class="action-btn" title="View result" (click)="viewResult(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn" title="Copy text" (click)="copyText(job.extractedText!)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn" title="Download as TXT" (click)="downloadText(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </button>
+        @if (job.collectionId && job.documentId) {
+        <button type="button" class="action-btn" title="Download as Word" (click)="downloadDocx(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn text-purple-600 hover:bg-purple-50" title="AI Summarize"
+          (click)="openSummaryModal(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn text-teal-600 hover:bg-teal-50" title="AI Classify"
+          (click)="openClassifyModal(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn text-indigo-600 hover:bg-indigo-50" title="Edit content"
+          (click)="openEditModal(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
+        }
+        }
+        @if (isFailedStatus(job.status)) {
+        <button type="button" class="action-btn text-amber-600 hover:bg-amber-50" title="Retry" (click)="retryJob(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
+        }
+        <button type="button" class="action-btn text-red-500 hover:bg-red-50" title="Remove" (click)="removeJob(job)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
     }
+  </div>
+
+  <!-- Pagination -->
+  @if (totalPages() > 1 || filteredJobs().length > 0) {
+  <div class="pagination">
+    <div class="pagination-info">
+      <span class="text-sm text-gray-500">
+        Showing {{ getStartIndex() }} to {{ getEndIndex() }} of {{ filteredJobs().length }} results
+      </span>
+      <div class="page-size-selector">
+        <label class="text-sm text-gray-500">Show</label>
+        <select class="page-size-select" [value]="pageSize()" (change)="onPageSizeChange($event)">
+          @for (size of pageSizeOptions; track size) {
+          <option [value]="size">{{ size }}</option>
+          }
+        </select>
+        <span class="text-sm text-gray-500">per page</span>
+      </div>
+    </div>
+    @if (totalPages() > 1) {
+    <div class="pagination-controls">
+      <button type="button" class="pagination-btn" [disabled]="!hasPreviousPage()" (click)="previousPage()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+
+      @for (page of pageNumbers(); track page) {
+      @if (page === '...') {
+      <span class="pagination-ellipsis">...</span>
+      } @else {
+      <button type="button" class="pagination-btn" [class.active]="page === currentPage()" (click)="goToPage(page)">
+        {{ page }}
+      </button>
+      }
+      }
+
+      <button type="button" class="pagination-btn" [disabled]="!hasNextPage()" (click)="nextPage()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+    }
+  </div>
+  }
   }
 </div>
 
 <!-- Upload Modal -->
 @if (showUploadModal()) {
-  <div class="modal-overlay" (click)="closeUploadModal()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h3 class="text-xl font-bold text-gray-900">Process Files</h3>
-        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeUploadModal()">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+<div class="modal-overlay" (click)="closeUploadModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="text-xl font-bold text-gray-900">Process Files</h3>
+      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeUploadModal()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="text-gray-500 mb-4">{{ selectedFiles().length }} file(s) ready for OCR processing</p>
+      <div class="space-y-2 max-h-64 overflow-y-auto">
+        @for (file of selectedFiles(); track $index) {
+        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(file.type)" />
           </svg>
-        </button>
-      </div>
-      <div class="modal-body">
-        <p class="text-gray-500 mb-4">{{ selectedFiles().length }} file(s) ready for OCR processing</p>
-        <div class="space-y-2 max-h-64 overflow-y-auto">
-          @for (file of selectedFiles(); track $index) {
-            <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-              <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(file.type)"/>
-              </svg>
-              <div class="flex-1 min-w-0">
-                <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
-                <p class="text-sm text-gray-500">{{ formatFileSize(file.size) }}</p>
-              </div>
-              <button type="button" class="text-gray-400 hover:text-red-500" (click)="removeFile($index)">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-              </button>
-            </div>
-          }
+          <div class="flex-1 min-w-0">
+            <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
+            <p class="text-sm text-gray-500">{{ formatFileSize(file.size) }}</p>
+          </div>
+          <button type="button" class="text-gray-400 hover:text-red-500" (click)="removeFile($index)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
+        }
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-secondary" (click)="closeUploadModal()">Cancel</button>
-        <button type="button" class="btn-primary" (click)="processFiles()">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-          </svg>
-          <span>Start Processing</span>
-        </button>
+
+      <!-- Page Selection (shown for PDFs) -->
+      @if (hasPdfFile()) {
+      <div class="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+        <h4 class="text-sm font-semibold text-indigo-900 mb-3">PDF Page Selection</h4>
+        <div class="flex gap-2 mb-3">
+          <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+            [class]="pageSelectionMode() === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+            (click)="setPageSelectionMode('all')">
+            All Pages
+          </button>
+          <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+            [class]="pageSelectionMode() === 'range' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+            (click)="setPageSelectionMode('range')">
+            Page Range
+          </button>
+          <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+            [class]="pageSelectionMode() === 'specific' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+            (click)="setPageSelectionMode('specific')">
+            Specific Pages
+          </button>
+        </div>
+
+        @if (pageSelectionMode() === 'range') {
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <label class="text-xs text-gray-600 block mb-1">Start Page</label>
+            <input type="number" min="1"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              [value]="startPage()" (input)="onStartPageChange($event)" placeholder="1" />
+          </div>
+          <span class="text-gray-400 mt-5">–</span>
+          <div class="flex-1">
+            <label class="text-xs text-gray-600 block mb-1">End Page</label>
+            <input type="number" min="1"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              [value]="endPage()" (input)="onEndPageChange($event)" placeholder="10" />
+          </div>
+        </div>
+        }
+
+        @if (pageSelectionMode() === 'specific') {
+        <div>
+          <label class="text-xs text-gray-600 block mb-1">Pages (comma-separated)</label>
+          <input type="text"
+            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            [value]="specificPages()" (input)="onSpecificPagesChange($event)" placeholder="e.g., 3, 8, 16" />
+          <p class="text-xs text-gray-500 mt-1">Enter page numbers separated by commas</p>
+        </div>
+        }
       </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeUploadModal()">Cancel</button>
+      <button type="button" class="btn-primary" (click)="processFiles()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span>Start Processing</span>
+      </button>
     </div>
   </div>
+</div>
 }
 
-<!-- Result Modal -->
+<!-- Result Modal — Document Intelligence View -->
 @if (showResultModal() && selectedJob()) {
-  <div class="modal-overlay" (click)="closeResultModal()">
-    <div class="modal-content result-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h3 class="text-xl font-bold text-gray-900">Extracted Text</h3>
-          <p class="text-gray-500 text-sm mt-1">{{ selectedJob()?.fileName }}</p>
-        </div>
-        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeResultModal()">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+<div class="modal-overlay" (click)="closeResultModal()">
+  <div class="ocr-detail-modal" (click)="$event.stopPropagation()">
+
+    <!-- Modal Header -->
+    <div class="ocr-detail-header">
+      <div class="ocr-detail-header-left">
+        <div class="ocr-detail-file-icon">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
-        </button>
+        </div>
+        <div class="ocr-detail-header-info">
+          <h3 class="ocr-detail-title">{{ selectedJob()?.fileName }}</h3>
+          <p class="ocr-detail-subtitle">Document Intelligence</p>
+        </div>
+      </div>
+      <button type="button" class="ocr-detail-close" (click)="closeResultModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    @if (ocrDataLoading()) {
+    <div class="ocr-detail-loading">
+      <div class="ocr-detail-spinner"></div>
+      <p>Loading document data...</p>
+    </div>
+    } @else {
+
+    <!-- AI Insights Section (from API data) -->
+    @if (ocrData()?.aiSummary || ocrData()?.documentType || (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0)) {
+    <div class="ai-insights-section">
+      <div class="ai-insights-label">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        AI Insights
       </div>
 
-      <!-- Metadata -->
-      <div class="flex items-center gap-4 px-6 py-3 bg-gray-50 border-b border-gray-200 text-sm">
+      <div class="ai-insights-grid">
+        <!-- Document Classification Card -->
+        @if (ocrData()?.documentType) {
+        <div class="ai-card">
+          <div class="ai-card-icon-wrap classify">
+            <span class="ai-card-emoji">{{ getDocTypeIcon(ocrData()?.documentType) }}</span>
+          </div>
+          <div class="ai-card-body">
+            <span class="ai-card-label">Document Type</span>
+            <span class="ai-card-value">{{ getDocTypeLabel(ocrData()?.documentType) }}</span>
+          </div>
+        </div>
+        }
+
+        <!-- Tags Card -->
+        @if (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0) {
+        <div class="ai-card">
+          <div class="ai-card-icon-wrap tags">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+          </div>
+          <div class="ai-card-body">
+            <span class="ai-card-label">Tags</span>
+            <div class="ai-tags-list">
+              @for (tag of ocrData()!.aiTags!; track tag) {
+              <span class="ai-tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+
+      <!-- AI Summary -->
+      @if (ocrData()?.aiSummary) {
+      <div class="ai-summary-card">
+        <div class="ai-summary-header">
+          <div class="ai-summary-icon">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+          </div>
+          <span class="ai-summary-title">Summary</span>
+          <button type="button" class="ai-summary-copy" title="Copy summary"
+            (click)="copyText(ocrData()?.aiSummary || '')">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+        </div>
+        <p class="ai-summary-text">{{ ocrData()?.aiSummary }}</p>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- Content Tabs (always show Original Text; Edited tab only when edited content exists) -->
+    <div class="ocr-content-tabs">
+      <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'extracted'"
+        (click)="setOcrViewTab('extracted')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        Original Text
+      </button>
+      @if (ocrData()?.editedContent) {
+      <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'edited'"
+        (click)="setOcrViewTab('edited')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Edited
+        <span class="ocr-tab-badge">{{ ocrData()?.contentFormat }}</span>
+      </button>
+      }
+    </div>
+
+    <!-- Text Content Area -->
+    <div class="ocr-detail-content">
+      @if (ocrViewTab() === 'extracted' || !ocrData()?.editedContent) {
+      <div class="ocr-content-meta">
+        <span class="ocr-meta-item">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+          </svg>
+          {{ ocrData()?.originalFileName || selectedJob()?.fileName }}
+        </span>
+        <span class="ocr-meta-item">
+          {{ (ocrData()?.extractedText || selectedJob()?.extractedText)?.length || 0 }} characters
+        </span>
         @if (selectedJob()?.confidence) {
-          <div class="flex items-center gap-1.5">
-            <span class="text-gray-500">Confidence:</span>
-            <span [class]="getConfidenceColor(selectedJob()?.confidence)" class="font-semibold">
-              {{ formatConfidence(selectedJob()?.confidence) }}
-            </span>
-          </div>
+        <span class="ocr-meta-item">
+          Confidence: {{ formatConfidence(selectedJob()?.confidence) }}
+        </span>
         }
-        @if (selectedJob()?.language) {
-          <div class="flex items-center gap-1.5">
-            <span class="text-gray-500">Language:</span>
-            <span class="font-semibold text-gray-900">{{ getLanguageName(selectedJob()?.language) }}</span>
-          </div>
+        @if (ocrData()?.createdAt || selectedJob()?.createdAt) {
+        <span class="ocr-meta-item">
+          {{ formatDate(ocrData()?.createdAt || selectedJob()?.createdAt) }}
+        </span>
         }
-        <div class="flex items-center gap-1.5">
-          <span class="text-gray-500">Characters:</span>
-          <span class="font-semibold text-gray-900">{{ selectedJob()?.extractedText?.length || 0 }}</span>
-        </div>
       </div>
-
-      <div class="modal-body">
-        <div class="ocr-text-container">
-          <pre class="ocr-text">{{ selectedJob()?.extractedText }}</pre>
-        </div>
+      <div class="ocr-text-scroll">
+        <pre
+          class="ocr-detail-text">{{ ocrData()?.extractedText || selectedJob()?.extractedText || 'No text extracted' }}</pre>
       </div>
+      } @else {
+      <div class="ocr-content-meta">
+        <span class="ocr-meta-item">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edited · {{ ocrData()?.contentFormat }}
+        </span>
+        @if (ocrData()?.editedAt) {
+        <span class="ocr-meta-item">
+          Edited {{ getRelativeTime(ocrData()?.editedAt!) }}
+        </span>
+        }
+      </div>
+      <div class="ocr-text-scroll">
+        @if (ocrData()?.contentFormat === 'HTML') {
+          <div class="ocr-detail-rendered" [innerHTML]="ocrData()?.editedContent | safeHtml"></div>
+        } @else {
+          <pre class="ocr-detail-text">{{ ocrData()?.editedContent }}</pre>
+        }
+      </div>
+      }
+    </div>
 
-      <div class="modal-footer">
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="copyText(selectedJob()?.extractedText || '')">
+    }
+
+    <!-- Action Bar -->
+    <div class="ocr-detail-actions">
+      <div class="ocr-actions-left">
+        <button type="button" class="ocr-action-btn"
+          (click)="copyText(ocrData()?.editedContent || ocrData()?.extractedText || selectedJob()?.extractedText || '')">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
           </svg>
           Copy
         </button>
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="downloadText(selectedJob()!)">
+        <button type="button" class="ocr-action-btn" (click)="downloadText(selectedJob()!)">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
           TXT
         </button>
         @if (selectedJob()?.collectionId && selectedJob()?.documentId) {
-          <button
-            type="button"
-            class="btn-secondary"
-            (click)="downloadDocx(selectedJob()!)">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-            </svg>
-            Word
-          </button>
-        }
-        <button
-          type="button"
-          class="btn-secondary"
-          (click)="downloadJson(selectedJob()!)">
+        <button type="button" class="ocr-action-btn" (click)="downloadDocx(selectedJob()!)">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Word
+        </button>
+        <span class="ocr-actions-divider"></span>
+        <button type="button" class="ocr-action-btn ai-btn purple" (click)="openSummaryModal(selectedJob()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          Summarize
+        </button>
+        <button type="button" class="ocr-action-btn ai-btn teal" (click)="openClassifyModal(selectedJob()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+          Classify
+        </button>
+        <button type="button" class="ocr-action-btn ai-btn indigo" (click)="openEditModal(selectedJob()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit
+        </button>
+        }
+        <button type="button" class="ocr-action-btn" (click)="downloadJson(selectedJob()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
           </svg>
           JSON
         </button>
-        <button type="button" class="btn-primary ml-auto" (click)="closeResultModal()">Done</button>
       </div>
+      <button type="button" class="ocr-action-btn-done" (click)="closeResultModal()">Done</button>
     </div>
+
   </div>
+</div>
 }
 
+<!-- AI Summarize Modal -->
+@if (showSummaryModal() && summaryJob()) {
+<div class="modal-overlay" (click)="closeSummaryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon"
+        style="background: linear-gradient(135deg, #9333ea, #7c3aed); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-bold text-gray-900">AI Summarize</h3>
+        <p class="text-sm text-gray-500">{{ summaryJob()?.fileName }}</p>
+      </div>
+      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeSummaryModal()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+      <div class="space-y-4">
+        <div>
+          <label class="text-sm font-medium text-gray-700 block mb-1">Summary Type</label>
+          <select
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+            [value]="summaryType()" (change)="onSummaryTypeChange($event)">
+            <option value="SHORT">Short (1-2 sentences)</option>
+            <option value="DETAILED">Detailed (bullet points)</option>
+          </select>
+        </div>
+        <p class="text-xs text-gray-500">
+          Short summaries cost 1 credit · Detailed summaries cost 2 credits
+        </p>
+      </div>
+      }
+
+      @if (aiState.isSummarizing()) {
+      <div class="flex flex-col items-center py-8">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
+        <p class="text-gray-600">Generating summary...</p>
+      </div>
+      }
+
+      @if (aiState.summaryResult()) {
+      <div class="space-y-3">
+        <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <p class="text-sm text-purple-900 whitespace-pre-wrap">{{ aiState.summaryResult()?.summary }}</p>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-gray-500">
+          <span>Type: {{ aiState.summaryResult()?.summaryType }}</span>
+          <span>Model: {{ aiState.summaryResult()?.modelUsed }}</span>
+          @if (aiState.summaryResult()?.creditsCharged) {
+          <span>Credits: {{ aiState.summaryResult()?.creditsCharged }}</span>
+          }
+          <span class="capitalize">Billed: {{ aiState.summaryResult()?.billingSource }}</span>
+        </div>
+      </div>
+      }
+
+      @if (aiState.summaryError()) {
+      <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+        {{ aiState.summaryError() }}
+      </div>
+      }
+    </div>
+    <div class="modal-footer">
+      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+      <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Cancel</button>
+      <button type="button" class="btn-primary" style="background: linear-gradient(135deg, #9333ea, #7c3aed);"
+        (click)="summarizeDocument()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        Generate Summary
+      </button>
+      } @else {
+      <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Close</button>
+      @if (aiState.summaryResult()) {
+      <button type="button" class="btn-secondary" (click)="copyText(aiState.summaryResult()?.summary || '')">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+        Copy Summary
+      </button>
+      }
+      }
+    </div>
+  </div>
+</div>
+}
+
+<!-- AI Classify Modal -->
+@if (showClassifyModal() && classifyJob()) {
+<div class="modal-overlay" (click)="closeClassifyModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon"
+        style="background: linear-gradient(135deg, #0d9488, #14b8a6); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-bold text-gray-900">AI Classification</h3>
+        <p class="text-sm text-gray-500">{{ classifyJob()?.fileName }}</p>
+      </div>
+      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeClassifyModal()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      @if (aiState.isClassifying()) {
+      <div class="flex flex-col items-center py-8">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mb-4"></div>
+        <p class="text-gray-600">Classifying document...</p>
+      </div>
+      }
+
+      @if (aiState.classifyResult()) {
+      <div class="space-y-4">
+        <div class="p-4 bg-teal-50 rounded-lg border border-teal-200">
+          <div class="flex items-center gap-3 mb-3">
+            <span class="text-sm text-gray-600">Document Type:</span>
+            <span class="px-3 py-1 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full capitalize">
+              {{ aiState.classifyResult()?.documentType }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-sm text-gray-600">Confidence:</span>
+            <span class="text-sm font-semibold text-teal-800">
+              {{ (aiState.classifyResult()?.confidence || 0) * 100 | number:'1.0-0' }}%
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-sm text-gray-600">Tags:</span>
+            @for (tag of aiState.classifyResult()?.tags || []; track tag) {
+            <span class="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded-full">{{ tag }}</span>
+            }
+          </div>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-gray-500">
+          <span>Model: {{ aiState.classifyResult()?.modelUsed }}</span>
+          @if (aiState.classifyResult()?.creditsCharged) {
+          <span>Credits: {{ aiState.classifyResult()?.creditsCharged }}</span>
+          }
+          <span class="capitalize">Billed: {{ aiState.classifyResult()?.billingSource }}</span>
+        </div>
+      </div>
+      }
+
+      @if (aiState.classifyError()) {
+      <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+        {{ aiState.classifyError() }}
+      </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeClassifyModal()">Close</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Edit Content Modal -->
+@if (showEditModal() && editingJob()) {
+<div class="modal-overlay" (click)="closeEditModal()">
+  <div class="edit-content-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="edit-modal-header">
+      <div class="edit-modal-header-left">
+        <div class="edit-modal-icon">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="edit-modal-title">Edit Content</h3>
+          <p class="edit-modal-subtitle">{{ editingJob()?.fileName }}</p>
+        </div>
+      </div>
+      <div class="edit-modal-header-right">
+        <div class="edit-format-selector">
+          <label class="edit-format-label">Format</label>
+          <select class="edit-format-select" [value]="editingFormat()" (change)="onEditingFormatChange($event)">
+            <option value="HTML">HTML</option>
+            <option value="MARKDOWN">Markdown</option>
+          </select>
+        </div>
+        <button type="button" class="edit-modal-close" (click)="closeEditModal()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="edit-modal-body">
+      <app-rich-text-editor [content]="editingContent()" [format]="editingFormat()"
+        [placeholder]="'Edit your extracted text here...'" (contentChange)="editingContent.set($event)">
+      </app-rich-text-editor>
+      <p class="edit-modal-hint">
+        @if (editingFormat() === 'HTML') {
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        HTML content will be sanitized server-side for security
+        } @else {
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Markdown content will be stored as-is
+        }
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="edit-modal-footer">
+      <button type="button" class="edit-cancel-btn" (click)="closeEditModal()">Cancel</button>
+      <button type="button" class="edit-save-btn" [disabled]="!editingContent().trim() || ocrState.isProcessing()"
+        (click)="saveEditedContent()">
+        @if (ocrState.isProcessing()) {
+        <div class="edit-save-spinner"></div>
+        Saving...
+        } @else {
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Save Content
+        }
+      </button>
+    </div>
+
+  </div>
+</div>
+}

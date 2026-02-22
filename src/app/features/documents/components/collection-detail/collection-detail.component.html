@@ -261,6 +261,24 @@
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
         </button>
+        <button type="button" class="action-btn" title="AI Summarize" style="color: #9333ea;" (click)="openSummaryModal(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn" title="AI Classify" style="color: #0d9488;" (click)="openClassifyModal(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        </button>
+        <button type="button" class="action-btn" title="Edit content" style="color: #4f46e5;" (click)="openEditContentModal(document)">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </button>
         }
         <button type="button" class="action-btn" title="Open file" (click)="openFileViewer(document)">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,42 +324,222 @@
 </div>
 }
 
-<!-- OCR Result Modal -->
+<!-- OCR Result Modal — Document Intelligence View -->
 @if (showOcrModal() && selectedDocument()) {
 <div class="modal-overlay" (click)="closeOcrModal()">
-  <div class="modal-content ocr-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-icon success">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
+  <div class="ocr-detail-modal" (click)="$event.stopPropagation()">
+
+    <!-- Modal Header -->
+    <div class="ocr-detail-header">
+      <div class="ocr-detail-header-left">
+        <div class="ocr-detail-file-icon">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="ocr-detail-title">{{ selectedDocument()?.displayName || selectedDocument()?.originalFileName }}</h3>
+          <p class="ocr-detail-subtitle">Document Intelligence</p>
+        </div>
       </div>
-      <h3 class="modal-title">Extracted Text</h3>
-      <p class="modal-subtitle">{{ selectedDocument()?.originalFileName }}</p>
+      <button type="button" class="ocr-detail-close" (click)="closeOcrModal()">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
     </div>
-    <div class="modal-body">
-      <div class="ocr-text-container">
-        <pre class="ocr-text">{{ selectedDocument()?.extractedText || 'No text extracted' }}</pre>
+
+    <!-- Loading State -->
+    @if (ocrDataLoading()) {
+      <div class="ocr-detail-loading">
+        <div class="ocr-detail-spinner"></div>
+        <p>Loading document data...</p>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn-secondary" (click)="copyToClipboard(selectedDocument()?.extractedText || '')">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    } @else if (ocrData()) {
+
+      <!-- AI Insights Strip -->
+      @if (ocrData()?.aiSummary || ocrData()?.documentType || (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0)) {
+        <div class="ai-insights-section">
+          <div class="ai-insights-label">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            AI Insights
+          </div>
+
+          <div class="ai-insights-grid">
+            <!-- Document Classification Card -->
+            @if (ocrData()?.documentType) {
+              <div class="ai-card ai-card-classify">
+                <div class="ai-card-icon-wrap classify">
+                  <span class="ai-card-emoji">{{ getDocTypeIcon(ocrData()?.documentType) }}</span>
+                </div>
+                <div class="ai-card-body">
+                  <span class="ai-card-label">Document Type</span>
+                  <span class="ai-card-value">{{ getDocTypeLabel(ocrData()?.documentType) }}</span>
+                </div>
+              </div>
+            }
+
+            <!-- Tags -->
+            @if (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0) {
+              <div class="ai-card ai-card-tags">
+                <div class="ai-card-icon-wrap tags">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
+                  </svg>
+                </div>
+                <div class="ai-card-body">
+                  <span class="ai-card-label">Tags</span>
+                  <div class="ai-tags-list">
+                    @for (tag of ocrData()!.aiTags!; track tag) {
+                      <span class="ai-tag">{{ tag }}</span>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- AI Summary -->
+          @if (ocrData()?.aiSummary) {
+            <div class="ai-summary-card">
+              <div class="ai-summary-header">
+                <div class="ai-summary-icon">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                  </svg>
+                </div>
+                <span class="ai-summary-title">Summary</span>
+                <button type="button" class="ai-summary-copy" title="Copy summary" (click)="copyToClipboard(ocrData()?.aiSummary || '')">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                  </svg>
+                </button>
+              </div>
+              <p class="ai-summary-text">{{ ocrData()?.aiSummary }}</p>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Content Tabs -->
+      @if (ocrData()?.editedContent) {
+        <div class="ocr-content-tabs">
+          <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'extracted'" (click)="setOcrViewTab('extracted')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            Original Text
+          </button>
+          <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'edited'" (click)="setOcrViewTab('edited')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Edited
+            <span class="ocr-tab-badge">{{ ocrData()?.contentFormat }}</span>
+          </button>
+        </div>
+      }
+
+      <!-- Text Content Area -->
+      <div class="ocr-detail-content">
+        @if (ocrViewTab() === 'extracted' || !ocrData()?.editedContent) {
+          <!-- Metadata bar -->
+          <div class="ocr-content-meta">
+            <span class="ocr-meta-item">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+              </svg>
+              {{ ocrData()?.originalFileName }}
+            </span>
+            <span class="ocr-meta-item">
+              {{ ocrData()?.extractedText?.length || 0 }} characters
+            </span>
+            @if (ocrData()?.createdAt) {
+              <span class="ocr-meta-item">
+                {{ formatDate(ocrData()?.createdAt) }}
+              </span>
+            }
+          </div>
+          <div class="ocr-text-scroll">
+            <pre class="ocr-detail-text">{{ ocrData()?.extractedText || 'No text extracted' }}</pre>
+          </div>
+        } @else {
+          <!-- Edited content tab -->
+          <div class="ocr-content-meta">
+            <span class="ocr-meta-item">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+              Edited · {{ ocrData()?.contentFormat }}
+            </span>
+            @if (ocrData()?.editedAt) {
+              <span class="ocr-meta-item">
+                Edited {{ getRelativeTime(ocrData()?.editedAt!) }}
+              </span>
+            }
+          </div>
+          <div class="ocr-text-scroll">
+            @if (ocrData()?.contentFormat === 'HTML') {
+              <div class="ocr-detail-rendered" [innerHTML]="ocrData()?.editedContent | safeHtml"></div>
+            } @else {
+              <pre class="ocr-detail-text">{{ ocrData()?.editedContent }}</pre>
+            }
+          </div>
+        }
+      </div>
+
+    } @else {
+      <!-- Error / No data state -->
+      <div class="ocr-detail-empty">
+        <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
-        Copy Text
-      </button>
-      <button type="button" class="btn-primary" (click)="downloadAsDocx(selectedDocument()!)">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Download Word
-      </button>
-      <button type="button" class="btn-secondary" (click)="closeOcrModal()">Close</button>
+        <p>Could not load document data</p>
+      </div>
+    }
+
+    <!-- Action Bar -->
+    <div class="ocr-detail-actions">
+      <div class="ocr-actions-left">
+        <button type="button" class="ocr-action-btn" (click)="copyToClipboard(ocrData()?.editedContent || ocrData()?.extractedText || selectedDocument()?.extractedText || '')">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          Copy
+        </button>
+        <button type="button" class="ocr-action-btn" (click)="downloadAsDocx(selectedDocument()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Word
+        </button>
+        <span class="ocr-actions-divider"></span>
+        <button type="button" class="ocr-action-btn ai-btn purple" (click)="closeOcrModal(); openSummaryModal(selectedDocument()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+          </svg>
+          Summarize
+        </button>
+        <button type="button" class="ocr-action-btn ai-btn teal" (click)="closeOcrModal(); openClassifyModal(selectedDocument()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          Classify
+        </button>
+        <button type="button" class="ocr-action-btn ai-btn indigo" (click)="closeOcrModal(); openEditContentModal(selectedDocument()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Edit
+        </button>
+      </div>
+      <button type="button" class="ocr-action-btn-done" (click)="closeOcrModal()">Done</button>
     </div>
+
   </div>
 </div>
 }
@@ -453,4 +651,310 @@
 @if (showDocumentViewer() && documentViewerUrl()) {
 <app-document-viewer [fileUrl]="documentViewerUrl()" [fileName]="documentViewerFileName()"
   (closed)="closeDocumentViewer()" />
+}
+
+<!-- Page Selection Modal (for PDF OCR) -->
+@if (showPageSelectionModal() && pageSelectionDocument()) {
+<div class="modal-overlay" (click)="closePageSelectionModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon primary">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h3 class="modal-title">Extract Text (OCR)</h3>
+      <p class="modal-subtitle">{{ pageSelectionDocument()?.originalFileName }}</p>
+    </div>
+    <div class="modal-body">
+      <p class="text-sm text-gray-600 mb-4">Select which pages to extract text from:</p>
+      <div class="flex gap-2 mb-4">
+        <button type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+          [class]="pageSelectionMode() === 'all' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+          (click)="setPageSelectionMode('all')">
+          All Pages
+        </button>
+        <button type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+          [class]="pageSelectionMode() === 'range' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+          (click)="setPageSelectionMode('range')">
+          Page Range
+        </button>
+        <button type="button"
+          class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+          [class]="pageSelectionMode() === 'specific' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+          (click)="setPageSelectionMode('specific')">
+          Specific Pages
+        </button>
+      </div>
+
+      @if (pageSelectionMode() === 'range') {
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <label class="input-label">Start Page</label>
+            <input type="number" min="1" class="input-field"
+              [value]="startPage()"
+              (input)="onStartPageChange($event)"
+              placeholder="1" />
+          </div>
+          <span class="text-gray-400 mt-5">–</span>
+          <div class="flex-1">
+            <label class="input-label">End Page</label>
+            <input type="number" min="1" class="input-field"
+              [value]="endPage()"
+              (input)="onEndPageChange($event)"
+              placeholder="10" />
+          </div>
+        </div>
+      }
+
+      @if (pageSelectionMode() === 'specific') {
+        <div>
+          <label class="input-label">Pages (comma-separated)</label>
+          <input type="text" class="input-field"
+            [value]="specificPages()"
+            (input)="onSpecificPagesChange($event)"
+            placeholder="e.g., 3, 8, 16" />
+          <p class="input-hint">Enter page numbers separated by commas</p>
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closePageSelectionModal()">Cancel</button>
+      <button type="button" class="btn-primary" [disabled]="isProcessingOcr()" (click)="extractWithPageSelection()">
+        @if (isProcessingOcr()) {
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          Processing...
+        } @else {
+          Extract Text
+        }
+      </button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- AI Summary Modal -->
+@if (showSummaryModal() && summaryDocument()) {
+<div class="modal-overlay" (click)="closeSummaryModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon" style="background: linear-gradient(135deg, #9333ea, #7c3aed); color: white;">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      </div>
+      <h3 class="modal-title">AI Summarize</h3>
+      <p class="modal-subtitle">{{ summaryDocument()?.originalFileName }}</p>
+    </div>
+    <div class="modal-body">
+      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+        <div class="space-y-4">
+          <div>
+            <label class="input-label">Summary Type</label>
+            <select class="input-field"
+              [value]="summaryType()"
+              (change)="onSummaryTypeChange($event)">
+              <option value="SHORT">Short (1-2 sentences)</option>
+              <option value="DETAILED">Detailed (bullet points)</option>
+            </select>
+          </div>
+          <p class="input-hint">Short summaries cost 1 credit · Detailed summaries cost 2 credits</p>
+        </div>
+      }
+
+      @if (aiState.isSummarizing()) {
+        <div class="flex flex-col items-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
+          <p class="text-gray-600">Generating summary...</p>
+        </div>
+      }
+
+      @if (aiState.summaryResult()) {
+        <div class="space-y-3">
+          <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm text-purple-900 whitespace-pre-wrap">{{ aiState.summaryResult()?.summary }}</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <span>Type: {{ aiState.summaryResult()?.summaryType }}</span>
+            <span>Model: {{ aiState.summaryResult()?.modelUsed }}</span>
+            @if (aiState.summaryResult()?.creditsCharged) {
+              <span>Credits: {{ aiState.summaryResult()?.creditsCharged }}</span>
+            }
+            <span class="capitalize">Billed: {{ aiState.summaryResult()?.billingSource }}</span>
+          </div>
+        </div>
+      }
+
+      @if (aiState.summaryError()) {
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+          {{ aiState.summaryError() }}
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+        <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="summarizeDocument()">Generate Summary</button>
+      } @else {
+        <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Close</button>
+        @if (aiState.summaryResult()) {
+          <button type="button" class="btn-secondary" (click)="copyToClipboard(aiState.summaryResult()?.summary || '')">Copy Summary</button>
+        }
+      }
+    </div>
+  </div>
+</div>
+}
+
+<!-- AI Classify Modal -->
+@if (showClassifyModal() && classifyDocument()) {
+<div class="modal-overlay" (click)="closeClassifyModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon" style="background: linear-gradient(135deg, #0d9488, #14b8a6); color: white;">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+        </svg>
+      </div>
+      <h3 class="modal-title">AI Classification</h3>
+      <p class="modal-subtitle">{{ classifyDocument()?.originalFileName }}</p>
+    </div>
+    <div class="modal-body">
+      @if (aiState.isClassifying()) {
+        <div class="flex flex-col items-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mb-4"></div>
+          <p class="text-gray-600">Classifying document...</p>
+        </div>
+      }
+
+      @if (aiState.classifyResult()) {
+        <div class="space-y-4">
+          <div class="p-4 bg-teal-50 rounded-lg border border-teal-200">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-sm text-gray-600">Document Type:</span>
+              <span class="px-3 py-1 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full capitalize">
+                {{ aiState.classifyResult()?.documentType }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-sm text-gray-600">Confidence:</span>
+              <span class="text-sm font-semibold text-teal-800">
+                {{ (aiState.classifyResult()?.confidence || 0) * 100 | number:'1.0-0' }}%
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-sm text-gray-600">Tags:</span>
+              @for (tag of aiState.classifyResult()?.tags || []; track tag) {
+                <span class="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded-full">{{ tag }}</span>
+              }
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <span>Model: {{ aiState.classifyResult()?.modelUsed }}</span>
+            @if (aiState.classifyResult()?.creditsCharged) {
+              <span>Credits: {{ aiState.classifyResult()?.creditsCharged }}</span>
+            }
+            <span class="capitalize">Billed: {{ aiState.classifyResult()?.billingSource }}</span>
+          </div>
+        </div>
+      }
+
+      @if (aiState.classifyError()) {
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+          {{ aiState.classifyError() }}
+        </div>
+      }
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeClassifyModal()">Close</button>
+    </div>
+  </div>
+</div>
+}
+
+<!-- Edit Content Modal -->
+@if (showEditContentModal() && editDocument()) {
+<div class="modal-overlay" (click)="closeEditContentModal()">
+  <div class="edit-content-modal" (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="edit-modal-header">
+      <div class="edit-modal-header-left">
+        <div class="edit-modal-icon">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="edit-modal-title">Edit Content</h3>
+          <p class="edit-modal-subtitle">{{ editDocument()?.originalFileName }}</p>
+        </div>
+      </div>
+      <div class="edit-modal-header-right">
+        <div class="edit-format-selector">
+          <label class="edit-format-label">Format</label>
+          <select class="edit-format-select"
+            [value]="editFormat()"
+            (change)="onEditFormatChange($event)">
+            <option value="HTML">HTML</option>
+            <option value="MARKDOWN">Markdown</option>
+          </select>
+        </div>
+        <button type="button" class="edit-modal-close" (click)="closeEditContentModal()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="edit-modal-body">
+      <app-rich-text-editor
+        [content]="editContent()"
+        [format]="editFormat()"
+        [placeholder]="'Edit your extracted text here...'"
+        (contentChange)="editContent.set($event)">
+      </app-rich-text-editor>
+      <p class="edit-modal-hint">
+        @if (editFormat() === 'HTML') {
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          HTML content will be sanitized server-side for security
+        } @else {
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          Markdown content will be stored as-is
+        }
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="edit-modal-footer">
+      <button type="button" class="edit-cancel-btn" (click)="closeEditContentModal()">Cancel</button>
+      <button type="button" class="edit-save-btn"
+        [disabled]="!editContent().trim() || isProcessingOcr()"
+        (click)="saveEditedContent()">
+        @if (isProcessingOcr()) {
+          <div class="edit-save-spinner"></div>
+          Saving...
+        } @else {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Save Content
+        }
+      </button>
+    </div>
+
+  </div>
+</div>
 }

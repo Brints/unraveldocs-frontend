@@ -3,18 +3,23 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DocumentStateService } from '../../services/document-state.service';
-import { DocumentFile, ViewMode, MoveDocumentRequest } from '../../models/document.model';
+import { DocumentFile, ViewMode, MoveDocumentRequest, ContentFormat, PageSelectionOptions, OcrData } from '../../models/document.model';
 import { DocumentViewerComponent } from '../../../../shared/components/document-viewer/document-viewer.component';
+import { RichTextEditorComponent } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
+import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe';
+import { AiStateService } from '../../../ai/services/ai-state.service';
+import { SummaryType } from '../../../ai/models/ai.model';
 
 @Component({
   selector: 'app-collection-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, DocumentViewerComponent],
+  imports: [CommonModule, RouterModule, FormsModule, DocumentViewerComponent, RichTextEditorComponent, SafeHtmlPipe],
   templateUrl: './collection-detail.component.html',
   styleUrls: ['./collection-detail.component.css']
 })
 export class CollectionDetailComponent implements OnInit {
   protected readonly documentState = inject(DocumentStateService);
+  protected readonly aiState = inject(AiStateService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -24,6 +29,9 @@ export class CollectionDetailComponent implements OnInit {
   documentToDelete = signal<DocumentFile | null>(null);
   showOcrModal = signal(false);
   selectedDocument = signal<DocumentFile | null>(null);
+  ocrData = signal<OcrData | null>(null);
+  ocrDataLoading = signal(false);
+  ocrViewTab = signal<'extracted' | 'edited'>('extracted');
 
   // Rename document modal
   showRenameDocModal = signal(false);
@@ -43,6 +51,29 @@ export class CollectionDetailComponent implements OnInit {
   showDocumentViewer = signal(false);
   documentViewerUrl = signal<string | null>(null);
   documentViewerFileName = signal<string | null>(null);
+
+  // Page selection for OCR
+  showPageSelectionModal = signal(false);
+  pageSelectionDocument = signal<DocumentFile | null>(null);
+  pageSelectionMode = signal<'all' | 'range' | 'specific'>('all');
+  startPage = signal<number | null>(null);
+  endPage = signal<number | null>(null);
+  specificPages = signal('');
+
+  // Content editing
+  showEditContentModal = signal(false);
+  editDocument = signal<DocumentFile | null>(null);
+  editContent = signal('');
+  editFormat = signal<ContentFormat>('HTML');
+
+  // AI Summary
+  showSummaryModal = signal(false);
+  summaryDocument = signal<DocumentFile | null>(null);
+  summaryType = signal<SummaryType>('SHORT');
+
+  // AI Classify
+  showClassifyModal = signal(false);
+  classifyDocument = signal<DocumentFile | null>(null);
 
   // From state service
   readonly collection = this.documentState.currentCollection;
@@ -98,17 +129,206 @@ export class CollectionDetailComponent implements OnInit {
 
   // OCR Actions
   extractText(document: DocumentFile): void {
-    this.documentState.extractText(this.collectionId(), document.documentId);
+    if (this.isPdf(document)) {
+      this.openPageSelectionModal(document);
+    } else {
+      this.documentState.extractText(this.collectionId(), document.documentId);
+    }
+  }
+
+  // Page Selection for OCR
+  openPageSelectionModal(document: DocumentFile): void {
+    this.pageSelectionDocument.set(document);
+    this.pageSelectionMode.set('all');
+    this.startPage.set(null);
+    this.endPage.set(null);
+    this.specificPages.set('');
+    this.showPageSelectionModal.set(true);
+  }
+
+  closePageSelectionModal(): void {
+    this.showPageSelectionModal.set(false);
+    this.pageSelectionDocument.set(null);
+  }
+
+  setPageSelectionMode(mode: 'all' | 'range' | 'specific'): void {
+    this.pageSelectionMode.set(mode);
+  }
+
+  onStartPageChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).valueAsNumber;
+    this.startPage.set(isNaN(val) ? null : val);
+  }
+
+  onEndPageChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).valueAsNumber;
+    this.endPage.set(isNaN(val) ? null : val);
+  }
+
+  onSpecificPagesChange(event: Event): void {
+    this.specificPages.set((event.target as HTMLInputElement).value);
+  }
+
+  extractWithPageSelection(): void {
+    const doc = this.pageSelectionDocument();
+    if (!doc) return;
+
+    let pageOptions: PageSelectionOptions | undefined;
+    const mode = this.pageSelectionMode();
+
+    if (mode === 'range') {
+      const start = this.startPage();
+      const end = this.endPage();
+      if (start != null || end != null) {
+        pageOptions = { startPage: start || undefined, endPage: end || undefined };
+      }
+    } else if (mode === 'specific') {
+      const pagesStr = this.specificPages().trim();
+      if (pagesStr) {
+        const pages = pagesStr
+          .split(',')
+          .map(s => parseInt(s.trim(), 10))
+          .filter(n => !isNaN(n) && n > 0);
+        if (pages.length > 0) {
+          pageOptions = { pages };
+        }
+      }
+    }
+
+    this.documentState.extractText(this.collectionId(), doc.documentId, pageOptions);
+    this.closePageSelectionModal();
+  }
+
+  isPdf(document: DocumentFile): boolean {
+    return document.mimeType === 'application/pdf' ||
+      document.originalFileName?.toLowerCase().endsWith('.pdf');
+  }
+
+  // AI Summarize
+  openSummaryModal(document: DocumentFile): void {
+    this.summaryDocument.set(document);
+    this.summaryType.set('SHORT');
+    this.aiState.clearSummaryResult();
+    this.showSummaryModal.set(true);
+  }
+
+  closeSummaryModal(): void {
+    this.showSummaryModal.set(false);
+    this.summaryDocument.set(null);
+  }
+
+  summarizeDocument(): void {
+    const doc = this.summaryDocument();
+    if (!doc) return;
+    this.aiState.summarize(doc.documentId, this.summaryType());
+  }
+
+  onSummaryTypeChange(event: Event): void {
+    this.summaryType.set((event.target as HTMLSelectElement).value as SummaryType);
+  }
+
+  // AI Classify
+  openClassifyModal(document: DocumentFile): void {
+    this.classifyDocument.set(document);
+    this.aiState.clearClassifyResult();
+    this.showClassifyModal.set(true);
+    this.aiState.classify(document.documentId);
+  }
+
+  closeClassifyModal(): void {
+    this.showClassifyModal.set(false);
+    this.classifyDocument.set(null);
+  }
+
+  // Content Editing
+  openEditContentModal(document: DocumentFile): void {
+    this.editDocument.set(document);
+    this.editContent.set(document.extractedText || '');
+    this.editFormat.set('HTML');
+    this.showEditContentModal.set(true);
+  }
+
+  closeEditContentModal(): void {
+    this.showEditContentModal.set(false);
+    this.editDocument.set(null);
+    this.editContent.set('');
+  }
+
+  onEditContentChange(event: Event): void {
+    this.editContent.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  onEditFormatChange(event: Event): void {
+    this.editFormat.set((event.target as HTMLSelectElement).value as ContentFormat);
+  }
+
+  saveEditedContent(): void {
+    const doc = this.editDocument();
+    if (!doc) return;
+
+    const content = this.editContent().trim();
+    if (!content) return;
+
+    this.documentState.updateContent(
+      this.collectionId(),
+      doc.documentId,
+      content,
+      this.editFormat()
+    );
+    this.closeEditContentModal();
   }
 
   viewOcrResult(document: DocumentFile): void {
     this.selectedDocument.set(document);
+    this.ocrData.set(null);
+    this.ocrDataLoading.set(true);
+    this.ocrViewTab.set('extracted');
     this.showOcrModal.set(true);
+
+    // Load full OCR data from the API
+    this.documentState.getOcrData(this.collectionId(), document.documentId).subscribe({
+      next: (data) => {
+        this.ocrData.set(data);
+        this.ocrDataLoading.set(false);
+      },
+      error: () => {
+        this.ocrDataLoading.set(false);
+      }
+    });
   }
 
   closeOcrModal(): void {
     this.showOcrModal.set(false);
     this.selectedDocument.set(null);
+    this.ocrData.set(null);
+    this.ocrDataLoading.set(false);
+  }
+
+  setOcrViewTab(tab: 'extracted' | 'edited'): void {
+    this.ocrViewTab.set(tab);
+  }
+
+  getDocTypeIcon(docType: string | null | undefined): string {
+    if (!docType) return '📄';
+    const icons: Record<string, string> = {
+      'invoice': '🧾',
+      'receipt': '🧾',
+      'contract': '📑',
+      'letter': '✉️',
+      'id_document': '🪪',
+      'medical': '🏥',
+      'legal': '⚖️',
+      'academic': '🎓',
+      'report': '📊',
+      'form': '📋',
+      'other': '📄'
+    };
+    return icons[docType] || '📄';
+  }
+
+  getDocTypeLabel(docType: string | null | undefined): string {
+    if (!docType) return 'Unknown';
+    return docType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   downloadAsDocx(document: DocumentFile): void {

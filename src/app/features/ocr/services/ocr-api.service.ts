@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpParams, HttpRequest } from '@angular/common/http';
 import { Observable, map, forkJoin, of, switchMap, catchError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
@@ -11,6 +11,8 @@ import {
   OcrFileResult,
   OcrJob,
   OcrStatus,
+  PageSelectionOptions,
+  UpdateOcrContentRequest,
 } from '../models/ocr.model';
 
 interface CollectionSummary {
@@ -156,14 +158,38 @@ export class OcrApiService {
   /**
    * Extract text from a specific document
    * POST /collections/{collectionId}/document/{documentId}/extract
+   * Supports page selection for PDFs via query parameters
    */
-  extractText(collectionId: string, documentId: string): Observable<OcrExtractionResult> {
-    return this.http.post<OcrApiResponse<OcrExtractionResult>>(
-      `${this.apiUrl}/collections/${collectionId}/document/${documentId}/extract`,
-      {}
-    ).pipe(
-      map(response => response.data)
-    );
+  extractText(
+    collectionId: string,
+    documentId: string,
+    pageOptions?: PageSelectionOptions
+  ): Observable<OcrExtractionResult> {
+    let params = new HttpParams();
+
+    if (pageOptions) {
+      if (pageOptions.pages && pageOptions.pages.length > 0) {
+        // Discrete pages override start/end page
+        pageOptions.pages.forEach((page) => {
+          params = params.append('pages', page.toString());
+        });
+      } else {
+        if (pageOptions.startPage != null) {
+          params = params.set('startPage', pageOptions.startPage.toString());
+        }
+        if (pageOptions.endPage != null) {
+          params = params.set('endPage', pageOptions.endPage.toString());
+        }
+      }
+    }
+
+    return this.http
+      .post<OcrApiResponse<OcrExtractionResult>>(
+        `${this.apiUrl}/collections/${collectionId}/document/${documentId}/extract`,
+        {},
+        { params }
+      )
+      .pipe(map((response) => response.data));
   }
 
   /**
@@ -218,7 +244,14 @@ export class OcrApiService {
       originalFileName: data.originalFileName || 'Unknown',
       status: data.status || 'pending',
       extractedText: data.extractedText || null,
+      editedContent: data.editedContent || null,
+      contentFormat: data.contentFormat || null,
+      editedBy: data.editedBy || null,
+      editedAt: data.editedAt || null,
       errorMessage: data.errorMessage || null,
+      aiSummary: data.aiSummary || null,
+      documentType: data.documentType || null,
+      aiTags: data.aiTags || null,
       createdAt: data.createdAt || data.uploadedAt || ''
     };
   }
@@ -231,6 +264,25 @@ export class OcrApiService {
     return this.http.get<OcrApiResponse<OcrData>>(
       `${this.apiUrl}/collections/${collectionId}/document/${documentId}/ocr-data`
     ).pipe(map(response => response.data));
+  }
+
+  // ==================== Content Editing ====================
+
+  /**
+   * Update edited content for a document
+   * PUT /collections/{collectionId}/document/{documentId}/content
+   */
+  updateContent(
+    collectionId: string,
+    documentId: string,
+    request: UpdateOcrContentRequest
+  ): Observable<OcrData> {
+    return this.http
+      .put<OcrApiResponse<OcrData>>(
+        `${this.apiUrl}/collections/${collectionId}/document/${documentId}/content`,
+        request
+      )
+      .pipe(map((response) => response.data));
   }
 
   // ==================== Word Export ====================
