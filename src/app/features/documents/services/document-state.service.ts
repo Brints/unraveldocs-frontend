@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpEventType } from '@angular/common/http';
-import { catchError, of, tap, finalize } from 'rxjs';
+import { Observable, catchError, of, tap, finalize } from 'rxjs';
 import { DocumentApiService } from './document-api.service';
 import {
   DocumentCollection,
@@ -12,6 +12,10 @@ import {
   ViewMode,
   FileStatus,
   MoveDocumentRequest,
+  PageSelectionOptions,
+  ContentFormat,
+  UpdateOcrContentRequest,
+  OcrData,
 } from '../models/document.model';
 
 @Injectable({
@@ -411,11 +415,15 @@ export class DocumentStateService {
   /**
    * Extract text from document (OCR)
    */
-  extractText(collectionId: string, documentId: string): void {
+  extractText(
+    collectionId: string,
+    documentId: string,
+    pageOptions?: PageSelectionOptions
+  ): void {
     this._isProcessingOcr.set(true);
     this._error.set(null);
 
-    this.api.extractText(collectionId, documentId).pipe(
+    this.api.extractText(collectionId, documentId, pageOptions).pipe(
       tap(result => {
         // Update document with OCR result
         this._currentCollection.update(col => {
@@ -439,6 +447,54 @@ export class DocumentStateService {
       }),
       finalize(() => this._isProcessingOcr.set(false))
     ).subscribe();
+  }
+
+  /**
+   * Update edited content for a document
+   */
+  updateContent(
+    collectionId: string,
+    documentId: string,
+    editedContent: string,
+    contentFormat: ContentFormat
+  ): void {
+    this._isProcessingOcr.set(true);
+    this._error.set(null);
+
+    const request: UpdateOcrContentRequest = { editedContent, contentFormat };
+
+    this.api.updateContent(collectionId, documentId, request).pipe(
+      tap(result => {
+        // Update document with edited content
+        this._currentCollection.update(col => {
+          if (!col) return null;
+          return {
+            ...col,
+            files: col.files?.map(f =>
+              f.documentId === documentId
+                ? { ...f, extractedText: result.editedContent || f.extractedText }
+                : f
+            )
+          };
+        });
+        this._successMessage.set('Content saved successfully!');
+        setTimeout(() => this._successMessage.set(null), 3000);
+      }),
+      catchError(error => {
+        const message = error?.error?.message || 'Failed to save content';
+        this._error.set(message);
+        console.error('Update content error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isProcessingOcr.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Get OCR data for document (returns Observable for direct subscription)
+   */
+  getOcrData(collectionId: string, documentId: string): Observable<OcrData> {
+    return this.api.getOcrData(collectionId, documentId);
   }
 
   /**

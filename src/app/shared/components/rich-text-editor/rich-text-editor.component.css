@@ -1,0 +1,452 @@
+/* ==================== Rich Text Editor ==================== */
+.rte-container {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.rte-container:focus-within {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
+}
+
+/* ==================== Toolbar ==================== */
+.rte-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem;
+  background: linear-gradient(180deg, #f9fafb 0%, #f3f4f6 100%);
+  border-bottom: 1px solid #e5e7eb;
+  flex-wrap: wrap;
+  min-height: 44px;
+}
+
+.rte-btn-group {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.rte-btn-group + .rte-btn-group {
+  margin-left: 0.125rem;
+}
+
+.rte-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 30px;
+  background: transparent;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  position: relative;
+}
+
+.rte-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.rte-btn:active {
+  background: #e5e7ff;
+  color: #4f46e5;
+}
+
+.rte-btn + .rte-btn {
+  border-left: 1px solid #f3f4f6;
+}
+
+.rte-btn:hover + .rte-btn {
+  border-left-color: transparent;
+}
+
+/* Icon text (B, I, U, S, H1, H2, H3) */
+.rte-icon-text {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: inherit;
+  user-select: none;
+}
+
+.rte-icon-text.bold {
+  font-weight: 900;
+}
+
+.rte-icon-text.italic {
+  font-style: italic;
+  font-family: 'Georgia', serif;
+}
+
+.rte-icon-text.underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rte-icon-text.strikethrough {
+  text-decoration: line-through;
+}
+
+.rte-icon-text.heading {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.rte-icon-text.heading sub {
+  font-size: 0.5rem;
+  font-weight: 700;
+  vertical-align: baseline;
+  position: relative;
+  top: 0.15em;
+}
+
+/* SVG icons */
+.rte-svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+/* Toolbar right section */
+.rte-toolbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rte-format-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 5px;
+  user-select: none;
+}
+
+.rte-format-badge.html {
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #92400e;
+}
+
+.rte-format-badge.markdown {
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  color: #3730a3;
+}
+
+/* Tab toggle (Source / Preview) */
+.rte-tab-toggle {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.rte-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 26px;
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.rte-tab-btn:hover {
+  color: #64748b;
+  background: #f9fafb;
+}
+
+.rte-tab-btn.active {
+  background: #4f46e5;
+  color: white;
+}
+
+.rte-tab-btn + .rte-tab-btn {
+  border-left: 1px solid #f3f4f6;
+}
+
+.rte-tab-btn.active + .rte-tab-btn {
+  border-left-color: transparent;
+}
+
+.rte-tab-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.rte-preview-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==================== Textarea ==================== */
+.rte-textarea {
+  width: 100%;
+  min-height: 280px;
+  max-height: 500px;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
+  line-height: 1.7;
+  color: #1e293b;
+  background: #ffffff;
+  border: none;
+  outline: none;
+  resize: vertical;
+  tab-size: 2;
+}
+
+.rte-textarea::placeholder {
+  color: #cbd5e1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-style: italic;
+}
+
+/* ==================== Preview Pane ==================== */
+.rte-preview {
+  width: 100%;
+  min-height: 280px;
+  max-height: 500px;
+  padding: 1.25rem 1.5rem;
+  overflow-y: auto;
+  background: #ffffff;
+}
+
+.rte-preview-content {
+  font-size: 0.9375rem;
+  color: #334155;
+  line-height: 1.75;
+  word-wrap: break-word;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.rte-preview-content h1 {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 0.75rem;
+  line-height: 1.3;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 0.5rem;
+}
+
+.rte-preview-content h2 {
+  font-size: 1.375rem;
+  font-weight: 650;
+  color: #1e293b;
+  margin: 1rem 0 0.625rem;
+  line-height: 1.35;
+}
+
+.rte-preview-content h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0.875rem 0 0.5rem;
+  line-height: 1.4;
+}
+
+.rte-preview-content p {
+  margin: 0 0 0.75rem;
+}
+
+.rte-preview-content strong,
+.rte-preview-content b {
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.rte-preview-content em,
+.rte-preview-content i {
+  font-style: italic;
+}
+
+.rte-preview-content u {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rte-preview-content del,
+.rte-preview-content s {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.rte-preview-content a {
+  color: #4f46e5;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rte-preview-content a:hover {
+  color: #4338ca;
+}
+
+.rte-preview-content ul,
+.rte-preview-content ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.rte-preview-content li {
+  margin-bottom: 0.25rem;
+}
+
+.rte-preview-content code {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.8125rem;
+  background: #f1f5f9;
+  color: #e11d48;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+}
+
+.rte-preview-content pre {
+  margin: 0 0 0.75rem;
+  padding: 0.875rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.rte-preview-content pre code {
+  background: transparent;
+  color: #334155;
+  padding: 0;
+}
+
+.rte-preview-content blockquote {
+  margin: 0 0 0.75rem;
+  padding: 0.625rem 1rem;
+  border-left: 3px solid #8b5cf6;
+  background: #faf5ff;
+  color: #6b21a8;
+  border-radius: 0 6px 6px 0;
+}
+
+.rte-preview-content hr {
+  border: none;
+  border-top: 1px solid #e2e8f0;
+  margin: 1rem 0;
+}
+
+.rte-preview-markdown {
+  font-size: 0.875rem;
+  color: #334155;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  margin: 0;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  line-height: 1.7;
+}
+
+.rte-preview-empty {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-style: italic;
+  text-align: center;
+  padding: 3rem 1rem;
+  margin: 0;
+}
+
+/* ==================== Status Bar ==================== */
+.rte-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  background: #f9fafb;
+  border-top: 1px solid #f1f5f9;
+  min-height: 28px;
+}
+
+.rte-status-item {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.rte-status-divider {
+  color: #d1d5db;
+  font-size: 0.625rem;
+}
+
+.rte-status-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rte-shortcut-hint {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: #c1c7d0;
+  letter-spacing: 0.01em;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 640px) {
+  .rte-toolbar {
+    padding: 0.375rem;
+    gap: 0.25rem;
+  }
+
+  .rte-btn {
+    width: 28px;
+    height: 26px;
+  }
+
+  .rte-icon-text {
+    font-size: 0.6875rem;
+  }
+
+  .rte-svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .rte-textarea {
+    min-height: 200px;
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .rte-status-right {
+    display: none;
+  }
+
+  .rte-format-badge {
+    font-size: 0.5625rem;
+  }
+}
+

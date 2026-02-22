@@ -1,0 +1,153 @@
+<div class="rte-container">
+  <!-- Toolbar -->
+  <div class="rte-toolbar">
+    @if (activeTab() === 'source') {
+      @for (group of toolbarGroups; track group.name) {
+        <div class="rte-btn-group">
+          @for (btn of group.buttons; track btn.action) {
+            <button
+              type="button"
+              class="rte-btn"
+              [title]="btn.label"
+              (click)="applyFormat(btn.action)">
+              @switch (btn.icon) {
+                @case ('B') {
+                  <span class="rte-icon-text bold">B</span>
+                }
+                @case ('I') {
+                  <span class="rte-icon-text italic">I</span>
+                }
+                @case ('U') {
+                  <span class="rte-icon-text underline">U</span>
+                }
+                @case ('S') {
+                  <span class="rte-icon-text strikethrough">S</span>
+                }
+                @case ('H1') {
+                  <span class="rte-icon-text heading">H<sub>1</sub></span>
+                }
+                @case ('H2') {
+                  <span class="rte-icon-text heading">H<sub>2</sub></span>
+                }
+                @case ('H3') {
+                  <span class="rte-icon-text heading">H<sub>3</sub></span>
+                }
+                @case ('ul') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="9" y1="6" x2="20" y2="6"/>
+                    <line x1="9" y1="12" x2="20" y2="12"/>
+                    <line x1="9" y1="18" x2="20" y2="18"/>
+                    <circle cx="5" cy="6" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="5" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                    <circle cx="5" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+                  </svg>
+                }
+                @case ('ol') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="10" y1="6" x2="20" y2="6"/>
+                    <line x1="10" y1="12" x2="20" y2="12"/>
+                    <line x1="10" y1="18" x2="20" y2="18"/>
+                    <text x="3" y="8" fill="currentColor" stroke="none" font-size="7" font-weight="600" font-family="sans-serif">1</text>
+                    <text x="3" y="14" fill="currentColor" stroke="none" font-size="7" font-weight="600" font-family="sans-serif">2</text>
+                    <text x="3" y="20" fill="currentColor" stroke="none" font-size="7" font-weight="600" font-family="sans-serif">3</text>
+                  </svg>
+                }
+                @case ('link') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                }
+                @case ('code') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="16 18 22 12 16 6"/>
+                    <polyline points="8 6 2 12 8 18"/>
+                  </svg>
+                }
+                @case ('quote') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/>
+                    <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/>
+                  </svg>
+                }
+                @case ('hr') {
+                  <svg class="rte-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                  </svg>
+                }
+              }
+            </button>
+          }
+        </div>
+      }
+    } @else {
+      <span class="rte-preview-label">Preview</span>
+    }
+
+    <!-- Right side: format badge + tab toggle -->
+    <div class="rte-toolbar-right">
+      <span class="rte-format-badge" [class.html]="format() === 'HTML'" [class.markdown]="format() === 'MARKDOWN'">
+        {{ format() }}
+      </span>
+      <div class="rte-tab-toggle">
+        <button type="button" class="rte-tab-btn" [class.active]="activeTab() === 'source'" (click)="activeTab.set('source')" title="Source code">
+          <svg class="rte-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/>
+            <polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </button>
+        <button type="button" class="rte-tab-btn" [class.active]="activeTab() === 'preview'" (click)="activeTab.set('preview')" title="Preview">
+          <svg class="rte-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Source editor (textarea) -->
+  @if (activeTab() === 'source') {
+    <textarea
+      #editorTextarea
+      class="rte-textarea"
+      [value]="content()"
+      [placeholder]="placeholder()"
+      (input)="onTextInput($event)"
+      (keydown)="onKeyDown($event)"
+      spellcheck="true">
+    </textarea>
+  } @else {
+    <!-- Preview pane -->
+    <div class="rte-preview">
+      @if (format() === 'HTML') {
+        @if (content().trim()) {
+          <div class="rte-preview-content" [innerHTML]="content() | safeHtml"></div>
+        } @else {
+          <p class="rte-preview-empty">Nothing to preview yet</p>
+        }
+      } @else {
+        @if (content().trim()) {
+          <pre class="rte-preview-markdown">{{ content() }}</pre>
+        } @else {
+          <p class="rte-preview-empty">Nothing to preview yet</p>
+        }
+      }
+    </div>
+  }
+
+  <!-- Status bar -->
+  <div class="rte-status-bar">
+    <span class="rte-status-item">{{ charCount() }} characters</span>
+    <span class="rte-status-divider">·</span>
+    <span class="rte-status-item">{{ wordCount() }} words</span>
+    <span class="rte-status-right">
+      @if (activeTab() === 'source') {
+        <span class="rte-shortcut-hint">Ctrl+B Bold</span>
+        <span class="rte-shortcut-hint">Ctrl+I Italic</span>
+        <span class="rte-shortcut-hint">Ctrl+K Link</span>
+      }
+    </span>
+  </div>
+</div>
+

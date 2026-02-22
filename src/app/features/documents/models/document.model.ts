@@ -135,12 +135,23 @@ export interface UploadProgress {
   error?: string;
 }
 
+// ==================== Content Format ====================
+
+export type ContentFormat = 'HTML' | 'MARKDOWN';
+
 // ==================== OCR ====================
 
 export interface OcrResult {
   documentId: string;
   fileName: string;
   extractedText: string;
+  editedContent?: string | null;
+  contentFormat?: ContentFormat | null;
+  editedBy?: string | null;
+  editedAt?: string | null;
+  aiSummary?: string | null;
+  documentType?: string | null;
+  aiTags?: string[] | null;
   confidence?: number;
   language?: string;
   status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
@@ -153,9 +164,33 @@ export interface OcrCollectionResult {
 
 export interface OcrData {
   documentId: string;
-  fileName: string;
+  originalFileName: string;
+  status: string;
   extractedText: string;
-  confidence: number;
+  editedContent: string | null;
+  contentFormat: ContentFormat | null;
+  editedBy: string | null;
+  editedAt: string | null;
+  errorMessage: string | null;
+  aiSummary: string | null;
+  documentType: string | null;
+  aiTags: string[] | null;
+  createdAt: string;
+}
+
+// ==================== Page Selection Options ====================
+
+export interface PageSelectionOptions {
+  startPage?: number;
+  endPage?: number;
+  pages?: number[];
+}
+
+// ==================== Update Content Request ====================
+
+export interface UpdateOcrContentRequest {
+  editedContent: string;
+  contentFormat: ContentFormat;
 }
 
 // ==================== API Responses ====================
