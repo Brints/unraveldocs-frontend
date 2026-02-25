@@ -1,9 +1,9 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.unraveldocs.com/api/v1',
+  apiUrl: 'https://api.unraveldocs.xyz/api/v1',
   google: {
-    clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-    redirectUri: 'https://unraveldocs.xyz/auth/google/callback',
+    clientId: '958289823754-fleftud0m3c522auk29usajuvf6rom3k.apps.googleusercontent.com',
+    redirectUri: 'https://unraveldocs.xyz/login/oauth2/code/google',
     scopes: [
       'openid',
       'email',
@@ -11,7 +11,7 @@ export const environment = {
     ]
   },
   firebase: {
-    vapidKey: 'BA9vHlh0UvrISwSjtG-tvA84Y41_h6KYIwfqipL0nAHHFg5uPdBKptQcwFhsc1A673B5bY9mvPC09Sc4Y-_I2Sc'
+    vapidKey: 'BPIzbDexmYmW18ViA8nPGGAej6alu1Et7xcMEDJGJeuDdD-f0jP5Fd68nwkQzK-2JOZe10Q4z4Uao-jia-sUMpQ'
   },
   features: {
     googleOneTap: true,
