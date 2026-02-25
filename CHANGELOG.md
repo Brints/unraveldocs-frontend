@@ -1,3 +1,10 @@
+# [2.5.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.4.0...v2.5.0) (2026-02-25)
+
+
+### Features
+
+* add Docker deployment configuration ([a029392](https://github.com/Brints/unraveldocs-frontend/commit/a02939269023e571b984abfeeb965e0cc7f0d797))
+
 # [2.4.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.3.0...v2.4.0) (2026-02-25)
 
 
