@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.3.0...v2.4.0) (2026-02-25)
+
+
+### Features
+
+* implement rich text support and enhance Edit Content modal design ([6407d1c](https://github.com/Brints/unraveldocs-frontend/commit/6407d1ccd9fdf4e325a8f5d6d496d1ba5049325c))
+
 # [2.3.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.2.0...v2.3.0) (2026-02-21)
 
 
