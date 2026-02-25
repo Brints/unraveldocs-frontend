@@ -14,6 +14,9 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://unraveldocs.xyz
 
     steps:
       - name: Checkout code
@@ -57,12 +60,12 @@ jobs:
             docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
 
             # Stop and remove existing container (if running)
-            docker stop unraveldocs-frontend 2>/dev/null || true
-            docker rm unraveldocs-frontend 2>/dev/null || true
+            docker stop redraft-frontend 2>/dev/null || true
+            docker rm redraft-frontend 2>/dev/null || true
 
             # Start new container
             docker run -d \
-              --name unraveldocs-frontend \
+              --name redraft-frontend \
               --restart unless-stopped \
               -p 3000:80 \
               ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
