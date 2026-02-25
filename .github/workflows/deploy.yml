@@ -7,8 +7,8 @@ on:
 
 env:
   REGISTRY: registry.digitalocean.com
-  REGISTRY_NAME: unraveldocs
-  IMAGE_NAME: unraveldocs-frontend
+  REGISTRY_NAME: redraft
+  IMAGE_NAME: redraft-frontend
 
 jobs:
   build-and-deploy:
