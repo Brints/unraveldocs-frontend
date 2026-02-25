@@ -1,0 +1,84 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: registry.digitalocean.com
+  REGISTRY_NAME: unraveldocs
+  IMAGE_NAME: unraveldocs-frontend
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ---- Build & Push Docker Image ----
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest \
+            -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            .
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      # ---- Deploy to Droplet via SSH ----
+
+      - name: Deploy to Droplet
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: root
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            # Log in to container registry
+            doctl registry login --expiry-seconds 600
+
+            # Pull the latest image
+            docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+
+            # Stop and remove existing container (if running)
+            docker stop unraveldocs-frontend 2>/dev/null || true
+            docker rm unraveldocs-frontend 2>/dev/null || true
+
+            # Start new container
+            docker run -d \
+              --name unraveldocs-frontend \
+              --restart unless-stopped \
+              -p 3000:80 \
+              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+
+            # Clean up old images
+            docker image prune -f
+
+      # ---- Verify Deployment ----
+
+      - name: Verify deployment
+        run: |
+          echo "Waiting for container to start..."
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://${{ secrets.DROPLET_IP }}:3000 || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Deployment successful! HTTP $STATUS"
+          else
+            echo "⚠️ Deployment may need attention. HTTP $STATUS"
+          fi

@@ -11,7 +11,7 @@ export const environment = {
     ]
   },
   firebase: {
-    vapidKey: 'BA9vHlh0UvrISwSjtG-tvA84Y41_h6KYIwfqipL0nAHHFg5uPdBKptQcwFhsc1A673B5bY9mvPC09Sc4Y-_I2Sc'
+    vapidKey: 'BPIzbDexmYmW18ViA8nPGGAej6alu1Et7xcMEDJGJeuDdD-f0jP5Fd68nwkQzK-2JOZe10Q4z4Uao-jia-sUMpQ'
   },
   features: {
     googleOneTap: true,
