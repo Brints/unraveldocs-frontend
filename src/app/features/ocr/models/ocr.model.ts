@@ -21,6 +21,21 @@ export type OcrOverallStatus =
   | 'failed_ocr'
   | 'completed';
 
+// ==================== Content Format ====================
+
+export type ContentFormat = 'HTML' | 'MARKDOWN';
+
+// ==================== Page Selection Options ====================
+
+/**
+ * Options for selecting specific pages during PDF OCR extraction
+ */
+export interface PageSelectionOptions {
+  startPage?: number;
+  endPage?: number;
+  pages?: number[];
+}
+
 // ==================== OCR Extraction Result ====================
 
 /**
@@ -31,9 +46,23 @@ export interface OcrExtractionResult {
   documentId: string;
   status: string;
   extractedText: string;
+  editedContent: string | null;
+  contentFormat: ContentFormat | null;
+  editedBy: string | null;
+  editedAt: string | null;
   errorMessage: string | null;
+  aiSummary: string | null;
+  documentType: string | null;
+  aiTags: string[] | null;
   createdAt: string;
   updatedAt: string;
+}
+
+// ==================== Update Content Request ====================
+
+export interface UpdateOcrContentRequest {
+  editedContent: string;
+  contentFormat: ContentFormat;
 }
 
 // ==================== Upload and Extract All ====================
@@ -71,7 +100,14 @@ export interface OcrFileResult {
   originalFileName: string;
   status: string;
   extractedText: string | null;
+  editedContent: string | null;
+  contentFormat: ContentFormat | null;
+  editedBy: string | null;
+  editedAt: string | null;
   errorMessage: string | null;
+  aiSummary: string | null;
+  documentType: string | null;
+  aiTags: string[] | null;
   createdAt: string;
 }
 
@@ -82,9 +118,18 @@ export interface OcrFileResult {
  */
 export interface OcrData {
   documentId: string;
-  fileName: string;
+  originalFileName: string;
+  status: string;
   extractedText: string;
-  confidence: number;
+  editedContent: string | null;
+  contentFormat: ContentFormat | null;
+  editedBy: string | null;
+  editedAt: string | null;
+  errorMessage: string | null;
+  aiSummary: string | null;
+  documentType: string | null;
+  aiTags: string[] | null;
+  createdAt: string;
 }
 
 // ==================== OCR Job (Internal State) ====================
@@ -100,6 +145,13 @@ export interface OcrJob {
   status: OcrStatus;
   progress: number;
   extractedText?: string;
+  editedContent?: string;
+  contentFormat?: ContentFormat;
+  editedBy?: string;
+  editedAt?: string;
+  aiSummary?: string;
+  documentType?: string;
+  aiTags?: string[];
   confidence?: number;
   language?: string;
   error?: string;

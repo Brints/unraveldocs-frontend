@@ -1,6 +1,6 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
+import { Observable, catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { OcrApiService } from './ocr-api.service';
 import { UserApiService } from '../../user/services/user-api.service';
 import {
@@ -11,6 +11,9 @@ import {
   OcrData,
   SUPPORTED_LANGUAGES,
   UploadExtractResponse,
+  PageSelectionOptions,
+  ContentFormat,
+  UpdateOcrContentRequest,
 } from '../models/ocr.model';
 
 @Injectable({
@@ -232,7 +235,12 @@ export class OcrStateService {
   /**
    * Extract text from a document
    */
-  extractText(collectionId: string, documentId: string, fileName: string): void {
+  extractText(
+    collectionId: string,
+    documentId: string,
+    fileName: string,
+    pageOptions?: PageSelectionOptions
+  ): void {
     // Add to processing queue
     const job: OcrJob = {
       id: `ocr-${Date.now()}`,
@@ -258,7 +266,7 @@ export class OcrStateService {
       );
     }, 500);
 
-    this.api.extractText(collectionId, documentId).pipe(
+    this.api.extractText(collectionId, documentId, pageOptions).pipe(
       tap(result => {
         clearInterval(progressInterval);
         this._jobs.update(jobs =>
@@ -500,6 +508,13 @@ export class OcrStateService {
   }
 
   /**
+   * Get OCR data as Observable (for direct subscription)
+   */
+  getOcrDataObservable(collectionId: string, documentId: string): Observable<OcrData> {
+    return this.api.getOcrData(collectionId, documentId);
+  }
+
+  /**
    * Load OCR data for a job
    */
   loadOcrData(job: OcrJob): void {
@@ -512,14 +527,30 @@ export class OcrStateService {
         this._jobs.update(jobs =>
           jobs.map(j =>
             j.id === job.id
-              ? { ...j, extractedText: data.extractedText, confidence: data.confidence }
+              ? {
+                  ...j,
+                  extractedText: data.extractedText,
+                  editedContent: data.editedContent || undefined,
+                  contentFormat: data.contentFormat || undefined,
+                  editedBy: data.editedBy || undefined,
+                  editedAt: data.editedAt || undefined,
+                  aiSummary: data.aiSummary || undefined,
+                  documentType: data.documentType || undefined,
+                  aiTags: data.aiTags || undefined,
+                }
               : j
           )
         );
         this._selectedJob.set({
           ...job,
           extractedText: data.extractedText,
-          confidence: data.confidence
+          editedContent: data.editedContent || undefined,
+          contentFormat: data.contentFormat || undefined,
+          editedBy: data.editedBy || undefined,
+          editedAt: data.editedAt || undefined,
+          aiSummary: data.aiSummary || undefined,
+          documentType: data.documentType || undefined,
+          aiTags: data.aiTags || undefined,
         });
       }),
       catchError(error => {
@@ -528,6 +559,60 @@ export class OcrStateService {
         return of(null);
       }),
       finalize(() => this._isLoading.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Update edited content for a document
+   */
+  updateContent(
+    collectionId: string,
+    documentId: string,
+    editedContent: string,
+    contentFormat: ContentFormat
+  ): void {
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    const request: UpdateOcrContentRequest = { editedContent, contentFormat };
+
+    this.api.updateContent(collectionId, documentId, request).pipe(
+      tap(result => {
+        // Update the job in local state
+        this._jobs.update(jobs =>
+          jobs.map(j =>
+            j.documentId === documentId
+              ? {
+                  ...j,
+                  editedContent: result.editedContent || undefined,
+                  contentFormat: result.contentFormat || undefined,
+                  editedBy: result.editedBy || undefined,
+                  editedAt: result.editedAt || undefined,
+                }
+              : j
+          )
+        );
+        // Update selected job if it's the same
+        const selected = this._selectedJob();
+        if (selected && selected.documentId === documentId) {
+          this._selectedJob.set({
+            ...selected,
+            editedContent: result.editedContent || undefined,
+            contentFormat: result.contentFormat || undefined,
+            editedBy: result.editedBy || undefined,
+            editedAt: result.editedAt || undefined,
+          });
+        }
+        this._successMessage.set('Content saved successfully!');
+        setTimeout(() => this._successMessage.set(null), 3000);
+      }),
+      catchError(error => {
+        const message = error?.error?.message || 'Failed to save content';
+        this._error.set(message);
+        console.error('Update content error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isProcessing.set(false))
     ).subscribe();
   }
 
@@ -638,9 +723,18 @@ export class OcrStateService {
     if (!job.extractedText) return;
     const data: OcrData = {
       documentId: job.documentId,
-      fileName: job.fileName,
+      originalFileName: job.fileName,
+      status: job.status,
       extractedText: job.extractedText,
-      confidence: job.confidence || 0
+      editedContent: job.editedContent || null,
+      contentFormat: job.contentFormat || null,
+      editedBy: job.editedBy || null,
+      editedAt: job.editedAt || null,
+      errorMessage: job.error || null,
+      aiSummary: job.aiSummary || null,
+      documentType: job.documentType || null,
+      aiTags: job.aiTags || null,
+      createdAt: job.createdAt,
     };
     const fileName = job.fileName.replace(/\.[^/.]+$/, '');
     this.api.downloadAsJson(data, fileName);

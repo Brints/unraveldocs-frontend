@@ -3,17 +3,22 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { OcrStateService } from '../../services/ocr-state.service';
-import { OcrJob, OcrStatus, SUPPORTED_LANGUAGES } from '../../models/ocr.model';
+import { AiStateService } from '../../../ai/services/ai-state.service';
+import { OcrJob, OcrStatus, OcrData, SUPPORTED_LANGUAGES, PageSelectionOptions, ContentFormat } from '../../models/ocr.model';
+import { SummaryType } from '../../../ai/models/ai.model';
+import { RichTextEditorComponent } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
+import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-ocr-processing',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, RichTextEditorComponent, SafeHtmlPipe],
   templateUrl: './ocr-processing.component.html',
   styleUrls: ['./ocr-processing.component.css']
 })
 export class OcrProcessingComponent implements OnInit {
   protected readonly ocrState = inject(OcrStateService);
+  protected readonly aiState = inject(AiStateService);
 
   // Local state
   isDragOver = signal(false);
@@ -21,6 +26,30 @@ export class OcrProcessingComponent implements OnInit {
   showUploadModal = signal(false);
   selectedFiles = signal<File[]>([]);
   showResultModal = signal(false);
+
+  // OCR data loaded from API for result modal
+  ocrData = signal<OcrData | null>(null);
+  ocrDataLoading = signal(false);
+  ocrViewTab = signal<'extracted' | 'edited'>('extracted');
+
+  // Page selection state
+  pageSelectionMode = signal<'all' | 'range' | 'specific'>('all');
+  startPage = signal<number | null>(null);
+  endPage = signal<number | null>(null);
+  specificPages = signal('');
+
+  // Content editing state
+  showEditModal = signal(false);
+  editingContent = signal('');
+  editingFormat = signal<ContentFormat>('HTML');
+  editingJob = signal<OcrJob | null>(null);
+
+  // AI state
+  showSummaryModal = signal(false);
+  summaryType = signal<SummaryType>('SHORT');
+  summaryJob = signal<OcrJob | null>(null);
+  showClassifyModal = signal(false);
+  classifyJob = signal<OcrJob | null>(null);
 
   // From state service
   readonly jobs = this.ocrState.jobs;
@@ -167,12 +196,53 @@ export class OcrProcessingComponent implements OnInit {
   // Job actions
   viewResult(job: OcrJob): void {
     this.ocrState.selectJob(job);
+    this.ocrData.set(null);
+    this.ocrDataLoading.set(true);
+    this.ocrViewTab.set('extracted');
     this.showResultModal.set(true);
+
+    // Load full OCR data from the API (includes aiSummary, documentType, aiTags, editedContent)
+    if (job.collectionId && job.documentId) {
+      this.ocrState.loadOcrData(job);
+      // Also load into our local ocrData signal for the new modal design
+      this.ocrState.getOcrDataObservable(job.collectionId, job.documentId).subscribe({
+        next: (data) => {
+          this.ocrData.set(data);
+          this.ocrDataLoading.set(false);
+        },
+        error: () => {
+          this.ocrDataLoading.set(false);
+        }
+      });
+    } else {
+      this.ocrDataLoading.set(false);
+    }
   }
 
   closeResultModal(): void {
     this.showResultModal.set(false);
     this.ocrState.selectJob(null);
+    this.ocrData.set(null);
+    this.ocrDataLoading.set(false);
+  }
+
+  setOcrViewTab(tab: 'extracted' | 'edited'): void {
+    this.ocrViewTab.set(tab);
+  }
+
+  getDocTypeIcon(docType: string | null | undefined): string {
+    if (!docType) return '📄';
+    const icons: Record<string, string> = {
+      'invoice': '🧾', 'receipt': '🧾', 'contract': '📑', 'letter': '✉️',
+      'id_document': '🪪', 'medical': '🏥', 'legal': '⚖️', 'academic': '🎓',
+      'report': '📊', 'form': '📋', 'other': '📄'
+    };
+    return icons[docType] || '📄';
+  }
+
+  getDocTypeLabel(docType: string | null | undefined): string {
+    if (!docType) return 'Unknown';
+    return docType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
   retryJob(job: OcrJob): void {
@@ -331,6 +401,143 @@ export class OcrProcessingComponent implements OnInit {
     const s = this.stats();
     if (!s || s.monthlyLimit === -1 || s.monthlyLimit === 0) return 0;
     return Math.round(((s.monthlyLimit - s.pagesRemaining) / s.monthlyLimit) * 100);
+  }
+
+  // ==================== Page Selection ====================
+
+  /**
+   * Check if any selected file is a PDF
+   */
+  hasPdfFile(): boolean {
+    return this.selectedFiles().some(f => f.type === 'application/pdf');
+  }
+
+  setPageSelectionMode(mode: 'all' | 'range' | 'specific'): void {
+    this.pageSelectionMode.set(mode);
+    if (mode === 'all') {
+      this.startPage.set(null);
+      this.endPage.set(null);
+      this.specificPages.set('');
+    }
+  }
+
+  onStartPageChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).valueAsNumber;
+    this.startPage.set(isNaN(val) ? null : val);
+  }
+
+  onEndPageChange(event: Event): void {
+    const val = (event.target as HTMLInputElement).valueAsNumber;
+    this.endPage.set(isNaN(val) ? null : val);
+  }
+
+  onSpecificPagesChange(event: Event): void {
+    this.specificPages.set((event.target as HTMLInputElement).value);
+  }
+
+  getPageSelectionOptions(): PageSelectionOptions | undefined {
+    const mode = this.pageSelectionMode();
+    if (mode === 'all') return undefined;
+
+    if (mode === 'range') {
+      const start = this.startPage();
+      const end = this.endPage();
+      if (start == null && end == null) return undefined;
+      return { startPage: start || undefined, endPage: end || undefined };
+    }
+
+    if (mode === 'specific') {
+      const pagesStr = this.specificPages().trim();
+      if (!pagesStr) return undefined;
+      const pages = pagesStr
+        .split(',')
+        .map(s => parseInt(s.trim(), 10))
+        .filter(n => !isNaN(n) && n > 0);
+      if (pages.length === 0) return undefined;
+      return { pages };
+    }
+
+    return undefined;
+  }
+
+  // ==================== AI Actions ====================
+
+  openSummaryModal(job: OcrJob): void {
+    this.summaryJob.set(job);
+    this.summaryType.set('SHORT');
+    this.aiState.clearSummaryResult();
+    this.showSummaryModal.set(true);
+  }
+
+  closeSummaryModal(): void {
+    this.showSummaryModal.set(false);
+    this.summaryJob.set(null);
+  }
+
+  summarizeDocument(): void {
+    const job = this.summaryJob();
+    if (!job) return;
+    this.aiState.summarize(job.documentId, this.summaryType());
+  }
+
+  onSummaryTypeChange(event: Event): void {
+    this.summaryType.set((event.target as HTMLSelectElement).value as SummaryType);
+  }
+
+  openClassifyModal(job: OcrJob): void {
+    this.classifyJob.set(job);
+    this.aiState.clearClassifyResult();
+    this.showClassifyModal.set(true);
+    // Immediately trigger classification
+    this.aiState.classify(job.documentId);
+  }
+
+  closeClassifyModal(): void {
+    this.showClassifyModal.set(false);
+    this.classifyJob.set(null);
+  }
+
+  // ==================== Content Editing ====================
+
+  openEditModal(job: OcrJob): void {
+    this.editingJob.set(job);
+    this.editingContent.set(job.editedContent || job.extractedText || '');
+    this.editingFormat.set(job.contentFormat || 'HTML');
+    this.showEditModal.set(true);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal.set(false);
+    this.editingJob.set(null);
+    this.editingContent.set('');
+  }
+
+  onEditingContentChange(event: Event): void {
+    this.editingContent.set((event.target as HTMLTextAreaElement).value);
+  }
+
+  onEditingFormatChange(event: Event): void {
+    this.editingFormat.set((event.target as HTMLSelectElement).value as ContentFormat);
+  }
+
+  saveEditedContent(): void {
+    const job = this.editingJob();
+    if (!job || !job.collectionId || !job.documentId) return;
+
+    const content = this.editingContent().trim();
+    if (!content) return;
+
+    this.ocrState.updateContent(
+      job.collectionId,
+      job.documentId,
+      content,
+      this.editingFormat()
+    );
+    this.closeEditModal();
+  }
+
+  isPdf(job: OcrJob): boolean {
+    return job.mimeType === 'application/pdf';
   }
 }
 

@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpEvent, HttpEventType, HttpRequest } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpEventType, HttpParams, HttpRequest } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import {
@@ -16,6 +16,8 @@ import {
   OcrResult,
   OcrCollectionResult,
   OcrData,
+  PageSelectionOptions,
+  UpdateOcrContentRequest,
 } from '../models/document.model';
 
 @Injectable({
@@ -210,12 +212,37 @@ export class DocumentApiService {
   /**
    * Extract text from file
    * POST /collections/{collectionId}/document/{documentId}/extract
+   * Supports page selection for PDFs via query parameters
    */
-  extractText(collectionId: string, documentId: string): Observable<OcrResult> {
-    return this.http.post<DocumentApiResponse<OcrResult>>(
-      `${this.apiUrl}/collections/${collectionId}/document/${documentId}/extract`,
-      {}
-    ).pipe(map(response => response.data));
+  extractText(
+    collectionId: string,
+    documentId: string,
+    pageOptions?: PageSelectionOptions
+  ): Observable<OcrResult> {
+    let params = new HttpParams();
+
+    if (pageOptions) {
+      if (pageOptions.pages && pageOptions.pages.length > 0) {
+        pageOptions.pages.forEach((page) => {
+          params = params.append('pages', page.toString());
+        });
+      } else {
+        if (pageOptions.startPage != null) {
+          params = params.set('startPage', pageOptions.startPage.toString());
+        }
+        if (pageOptions.endPage != null) {
+          params = params.set('endPage', pageOptions.endPage.toString());
+        }
+      }
+    }
+
+    return this.http
+      .post<DocumentApiResponse<OcrResult>>(
+        `${this.apiUrl}/collections/${collectionId}/document/${documentId}/extract`,
+        {},
+        { params }
+      )
+      .pipe(map((response) => response.data));
   }
 
   /**
@@ -236,6 +263,23 @@ export class DocumentApiService {
     return this.http.get<DocumentApiResponse<OcrData>>(
       `${this.apiUrl}/collections/${collectionId}/document/${documentId}/ocr-data`
     ).pipe(map(response => response.data));
+  }
+
+  /**
+   * Update edited content for a document
+   * PUT /collections/{collectionId}/document/{documentId}/content
+   */
+  updateContent(
+    collectionId: string,
+    documentId: string,
+    request: UpdateOcrContentRequest
+  ): Observable<OcrData> {
+    return this.http
+      .put<DocumentApiResponse<OcrData>>(
+        `${this.apiUrl}/collections/${collectionId}/document/${documentId}/content`,
+        request
+      )
+      .pipe(map((response) => response.data));
   }
 
   // ==================== Word Export ====================
