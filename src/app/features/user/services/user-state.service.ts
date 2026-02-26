@@ -140,7 +140,7 @@ export class UserStateService {
         subtitle: storage.unlimited
           ? 'Unlimited'
           : `${storage.storageUsedFormatted} of ${storage.storageLimitFormatted}`,
-        link: '/settings/billing'
+        link: '/user/settings/billing'
       },
       {
         id: 'plan',

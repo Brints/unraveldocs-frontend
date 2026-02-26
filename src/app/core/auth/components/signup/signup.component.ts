@@ -124,7 +124,7 @@ export class SignupComponent implements OnInit {
   googleConfig = {
     showMarketingConsent: true,
     showReferralCode: false,
-    redirectAfterSignup: '/dashboard',
+    redirectAfterSignup: '/user/dashboard',
     theme: 'light' as const,
     size: 'medium' as const,
   };

@@ -442,7 +442,7 @@ export class PaystackStateService {
 
           // Navigate to billing page with success flag
           setTimeout(() => {
-            this.router.navigate(['/settings/billing'], {
+            this.router.navigate(['/user/settings/billing'], {
               queryParams: { success: 'true' }
             });
           }, 2000);

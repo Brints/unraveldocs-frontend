@@ -66,7 +66,7 @@ export class GoogleSignupComponent implements OnInit, OnDestroy {
   public config = signal<GoogleSignupConfig>({
     showMarketingConsent: true,
     showReferralCode: false,
-    redirectAfterSignup: '/dashboard',
+    redirectAfterSignup: '/user/dashboard',
     theme: 'light',
     size: 'medium',
     ...this.signupConfig

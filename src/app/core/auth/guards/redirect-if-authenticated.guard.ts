@@ -13,7 +13,7 @@ export const redirectIfAuthenticatedGuard: CanActivateFn = async (_route, _state
 
   if (authService.isAuthenticated()) {
     // User is authenticated, redirect to dashboard
-    await router.navigate(['/dashboard']);
+    await router.navigate(['/user/dashboard']);
     return false;
   }
 

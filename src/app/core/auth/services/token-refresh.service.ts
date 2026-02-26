@@ -36,7 +36,7 @@ export class TokenRefreshService implements OnDestroy {
   /**
    * Schedule the next token refresh based on token expiration
    */
-  private scheduleTokenRefresh(): void {
+  private async scheduleTokenRefresh(): Promise<void> {
     const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
 
     if (!accessToken) {
@@ -57,14 +57,12 @@ export class TokenRefreshService implements OnDestroy {
 
     if (refreshIn <= 0) {
       // Token is already expired or about to expire, refresh immediately
-      this.performTokenRefresh();
+      await this.performTokenRefresh();
     } else {
       // Schedule refresh
       this.refreshTimerId = setTimeout(() => {
         this.performTokenRefresh();
       }, refreshIn);
-
-      console.log(`Token refresh scheduled in ${Math.round(refreshIn / 1000 / 60)} minutes`);
     }
   }
 
@@ -74,30 +72,22 @@ export class TokenRefreshService implements OnDestroy {
   private async performTokenRefresh(): Promise<void> {
     try {
       await this.authService.refreshToken();
-      console.log('Token refreshed successfully');
 
       // Schedule the next refresh
-      this.scheduleTokenRefresh();
+      await this.scheduleTokenRefresh();
     } catch (error) {
-      console.error('Token refresh failed:', error);
-
-      // Clear tokens and redirect to login
-      await this.authService.logout();
-
-      // Only capture returnUrl if not already on the login page
+      // refreshToken() already clears session state on failure.
+      // Only redirect to login if the user is on a protected page.
       const currentPath = window.location.pathname;
-      if (!currentPath.startsWith('/auth/login')) {
+      const publicPaths = ['/home', '/pricing', '/terms', '/privacy', '/auth/', '/'];
+      const isOnPublicPage = publicPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'))
+        || currentPath === '/';
+
+      if (!isOnPublicPage && !currentPath.startsWith('/auth/')) {
         await this.router.navigate(['/auth/login'], {
           queryParams: {
             sessionExpired: 'true',
             returnUrl: currentPath
-          }
-        });
-      } else {
-        // Already on login page, just navigate without returnUrl to break the loop
-        await this.router.navigate(['/auth/login'], {
-          queryParams: {
-            sessionExpired: 'true'
           }
         });
       }

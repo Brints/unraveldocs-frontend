@@ -2,8 +2,8 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080/api/v1',
   google: {
-    clientId: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com',
-    redirectUri: 'http://localhost:4200/auth/google/callback',
+    clientId: '958289823754-fleftud0m3c522auk29usajuvf6rom3k.apps.googleusercontent.com',
+    redirectUri: 'https://8hw23p5s-4200.uks1.devtunnels.ms/login/oauth2/code/google',
     scopes: [
       'openid',
       'email',

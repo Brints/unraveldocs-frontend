@@ -26,7 +26,7 @@
         }
 
         @if (authService.isAuthenticated()) {
-        <a href="/dashboard"
+        <a href="/user/dashboard"
           class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">Dashboard</a>
         <a href="/documents"
           class="nav-link text-gray-700 hover:text-blue-600 font-medium transition-colors relative bg-transparent border-0 cursor-pointer">My
@@ -129,10 +129,10 @@
       </div>
       } @else {
       <nav class="flex flex-col space-y-2">
-        <a href="/dashboard" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a>
+        <a href="/user/dashboard" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Dashboard</a>
         <a href="/documents" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">My Documents</a>
-        <a href="/profile" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Profile</a>
-        <a href="/settings" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a>
+        <a href="/user/settings/profile" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Profile</a>
+        <a href="/user/settings" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">Settings</a>
         <button (click)="logout()" class="text-left px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
           Sign Out
         </button>

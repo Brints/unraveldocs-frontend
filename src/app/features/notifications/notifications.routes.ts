@@ -9,7 +9,7 @@ export const notificationRoutes: Routes = [
   },
   {
     path: 'preferences',
-    redirectTo: '/settings/notifications',
+    redirectTo: '/user/settings/notifications',
     pathMatch: 'full'
   },
 ];
