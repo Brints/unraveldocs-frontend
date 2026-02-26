@@ -1,0 +1,156 @@
+/* Credit Transaction History Styles */
+
+.transactions-page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem;
+}
+@media (min-width: 640px) { .transactions-page { padding: 1.5rem; } }
+@media (min-width: 1024px) { .transactions-page { padding: 1.5rem 2rem; } }
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media (min-width: 640px) { .page-header { flex-direction: row; align-items: center; } }
+.header-content { flex: 1; }
+.header-back { display: flex; align-items: center; gap: 0.75rem; }
+.back-link {
+  padding: 0.5rem; border-radius: 0.75rem; color: #9ca3af;
+  text-decoration: none; transition: all 0.2s;
+}
+.back-link:hover { color: #4b5563; background: #f3f4f6; }
+.page-title { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0; }
+.page-subtitle { font-size: 0.875rem; color: #6b7280; margin: 0; }
+.header-actions { display: flex; align-items: center; gap: 0.75rem; }
+.balance-chip {
+  display: inline-flex; align-items: center; gap: 0.375rem;
+  padding: 0.5rem 1rem; background: #eef2ff; color: #4338ca;
+  border-radius: 0.75rem; font-size: 0.875rem; font-weight: 600;
+  border: 1px solid #e0e7ff;
+}
+.btn-refresh {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500;
+  color: #374151; background: white; border: 1px solid #d1d5db;
+  border-radius: 0.75rem; cursor: pointer; transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+.btn-refresh:disabled { opacity: 0.5; }
+
+/* Alerts */
+.alert {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; border-radius: 0.75rem; font-size: 0.875rem;
+  font-weight: 500; margin-bottom: 1.5rem;
+}
+.alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* Transaction List */
+.transaction-list {
+  background: white; border-radius: 1rem; border: 1px solid #f3f4f6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;
+}
+.transaction-item {
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid #f9fafb;
+  transition: background 0.2s;
+}
+.transaction-item:last-child { border-bottom: none; }
+.transaction-item:hover { background: rgba(249,250,251,0.5); }
+
+.transaction-icon {
+  width: 2.5rem; height: 2.5rem; border-radius: 0.75rem;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.transaction-details { flex: 1; min-width: 0; }
+.transaction-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.transaction-type-badge {
+  display: inline-flex; padding: 0.125rem 0.625rem;
+  font-size: 0.6875rem; font-weight: 600; border-radius: 9999px;
+}
+.transaction-time { font-size: 0.75rem; color: #9ca3af; }
+.transaction-description { font-size: 0.875rem; color: #4b5563; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.transaction-meta { margin-top: 0.125rem; }
+.transaction-balance { font-size: 0.75rem; color: #9ca3af; }
+
+.transaction-amount { text-align: right; flex-shrink: 0; }
+.transaction-amount span:first-child { font-size: 1.125rem; font-weight: 700; display: block; }
+.transaction-amount.incoming span:first-child { color: #16a34a; }
+.transaction-amount.outgoing span:first-child { color: #dc2626; }
+.amount-label { font-size: 0.75rem; color: #9ca3af; font-weight: 400; }
+
+/* Color helpers */
+.bg-green-100 { background: #dcfce7; }
+.bg-red-100 { background: #fee2e2; }
+.bg-blue-100 { background: #dbeafe; }
+.bg-amber-100 { background: #fef3c7; }
+.bg-purple-100 { background: #ede9fe; }
+.bg-orange-100 { background: #ffedd5; }
+.bg-emerald-100 { background: #d1fae5; }
+.bg-indigo-100 { background: #e0e7ff; }
+.text-green-700 { color: #15803d; }
+.text-red-700 { color: #b91c1c; }
+.text-blue-700 { color: #1d4ed8; }
+.text-amber-700 { color: #b45309; }
+.text-purple-700 { color: #7e22ce; }
+.text-orange-700 { color: #c2410c; }
+.text-emerald-700 { color: #047857; }
+.text-indigo-700 { color: #4338ca; }
+.text-green-500 { color: #22c55e; }
+.text-red-500 { color: #ef4444; }
+.text-blue-500 { color: #3b82f6; }
+.text-amber-500 { color: #f59e0b; }
+.text-purple-500 { color: #a855f7; }
+.text-orange-500 { color: #f97316; }
+.text-emerald-500 { color: #10b981; }
+.text-indigo-500 { color: #6366f1; }
+
+/* Load More */
+.load-more { display: flex; justify-content: center; padding: 1rem; }
+.btn-load-more {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.625rem 1.5rem; font-size: 0.875rem; font-weight: 500;
+  color: #4f46e5; background: #eef2ff; border: none;
+  border-radius: 0.75rem; cursor: pointer; transition: background 0.2s;
+}
+.btn-load-more:hover { background: #e0e7ff; }
+.btn-load-more:disabled { opacity: 0.5; }
+.pagination-info { text-align: center; padding: 0.75rem; font-size: 0.75rem; color: #9ca3af; }
+
+/* Empty State */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 4rem 1rem; text-align: center;
+}
+.empty-icon { margin-bottom: 1rem; }
+.empty-title { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0 0 0.5rem; }
+.empty-description { font-size: 0.875rem; color: #6b7280; max-width: 28rem; margin: 0; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: white; font-size: 0.875rem; font-weight: 600; border-radius: 0.75rem;
+  text-decoration: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  margin-top: 1rem;
+}
+
+/* Skeleton */
+.skeleton-item { animation: shimmer 1.5s infinite; }
+.skeleton-circle { width: 2.5rem; height: 2.5rem; background: #e5e7eb; border-radius: 0.75rem; flex-shrink: 0; }
+.skeleton-body { flex: 1; }
+.skeleton-line { background: #e5e7eb; border-radius: 0.25rem; }
+@keyframes shimmer { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* Spinner */
+.spinner-sm {
+  width: 1rem; height: 1rem; border: 2px solid #c7d2fe;
+  border-top-color: #4f46e5; border-radius: 50%;
+  animation: spin 1s linear infinite; display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.animate-spin { animation: spin 1s linear infinite; }

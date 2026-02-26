@@ -93,6 +93,19 @@ export class PricingService {
   private getFallbackPlans(currency: string): PlansResponse {
     const currencyInfo = this._currencies().find(c => c.code === currency) || { code: 'USD', symbol: '$', name: 'US Dollar' };
     const timestamp = new Date().toISOString();
+    const rate = this.getFallbackExchangeRate(currency);
+
+    const convert = (usd: number) => {
+      const converted = Math.round(usd * rate * 100) / 100;
+      return {
+        originalAmountUsd: usd,
+        convertedAmount: converted,
+        currency,
+        formattedPrice: this.formatFallbackPrice(converted, currency, currencyInfo.symbol),
+        exchangeRate: rate,
+        rateTimestamp: timestamp,
+      };
+    };
 
     return {
       individualPlans: [
@@ -101,7 +114,7 @@ export class PricingService {
           planName: 'FREE',
           displayName: 'Free',
           billingInterval: 'MONTH',
-          price: { originalAmountUsd: 0, convertedAmount: 0, currency, formattedPrice: `${currencyInfo.symbol}0`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(0),
           documentUploadLimit: 5,
           ocrPageLimit: 25,
           isActive: true,
@@ -112,7 +125,7 @@ export class PricingService {
           planName: 'STARTER_MONTHLY',
           displayName: 'Starter',
           billingInterval: 'MONTH',
-          price: { originalAmountUsd: 9, convertedAmount: 9, currency, formattedPrice: `${currencyInfo.symbol}9`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(9),
           documentUploadLimit: 30,
           ocrPageLimit: 150,
           isActive: true,
@@ -123,7 +136,7 @@ export class PricingService {
           planName: 'PRO_MONTHLY',
           displayName: 'Pro',
           billingInterval: 'MONTH',
-          price: { originalAmountUsd: 19, convertedAmount: 19, currency, formattedPrice: `${currencyInfo.symbol}19`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(19),
           documentUploadLimit: 100,
           ocrPageLimit: 500,
           isActive: true,
@@ -134,7 +147,7 @@ export class PricingService {
           planName: 'BUSINESS_MONTHLY',
           displayName: 'Business',
           billingInterval: 'MONTH',
-          price: { originalAmountUsd: 49, convertedAmount: 49, currency, formattedPrice: `${currencyInfo.symbol}49`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(49),
           documentUploadLimit: 500,
           ocrPageLimit: 2500,
           isActive: true,
@@ -145,7 +158,7 @@ export class PricingService {
           planName: 'STARTER_YEARLY',
           displayName: 'Starter',
           billingInterval: 'YEAR',
-          price: { originalAmountUsd: 90, convertedAmount: 90, currency, formattedPrice: `${currencyInfo.symbol}90`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(90),
           documentUploadLimit: 360,
           ocrPageLimit: 1800,
           isActive: true,
@@ -156,7 +169,7 @@ export class PricingService {
           planName: 'PRO_YEARLY',
           displayName: 'Pro',
           billingInterval: 'YEAR',
-          price: { originalAmountUsd: 190, convertedAmount: 190, currency, formattedPrice: `${currencyInfo.symbol}190`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(190),
           documentUploadLimit: 1200,
           ocrPageLimit: 6000,
           isActive: true,
@@ -167,7 +180,7 @@ export class PricingService {
           planName: 'BUSINESS_YEARLY',
           displayName: 'Business',
           billingInterval: 'YEAR',
-          price: { originalAmountUsd: 490, convertedAmount: 490, currency, formattedPrice: `${currencyInfo.symbol}490`, exchangeRate: 1, rateTimestamp: timestamp },
+          price: convert(490),
           documentUploadLimit: 6000,
           ocrPageLimit: 30000,
           isActive: true,
@@ -180,8 +193,8 @@ export class PricingService {
           planName: 'TEAM_PREMIUM',
           displayName: 'Team Premium',
           description: 'Perfect for small teams. Includes 200 documents per month with up to 10 members.',
-          monthlyPrice: { originalAmountUsd: 29, convertedAmount: 29, currency, formattedPrice: `${currencyInfo.symbol}29`, exchangeRate: 1, rateTimestamp: timestamp },
-          yearlyPrice: { originalAmountUsd: 290, convertedAmount: 290, currency, formattedPrice: `${currencyInfo.symbol}290`, exchangeRate: 1, rateTimestamp: timestamp },
+          monthlyPrice: convert(29),
+          yearlyPrice: convert(290),
           maxMembers: 10,
           monthlyDocumentLimit: 200,
           hasAdminPromotion: false,
@@ -195,8 +208,8 @@ export class PricingService {
           planName: 'TEAM_ENTERPRISE',
           displayName: 'Team Enterprise',
           description: 'For larger teams that need unlimited documents, admin roles, and email invitations.',
-          monthlyPrice: { originalAmountUsd: 79, convertedAmount: 79, currency, formattedPrice: `${currencyInfo.symbol}79`, exchangeRate: 1, rateTimestamp: timestamp },
-          yearlyPrice: { originalAmountUsd: 790, convertedAmount: 790, currency, formattedPrice: `${currencyInfo.symbol}790`, exchangeRate: 1, rateTimestamp: timestamp },
+          monthlyPrice: convert(79),
+          yearlyPrice: convert(790),
           maxMembers: 15,
           monthlyDocumentLimit: -1, // Unlimited
           hasAdminPromotion: true,
@@ -209,6 +222,50 @@ export class PricingService {
       displayCurrency: currency,
       exchangeRateTimestamp: timestamp
     };
+  }
+
+  /**
+   * Approximate fallback exchange rates (USD → target)
+   * Used only when the API is unreachable
+   */
+  private getFallbackExchangeRate(currency: string): number {
+    const rates: Record<string, number> = {
+      'USD': 1,
+      'EUR': 0.92,
+      'GBP': 0.79,
+      'NGN': 1550,
+      'GHS': 14.5,
+      'KES': 129,
+      'ZAR': 18.2,
+      'INR': 83.5,
+      'CAD': 1.36,
+      'AUD': 1.53,
+      'JPY': 150,
+      'CNY': 7.24,
+      'BRL': 4.97,
+      'MXN': 17.1,
+      'AED': 3.67,
+      'SGD': 1.34,
+      'CHF': 0.88,
+    };
+    return rates[currency] ?? 1;
+  }
+
+  /**
+   * Format a price for fallback display
+   */
+  private formatFallbackPrice(amount: number, currency: string, symbol: string): string {
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2,
+      }).format(amount);
+    } catch {
+      // If Intl doesn't recognise the currency code, fall back to symbol + number
+      return `${symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+    }
   }
 
   /**

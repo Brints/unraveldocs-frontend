@@ -45,6 +45,10 @@ export const routes: Routes = [
   },
   {
     path: '',
+    loadChildren: () => import('./features/credits/credits.routes').then(m => m.creditRoutes)
+  },
+  {
+    path: '',
     loadChildren: () => import('./features/teams/teams.routes').then(m => m.teamRoutes)
   },
   {

@@ -1,0 +1,135 @@
+<!-- Credit Transaction History -->
+<div class="transactions-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-back">
+        <a routerLink="/credits/packs" class="back-link">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="page-title">Transaction History</h1>
+          <p class="page-subtitle">View all your credit transactions</p>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="balance-chip">
+        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span>{{ creditBalance() }} credits</span>
+      </div>
+      <button class="btn-refresh" (click)="refresh()" [disabled]="isLoading()">
+        <svg class="w-5 h-5" [class.animate-spin]="isLoading()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading() && transactions().length === 0) {
+    <div class="transaction-list">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="transaction-item skeleton-item">
+          <div class="skeleton-circle"></div>
+          <div class="skeleton-body">
+            <div class="skeleton-line w-32 h-4 mb-2"></div>
+            <div class="skeleton-line w-48 h-3"></div>
+          </div>
+          <div class="skeleton-line w-16 h-5 ml-auto"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!isLoading() && transactions().length === 0 && !error()) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+      </div>
+      <h3 class="empty-title">No transactions yet</h3>
+      <p class="empty-description">Your credit transaction history will appear here once you make your first purchase.</p>
+      <a routerLink="/credits/packs" class="btn-primary mt-4">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Buy Credits
+      </a>
+    </div>
+  }
+
+  <!-- Transaction List -->
+  @if (transactions().length > 0) {
+    <div class="transaction-list">
+      @for (tx of transactions(); track tx.transactionId) {
+        <div class="transaction-item">
+          <!-- Icon -->
+          <div class="transaction-icon" [class]="getTypeColors(tx.type).bg">
+            <svg class="w-5 h-5" [class]="getTypeColors(tx.type).icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getTransactionIcon(tx.type)"/>
+            </svg>
+          </div>
+
+          <!-- Details -->
+          <div class="transaction-details">
+            <div class="transaction-top">
+              <span class="transaction-type-badge" [class]="getTypeColors(tx.type).bg + ' ' + getTypeColors(tx.type).text">
+                {{ getTypeLabel(tx.type) }}
+              </span>
+              <span class="transaction-time" [title]="formatDate(tx.createdAt)">{{ formatRelativeDate(tx.createdAt) }}</span>
+            </div>
+            <p class="transaction-description">{{ tx.description }}</p>
+            <div class="transaction-meta">
+              <span class="transaction-balance">Balance after: {{ tx.balanceAfter }}</span>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="transaction-amount" [class.incoming]="isIncoming(tx.type)" [class.outgoing]="!isIncoming(tx.type)">
+            <span>{{ isIncoming(tx.type) ? '+' : '-' }}{{ tx.amount }}</span>
+            <span class="amount-label">credits</span>
+          </div>
+        </div>
+      }
+
+      <!-- Load More -->
+      @if (hasMorePages()) {
+        <div class="load-more">
+          <button class="btn-load-more" (click)="loadMore()" [disabled]="isLoading()">
+            @if (isLoading()) {
+              <span class="spinner-sm"></span>
+              Loading...
+            } @else {
+              Load More
+            }
+          </button>
+        </div>
+      }
+
+      <!-- Pagination Info -->
+      <div class="pagination-info">
+        Showing {{ transactions().length }} of {{ pagination().totalElements }} transactions
+      </div>
+    </div>
+  }
+</div>
+
