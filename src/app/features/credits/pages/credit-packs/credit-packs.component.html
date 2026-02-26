@@ -1,0 +1,412 @@
+<!-- Credit Packs Page -->
+<div class="credits-page">
+
+  <!-- Breadcrumb Navigation -->
+  <nav class="breadcrumb-nav">
+    <a routerLink="/user/dashboard" class="breadcrumb-link">
+      <svg class="breadcrumb-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/>
+      </svg>
+      Dashboard
+    </a>
+    <svg class="breadcrumb-separator" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="breadcrumb-current">Credit Packs</span>
+
+    <div class="breadcrumb-quick-links">
+      <a routerLink="/user/settings/billing" class="breadcrumb-quick-link">Billing</a>
+      <a routerLink="/user/settings/storage" class="breadcrumb-quick-link">Storage</a>
+      <a routerLink="/documents" class="breadcrumb-quick-link">Documents</a>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Credit Packs</h1>
+      <p class="page-subtitle">Purchase credits to process your documents with OCR. 1 credit = 1 page.</p>
+    </div>
+    <div class="header-actions">
+      <a routerLink="/credits/transactions" class="btn-outline">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+        </svg>
+        <span>Transaction History</span>
+      </a>
+      <a routerLink="/credits/transfer" class="btn-outline">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+        </svg>
+        <span>Transfer Credits</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  @if (error()) {
+    <div class="alert alert-error">
+      <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ error() }}</span>
+      <button (click)="clearError()" class="alert-close">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  }
+  @if (successMessage()) {
+    <div class="alert alert-success">
+      <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span>{{ successMessage() }}</span>
+      <button (click)="clearSuccess()" class="alert-close">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+  }
+
+  <!-- Balance Summary Cards -->
+  @if (balance(); as bal) {
+    <div class="balance-section">
+      <div class="balance-cards">
+        <!-- Current Balance -->
+        <div class="balance-card balance-primary">
+          <div class="balance-icon-wrap">
+            <div class="balance-icon bg-gradient-to-br from-indigo-500 to-purple-600">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+          <div class="balance-info">
+            <span class="balance-label">Available Credits</span>
+            <span class="balance-value text-indigo-600">{{ bal.balance }}</span>
+            <span class="balance-hint">credits remaining</span>
+          </div>
+        </div>
+
+        <!-- Total Purchased -->
+        <div class="balance-card">
+          <div class="balance-icon-wrap">
+            <div class="balance-icon bg-gradient-to-br from-green-500 to-emerald-600">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            </div>
+          </div>
+          <div class="balance-info">
+            <span class="balance-label">Total Purchased</span>
+            <span class="balance-value text-green-600">{{ bal.totalPurchased }}</span>
+            <span class="balance-hint">credits bought</span>
+          </div>
+        </div>
+
+        <!-- Total Used -->
+        <div class="balance-card">
+          <div class="balance-icon-wrap">
+            <div class="balance-icon bg-gradient-to-br from-amber-500 to-orange-600">
+              <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="balance-info">
+            <span class="balance-label">Total Used</span>
+            <span class="balance-value text-amber-600">{{ bal.totalUsed }}</span>
+            <span class="balance-hint">credits consumed</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage Bar -->
+      @if (totalPurchased() > 0) {
+        <div class="usage-bar-section">
+          <div class="usage-bar-header">
+            <span class="usage-bar-label">Credit Usage</span>
+            <span class="usage-bar-value">{{ usagePercentage() }}%</span>
+          </div>
+          <div class="usage-bar-track">
+            <div
+              class="usage-bar-fill"
+              [style.width.%]="usagePercentage()"
+              [class.bg-green-500]="usagePercentage() < 50"
+              [class.bg-amber-500]="usagePercentage() >= 50 && usagePercentage() < 80"
+              [class.bg-red-500]="usagePercentage() >= 80">
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (isLoading() && packs().length === 0) {
+    <div class="packs-grid">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="pack-card skeleton-card">
+          <div class="skeleton-badge"></div>
+          <div class="skeleton-icon-lg"></div>
+          <div class="skeleton-line w-32 h-6 mx-auto mb-2"></div>
+          <div class="skeleton-line w-24 h-10 mx-auto mb-4"></div>
+          <div class="skeleton-line w-full h-4 mb-2"></div>
+          <div class="skeleton-line w-3/4 h-4 mb-6"></div>
+          <div class="skeleton-line w-full h-12 rounded-xl"></div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Credit Packs Grid -->
+  @if (packs().length > 0) {
+    <div class="packs-grid">
+      @for (pack of packs(); track pack.id; let i = $index) {
+        <div class="pack-card" [class.pack-featured]="i === getBestValueIndex()">
+          <!-- Best Value Badge -->
+          @if (i === getBestValueIndex()) {
+            <div class="pack-badge">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
+              </svg>
+              Best Value
+            </div>
+          }
+
+          <!-- Pack Icon -->
+          <div class="pack-icon-wrap">
+            <div class="pack-icon bg-gradient-to-br" [class]="getPackGradient(i)">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getPackIcon(pack.name)"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Pack Details -->
+          <h3 class="pack-name">{{ pack.displayName }}</h3>
+          <div class="pack-price">
+            <span class="price-amount">{{ formatPrice(pack.priceInCents, pack.currency) }}</span>
+          </div>
+          <div class="pack-credits">
+            <span class="credits-count">{{ pack.creditsIncluded }}</span>
+            <span class="credits-label">credits</span>
+          </div>
+          <div class="pack-cost-per">
+            {{ formatPrice(pack.costPerCredit, pack.currency) }} per credit
+          </div>
+
+          <!-- Features -->
+          <ul class="pack-features">
+            <li>
+              <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>{{ pack.creditsIncluded }} pages of OCR processing</span>
+            </li>
+            <li>
+              <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Google Vision OCR engine</span>
+            </li>
+            <li>
+              <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Credits never expire</span>
+            </li>
+            <li>
+              <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span>Transferable to other users</span>
+            </li>
+          </ul>
+
+          <!-- Buy Button -->
+          <button
+            class="pack-buy-btn"
+            [class]="i === getBestValueIndex() ? 'btn-featured' : 'btn-standard'"
+            (click)="selectPack(pack)">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+            </svg>
+            Buy {{ pack.displayName }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- How Credits Work -->
+  <div class="info-section">
+    <h2 class="info-title">How Credits Work</h2>
+    <div class="info-grid">
+      <div class="info-card">
+        <div class="info-icon bg-blue-100 text-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/>
+          </svg>
+        </div>
+        <h3>Purchase</h3>
+        <p>Buy a credit pack with your preferred payment method. Credits are added instantly.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon bg-purple-100 text-purple-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 010 2H6v3a1 1 0 01-2 0V5zm16 0a1 1 0 00-1-1h-4a1 1 0 100 2h3v3a1 1 0 102 0V5zM4 19a1 1 0 001 1h4a1 1 0 100-2H6v-3a1 1 0 10-2 0v4zm16 0a1 1 0 01-1 1h-4a1 1 0 110-2h3v-3a1 1 0 112 0v4z"/>
+          </svg>
+        </div>
+        <h3>Process</h3>
+        <p>Each page processed via OCR uses 1 credit. PDFs use actual page count, images count as 1.</p>
+      </div>
+      <div class="info-card">
+        <div class="info-icon bg-green-100 text-green-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+          </svg>
+        </div>
+        <h3>Transfer</h3>
+        <p>Share credits with other users. Transfer up to 30 credits per month.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Checkout Modal -->
+  @if (showCheckoutModal() && selectedPack(); as pack) {
+    <div class="modal-overlay" (click)="closeCheckout()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2 class="modal-title">Complete Purchase</h2>
+          <button class="modal-close" (click)="closeCheckout()">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+          <!-- Pack Summary -->
+          <div class="checkout-summary">
+            <div class="checkout-pack-info">
+              <span class="checkout-pack-name">{{ pack.displayName }}</span>
+              <span class="checkout-pack-credits">{{ pack.creditsIncluded }} credits</span>
+            </div>
+            <div class="checkout-price-section">
+              @if (selectedPackWithDiscount(); as discounted) {
+                @if (discounted.hasDiscount) {
+                  <span class="checkout-original-price">{{ formatPrice(pack.priceInCents, pack.currency) }}</span>
+                  <span class="checkout-final-price">{{ formatPrice(discounted.finalPrice * 100, pack.currency) }}</span>
+                } @else {
+                  <span class="checkout-final-price">{{ formatPrice(pack.priceInCents, pack.currency) }}</span>
+                }
+              }
+            </div>
+          </div>
+
+          <!-- Payment Gateway Selection -->
+          <div class="gateway-section">
+            <h3 class="section-label">Payment Method</h3>
+            <div class="gateway-options">
+              @for (gw of paymentGateways; track gw.type) {
+                <button
+                  class="gateway-option"
+                  [class.active]="selectedGateway() === gw.type"
+                  [class.disabled]="!gw.available"
+                  [disabled]="!gw.available"
+                  (click)="setGateway(gw.type)">
+                  <span class="gateway-icon">{{ gw.icon }}</span>
+                  <div class="gateway-info">
+                    <span class="gateway-name">{{ gw.name }}</span>
+                    <span class="gateway-desc">{{ gw.description }}</span>
+                  </div>
+                  @if (!gw.available) {
+                    <span class="gateway-badge">Soon</span>
+                  }
+                  @if (selectedGateway() === gw.type && gw.available) {
+                    <svg class="w-5 h-5 text-indigo-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Coupon Section -->
+          <div class="coupon-section">
+            <h3 class="section-label">Have a coupon?</h3>
+            @if (!hasCouponApplied()) {
+              <div class="coupon-input-group">
+                <input
+                  type="text"
+                  class="coupon-input"
+                  placeholder="Enter coupon code"
+                  [value]="couponInput()"
+                  (input)="updateCouponInput($event)"
+                  (keyup.enter)="applyCoupon()"
+                />
+                <button
+                  class="coupon-apply-btn"
+                  (click)="applyCoupon()"
+                  [disabled]="isValidatingCoupon() || !couponInput()">
+                  @if (isValidatingCoupon()) {
+                    <span class="spinner-sm"></span>
+                  } @else {
+                    Apply
+                  }
+                </button>
+              </div>
+              @if (couponError()) {
+                <p class="coupon-error">{{ couponError() }}</p>
+              }
+              @if (hasAvailableCoupons()) {
+                <div class="available-coupons">
+                  <span class="available-coupons-label">Available coupons:</span>
+                  @for (coupon of availableCoupons(); track coupon.code) {
+                    <button class="coupon-chip" (click)="selectAvailableCoupon(coupon.code)">
+                      {{ coupon.code }}
+                    </button>
+                  }
+                </div>
+              }
+            } @else {
+              <div class="coupon-applied">
+                <div class="coupon-applied-info">
+                  <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>Coupon <strong>{{ appliedCoupon()?.code }}</strong> applied</span>
+                  <span class="coupon-discount">-{{ appliedCoupon()?.discountPercentage }}%</span>
+                </div>
+                <button class="coupon-remove-btn" (click)="removeCoupon()">Remove</button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <button class="btn-cancel" (click)="closeCheckout()">Cancel</button>
+          <button
+            class="btn-purchase"
+            (click)="purchasePack()"
+            [disabled]="isProcessing()">
+            @if (isProcessing()) {
+              <span class="spinner-sm"></span>
+              Processing...
+            } @else {
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              Pay {{ selectedPackWithDiscount()?.hasDiscount ? formatPrice((selectedPackWithDiscount()?.finalPrice ?? 0) * 100, pack.currency) : formatPrice(pack.priceInCents, pack.currency) }}
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

@@ -12,6 +12,7 @@ import { CouponStateService } from '../../../payments/services/coupon-state.serv
 import { PricingService } from '../../../../shared/services/pricing.service';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { SubscriptionApiService } from '../../../subscription/services/subscription-api.service';
+import { CreditStateService } from '../../../credits/services/credit-state.service';
 import { UserSubscriptionDetails } from '../../../subscription/models/subscription.model';
 import { PaymentMethod, Invoice } from '../../models/user.model';
 import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
@@ -34,8 +35,12 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly logger = inject(LoggerService);
   private readonly subscriptionApi = inject(SubscriptionApiService);
+  private readonly creditState = inject(CreditStateService);
 
   private userSubscription?: Subscription;
+
+  // Credit balance
+  readonly creditBalance = this.creditState.creditBalance;
 
   // State from user state service
   readonly subscription = this.userState.subscription;
@@ -200,6 +205,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.loadPaymentMethods();
     this.loadInvoices();
     this.loadUserSubscriptionDetails();
+    this.creditState.loadBalance();
   }
 
   ngOnDestroy(): void {

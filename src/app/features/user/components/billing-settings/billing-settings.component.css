@@ -1120,8 +1120,8 @@
 .plan-card .plan-feature-list li svg {
   width: 1rem;
   height: 1rem;
-  color: #10b981;
   flex-shrink: 0;
+  color: #10b981;
 }
 
 .plan-card .plan-btn {
@@ -1290,7 +1290,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  opacity: 0.7;
+  color: #6b7280;
 }
 
 .alert-close svg {
@@ -2149,3 +2149,104 @@
   }
 }
 
+/* Credit Balance Section */
+.view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6366f1;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.view-link:hover {
+  color: #4338ca;
+}
+
+.credit-overview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.credit-balance-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.credit-balance-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.credit-balance-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.credit-balance-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6366f1;
+  line-height: 1.2;
+}
+
+.credit-balance-label {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.credit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.credit-buy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 0.625rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.credit-buy-btn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.credit-transfer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.625rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.credit-transfer-btn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}

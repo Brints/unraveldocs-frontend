@@ -45,10 +45,32 @@ export class AuthService {
     this.useLocalStorage = storageType !== 'session';
 
     const storage = this.getStorage();
+
+    // If the access token is expired, clear everything to avoid stale state
+    // that could trigger unwanted API calls (token refresh, logout, etc.)
+    const accessToken = storage.getItem('accessToken');
+    if (accessToken && this.isTokenExpired(accessToken)) {
+      this.clearStoredTokens();
+      return;
+    }
+
     const userJson = storage.getItem('currentUser');
     if (userJson) {
       const user: User = JSON.parse(userJson);
       this.currentUserSubject.next(user);
+    }
+  }
+
+  /**
+   * Check if token is expired
+   */
+  private isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Math.floor(Date.now() / 1000);
+      return payload.exp < currentTime;
+    } catch {
+      return true;
     }
   }
 
@@ -426,19 +448,6 @@ export class AuthService {
   isAuthenticated(): boolean {
     const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     return !!token && !this.isTokenExpired(token);
-  }
-
-  /**
-   * Check if token is expired
-   */
-  private isTokenExpired(token: string): boolean {
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Math.floor(Date.now() / 1000);
-      return payload.exp < currentTime;
-    } catch {
-      return true;
-    }
   }
 
   /**

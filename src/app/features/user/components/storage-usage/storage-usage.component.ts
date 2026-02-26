@@ -2,11 +2,12 @@ import { Component, inject, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { UserStateService } from '../../services/user-state.service';
+import { CreditBalanceWidgetComponent } from '../../../credits/components/credit-balance-widget/credit-balance-widget.component';
 
 @Component({
   selector: 'app-storage-usage',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, CreditBalanceWidgetComponent],
   templateUrl: './storage-usage.component.html',
   styleUrls: ['./storage-usage.component.css']
 })

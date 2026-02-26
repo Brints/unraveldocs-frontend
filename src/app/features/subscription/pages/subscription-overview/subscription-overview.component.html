@@ -1,20 +1,39 @@
 <!-- Subscription Overview Page -->
-<div class="subscription-overview-page">
+<div class="subscription-page">
+
+  <!-- Breadcrumb Navigation -->
+  <nav class="breadcrumb-nav">
+    <a routerLink="/user/dashboard" class="breadcrumb-link">
+      <svg class="bc-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/>
+      </svg>
+      Dashboard
+    </a>
+    <svg class="breadcrumb-sep" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+    </svg>
+    <span class="breadcrumb-current">Subscription</span>
+    <div class="breadcrumb-quick-links">
+      <a routerLink="/user/settings/billing" class="breadcrumb-quick-link">Billing</a>
+      <a routerLink="/credits/packs" class="breadcrumb-quick-link">Credits</a>
+    </div>
+  </nav>
+
   <!-- Page Header -->
   <div class="page-header">
-    <div>
+    <div class="header-text">
       <h1 class="page-title">Subscription</h1>
-      <p class="page-subtitle">Manage your subscription and usage</p>
+      <p class="page-subtitle">Manage your plan, track usage, and control your billing</p>
     </div>
     <div class="header-actions">
       <a routerLink="/payments/history" class="btn-outline">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
         </svg>
         Billing History
       </a>
       <a routerLink="/subscriptions/plans" class="btn-primary">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
         </svg>
         Upgrade Plan
@@ -25,17 +44,18 @@
   <!-- Alerts -->
   @if (error()) {
     <div class="alert alert-error">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
       <span>{{ error() }}</span>
-      <button type="button" class="alert-close" (click)="subState.clearError()">×</button>
+      <button type="button" class="alert-dismiss" (click)="subState.clearError()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
     </div>
   }
-
   @if (successMessage()) {
     <div class="alert alert-success">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
       <span>{{ successMessage() }}</span>
@@ -43,106 +63,157 @@
   }
 
   @if (isLoading()) {
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>Loading subscription details...</p>
-    </div>
-  } @else {
-    <!-- Current Plan Card -->
-    <div class="current-plan-card">
-      <div class="plan-header">
-        <div class="plan-icon" [class]="'tier-' + currentTier()">
-          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getTierIcon(currentTier())"/>
-          </svg>
-        </div>
-        <div class="plan-info">
-          <div class="plan-name-row">
-            <h2 class="plan-name">{{ subscriptionDetails()?.planDisplayName || 'Free' }} Plan</h2>
-            <span class="status-badge" [class]="getStatusClass(subscriptionDetails()?.status || 'active')">
-              {{ getStatusLabel(subscriptionDetails()?.status || 'active') }}
-            </span>
-          </div>
-          <div class="plan-price-info">
-            <span class="plan-price">{{ subscriptionDetails()?.currency || 'USD' }} {{ subscriptionDetails()?.planPrice || 0 }}</span>
-            <span class="plan-interval">/ {{ subscriptionDetails()?.billingInterval || 'monthly' }}</span>
-          </div>
-          <p class="plan-description">
-            @if (isTrialing()) {
-              <span class="trial-notice">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                {{ trialDaysRemaining() }} days left in trial
-              </span>
-            } @else if (isCanceled()) {
-              <span class="cancel-notice">
-                Access until {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
-              </span>
-            } @else if (isSubscribed()) {
-              @if (subscriptionDetails()?.autoRenew) {
-                Renews on {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
-              } @else {
-                Expires on {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
-              }
-            } @else {
-              Upgrade to unlock more features
-            }
-          </p>
+    <!-- Skeleton Loading -->
+    <div class="skeleton-plan-card">
+      <div class="skeleton-row">
+        <div class="skeleton-circle"></div>
+        <div class="skeleton-text-group">
+          <div class="skeleton-line wide"></div>
+          <div class="skeleton-line medium"></div>
         </div>
       </div>
+      <div class="skeleton-divider"></div>
+      <div class="skeleton-line wide"></div>
+    </div>
+    <div class="skeleton-usage-grid">
+      <div class="skeleton-usage-card"></div>
+      <div class="skeleton-usage-card"></div>
+      <div class="skeleton-usage-card"></div>
+    </div>
+  } @else {
 
-      <div class="plan-actions">
-        @if (isCanceled()) {
-          <button type="button" class="btn-primary" (click)="resumeSubscription()" [disabled]="isProcessing()">
-            @if (isProcessing()) {
-              Resuming...
-            } @else {
-              Resume Subscription
-            }
-          </button>
-        } @else if (isSubscribed()) {
-          <a routerLink="/subscriptions/plans" class="btn-outline">Change Plan</a>
-          <button type="button" class="btn-danger-text" (click)="openCancelModal()">
-            Cancel Subscription
-          </button>
-        } @else {
-          <a routerLink="/subscriptions/plans" class="btn-primary">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
-            </svg>
-            Choose a Plan
-          </a>
-        }
+    <!-- Current Plan Card -->
+    <div class="plan-card" [class]="'plan-tier-' + currentTier()">
+      <div class="plan-card-inner">
+
+        <!-- Plan Info Row -->
+        <div class="plan-top">
+          <div class="plan-icon-wrap">
+            <div class="plan-icon" [class]="'tier-' + currentTier()">
+              <svg class="plan-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getTierIcon(currentTier())"/>
+              </svg>
+            </div>
+          </div>
+          <div class="plan-details">
+            <div class="plan-name-row">
+              <h2 class="plan-name">{{ subscriptionDetails()?.planDisplayName || 'Free' }}</h2>
+              <span class="status-badge" [class]="getStatusClass(subscriptionDetails()?.status || 'active')">
+                {{ getStatusLabel(subscriptionDetails()?.status || 'active') }}
+              </span>
+            </div>
+            <div class="plan-price-row">
+              <span class="plan-price">{{ subscriptionDetails()?.currency || 'USD' }} {{ subscriptionDetails()?.planPrice || 0 }}</span>
+              <span class="plan-interval">/ {{ subscriptionDetails()?.billingInterval || 'monthly' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="plan-status-bar">
+          @if (isTrialing()) {
+            <div class="status-item trial">
+              <svg class="status-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span><strong>{{ trialDaysRemaining() }} days</strong> left in your trial</span>
+            </div>
+          } @else if (isCanceled()) {
+            <div class="status-item canceled">
+              <svg class="status-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>Access until <strong>{{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}</strong></span>
+            </div>
+          } @else if (isSubscribed()) {
+            <div class="status-item active">
+              <svg class="status-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>
+                @if (subscriptionDetails()?.autoRenew) {
+                  Renews <strong>{{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}</strong>
+                  @if (daysUntilRenewal() > 0) {
+                    <span class="days-badge">{{ daysUntilRenewal() }}d</span>
+                  }
+                } @else {
+                  Expires <strong>{{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}</strong>
+                }
+              </span>
+            </div>
+          } @else {
+            <div class="status-item free">
+              <svg class="status-item-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              <span>Upgrade to unlock premium features</span>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="plan-actions">
+          @if (isCanceled()) {
+            <button type="button" class="btn-primary" (click)="resumeSubscription()" [disabled]="isProcessing()">
+              @if (isProcessing()) {
+                <span class="btn-spinner"></span> Resuming...
+              } @else {
+                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Resume Subscription
+              }
+            </button>
+          } @else if (isSubscribed()) {
+            <a routerLink="/subscriptions/plans" class="btn-outline">
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+              </svg>
+              Change Plan
+            </a>
+            <button type="button" class="btn-danger-text" (click)="openCancelModal()">Cancel</button>
+          } @else {
+            <a routerLink="/subscriptions/plans" class="btn-primary">
+              <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+              </svg>
+              Choose a Plan
+            </a>
+            <a routerLink="/credits/packs" class="btn-outline">Buy Credits</a>
+          }
+        </div>
       </div>
     </div>
 
     <!-- Usage Section -->
-    <div class="usage-section">
-      <h3 class="section-title">Current Usage</h3>
-      <p class="section-description">
-        @if (storageInfo()?.quotaResetDate) {
-          Quota resets on {{ formatDate(storageInfo()!.quotaResetDate!) }}
-        } @else {
-          Usage for current billing period ({{ formatDate(subscriptionDetails()?.currentPeriodStart) }} - {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }})
-        }
-      </p>
+    <section class="usage-section">
+      <div class="section-header">
+        <h3 class="section-title">Current Usage</h3>
+        <p class="section-desc">
+          @if (storageInfo()?.quotaResetDate) {
+            Resets on {{ formatDate(storageInfo()!.quotaResetDate!) }}
+          } @else if (subscriptionDetails()?.currentPeriodEnd) {
+            Period: {{ formatDate(subscriptionDetails()?.currentPeriodStart) }} — {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
+          }
+        </p>
+      </div>
 
       @if (storageInfo()?.quotaExceeded) {
         <div class="alert alert-warning">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="alert-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           <span>
             @if (storageInfo()?.documentQuotaExceeded && storageInfo()?.ocrQuotaExceeded) {
-              Document and OCR quota exceeded. Please upgrade your plan.
+              Document and OCR quota exceeded.
             } @else if (storageInfo()?.documentQuotaExceeded) {
-              Document upload quota exceeded. Please upgrade your plan.
+              Document upload quota exceeded.
             } @else if (storageInfo()?.ocrQuotaExceeded) {
-              OCR pages quota exceeded. Please upgrade your plan.
+              OCR pages quota exceeded.
             } @else {
-              Quota exceeded. Please upgrade your plan.
+              Quota exceeded.
             }
+            <a routerLink="/subscriptions/plans" class="alert-link">Upgrade your plan</a>
           </span>
         </div>
       }
@@ -150,143 +221,153 @@
       <div class="usage-grid">
         <!-- Documents -->
         <div class="usage-card">
-          <div class="usage-header">
+          <div class="usage-card-top">
             <div class="usage-icon documents">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            <span class="usage-title">Documents</span>
+            <span class="usage-label">Documents</span>
+            @if (storageInfo()?.documentQuotaExceeded) {
+              <span class="usage-warn-dot"></span>
+            }
           </div>
-          <div class="usage-values">
-            <span class="usage-current">{{ storageInfo()?.documentsUploaded || 0 }}</span>
+          <div class="usage-numbers">
+            <span class="usage-value">{{ storageInfo()?.documentsUploaded || 0 }}</span>
             @if (!storageInfo()?.documentsUnlimited && (storageInfo()?.documentUploadLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ storageInfo()?.documentUploadLimit }}</span>
+              <span class="usage-cap">/ {{ storageInfo()?.documentUploadLimit }}</span>
             } @else if (storageInfo()?.documentsUnlimited) {
-              <span class="usage-unlimited">Unlimited</span>
+              <span class="usage-unlimited">∞</span>
             }
           </div>
           @if (!storageInfo()?.documentsUnlimited && (storageInfo()?.documentUploadLimit || 0) > 0) {
-            <div class="usage-bar">
-              <div
-                class="usage-fill"
-                [class]="getUsageBarClass(documentsUsagePercent())"
-                [style.width.%]="documentsUsagePercent()">
-              </div>
+            <div class="progress-track">
+              <div class="progress-fill" [class]="getUsageBarClass(documentsUsagePercent())" [style.width.%]="documentsUsagePercent()"></div>
             </div>
-            <div class="usage-remaining">{{ storageInfo()?.documentsRemaining || 0 }} remaining</div>
+            <span class="usage-footer">{{ storageInfo()?.documentsRemaining || 0 }} remaining</span>
           }
         </div>
 
         <!-- OCR Pages -->
         <div class="usage-card">
-          <div class="usage-header">
+          <div class="usage-card-top">
             <div class="usage-icon ocr">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 010 2H6v3a1 1 0 01-2 0V5zm16 0a1 1 0 00-1-1h-4a1 1 0 100 2h3v3a1 1 0 102 0V5z"/>
               </svg>
             </div>
-            <span class="usage-title">OCR Pages</span>
+            <span class="usage-label">OCR Pages</span>
+            @if (storageInfo()?.ocrQuotaExceeded) {
+              <span class="usage-warn-dot"></span>
+            }
           </div>
-          <div class="usage-values">
-            <span class="usage-current">{{ storageInfo()?.ocrPagesUsed || 0 }}</span>
+          <div class="usage-numbers">
+            <span class="usage-value">{{ storageInfo()?.ocrPagesUsed || 0 }}</span>
             @if (!storageInfo()?.ocrUnlimited && (storageInfo()?.ocrPageLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ storageInfo()?.ocrPageLimit }}</span>
+              <span class="usage-cap">/ {{ storageInfo()?.ocrPageLimit }}</span>
             } @else if (storageInfo()?.ocrUnlimited) {
-              <span class="usage-unlimited">Unlimited</span>
+              <span class="usage-unlimited">∞</span>
             }
           </div>
           @if (!storageInfo()?.ocrUnlimited && (storageInfo()?.ocrPageLimit || 0) > 0) {
-            <div class="usage-bar">
-              <div
-                class="usage-fill"
-                [class]="getUsageBarClass(ocrUsagePercent())"
-                [style.width.%]="ocrUsagePercent()">
-              </div>
+            <div class="progress-track">
+              <div class="progress-fill" [class]="getUsageBarClass(ocrUsagePercent())" [style.width.%]="ocrUsagePercent()"></div>
             </div>
-            <div class="usage-remaining">{{ storageInfo()?.ocrPagesRemaining || 0 }} remaining</div>
+            <span class="usage-footer">{{ storageInfo()?.ocrPagesRemaining || 0 }} remaining</span>
           }
         </div>
 
         <!-- Storage -->
         <div class="usage-card">
-          <div class="usage-header">
+          <div class="usage-card-top">
             <div class="usage-icon storage">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
               </svg>
             </div>
-            <span class="usage-title">Storage</span>
+            <span class="usage-label">Storage</span>
           </div>
-          <div class="usage-values">
-            <span class="usage-current">{{ storageInfo()?.storageUsedFormatted || '0 B' }}</span>
+          <div class="usage-numbers">
+            <span class="usage-value">{{ storageInfo()?.storageUsedFormatted || '0 B' }}</span>
             @if (!storageInfo()?.unlimited && (storageInfo()?.storageLimit || 0) > 0) {
-              <span class="usage-limit">/ {{ storageInfo()?.storageLimitFormatted }}</span>
+              <span class="usage-cap">/ {{ storageInfo()?.storageLimitFormatted }}</span>
             } @else if (storageInfo()?.unlimited) {
-              <span class="usage-unlimited">Unlimited</span>
+              <span class="usage-unlimited">∞</span>
             }
           </div>
           @if (!storageInfo()?.unlimited && (storageInfo()?.storageLimit || 0) > 0) {
-            <div class="usage-bar">
-              <div
-                class="usage-fill"
-                [class]="getUsageBarClass(storageUsagePercent())"
-                [style.width.%]="storageUsagePercent()">
-              </div>
+            <div class="progress-track">
+              <div class="progress-fill" [class]="getUsageBarClass(storageUsagePercent())" [style.width.%]="storageUsagePercent()"></div>
             </div>
-            <div class="usage-remaining">{{ formatBytes(storageInfo()?.remainingStorage || 0) }} remaining</div>
+            <span class="usage-footer">{{ formatBytes(storageInfo()?.remainingStorage || 0) }} remaining</span>
           }
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Quick Links -->
-    <div class="quick-links">
-      <a routerLink="/payments/history" class="quick-link">
-        <div class="link-icon">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+    <!-- Quick Actions -->
+    <section class="quick-actions">
+      <h3 class="section-title">Quick Actions</h3>
+      <div class="actions-grid">
+        <a routerLink="/subscriptions/plans" class="action-card">
+          <div class="action-icon purple">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+            </svg>
+          </div>
+          <div class="action-text">
+            <span class="action-title">Compare Plans</span>
+            <span class="action-desc">See all plans & pricing</span>
+          </div>
+          <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-        </div>
-        <div class="link-content">
-          <span class="link-title">Payment History</span>
-          <span class="link-description">View all transactions</span>
-        </div>
-        <svg class="w-5 h-5 link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </a>
-
-      <a routerLink="/payments/methods" class="quick-link">
-        <div class="link-icon">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+        </a>
+        <a routerLink="/credits/packs" class="action-card">
+          <div class="action-icon indigo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="action-text">
+            <span class="action-title">Credit Packs</span>
+            <span class="action-desc">Buy extra OCR credits</span>
+          </div>
+          <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-        </div>
-        <div class="link-content">
-          <span class="link-title">Payment Methods</span>
-          <span class="link-description">Manage your cards</span>
-        </div>
-        <svg class="w-5 h-5 link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </a>
-
-      <a routerLink="/payments/receipts" class="quick-link">
-        <div class="link-icon">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </a>
+        <a routerLink="/payments/history" class="action-card">
+          <div class="action-icon blue">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+          </div>
+          <div class="action-text">
+            <span class="action-title">Payment History</span>
+            <span class="action-desc">View all transactions</span>
+          </div>
+          <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
-        </div>
-        <div class="link-content">
-          <span class="link-title">Receipts</span>
-          <span class="link-description">Download invoices</span>
-        </div>
-        <svg class="w-5 h-5 link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-        </svg>
-      </a>
-    </div>
+        </a>
+        <a routerLink="/user/settings/billing" class="action-card">
+          <div class="action-icon green">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <div class="action-text">
+            <span class="action-title">Billing Settings</span>
+            <span class="action-desc">Manage payment & currency</span>
+          </div>
+          <svg class="action-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </section>
   }
 </div>
 
@@ -295,41 +376,54 @@
   <div class="modal-overlay" (click)="closeCancelModal()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <div class="modal-icon danger">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="modal-icon-wrap danger">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
         <h3 class="modal-title">Cancel Subscription</h3>
+        <p class="modal-subtitle">This action cannot be undone easily</p>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to cancel your subscription? You'll lose access to:</p>
+        <p>You'll lose access to these features:</p>
         <ul class="cancel-list">
-          <li>Premium document processing features</li>
-          <li>Higher OCR page limits</li>
-          <li>Priority support</li>
-          <li>Team collaboration features</li>
+          <li>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Premium document processing
+          </li>
+          <li>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Higher OCR page limits
+          </li>
+          <li>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Priority support
+          </li>
+          <li>
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Team collaboration features
+          </li>
         </ul>
 
-        <label class="checkbox-label">
-          <input
-            type="checkbox"
-            [checked]="cancelImmediately()"
-            (change)="cancelImmediately.set(!cancelImmediately())"/>
+        <label class="checkbox-row">
+          <input type="checkbox" [checked]="cancelImmediately()" (change)="cancelImmediately.set(!cancelImmediately())"/>
           <span>Cancel immediately (no refund)</span>
         </label>
 
         @if (!cancelImmediately()) {
-          <p class="cancel-note">
-            Your subscription will remain active until {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}
-          </p>
+          <div class="cancel-note">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Your plan stays active until {{ formatDate(subscriptionDetails()?.currentPeriodEnd) }}</span>
+          </div>
         }
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-secondary" (click)="closeCancelModal()">Keep Subscription</button>
         <button type="button" class="btn-danger" (click)="confirmCancel()" [disabled]="isProcessing()">
           @if (isProcessing()) {
-            Processing...
+            <span class="btn-spinner"></span> Processing...
           } @else {
             Cancel Subscription
           }
@@ -338,4 +432,3 @@
     </div>
   </div>
 }
-
