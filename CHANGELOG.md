@@ -1,3 +1,10 @@
+# [2.7.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.6.1...v2.7.0) (2026-02-26)
+
+
+### Features
+
+* Add navigation and improve billing/subscription pages ([11c9f9a](https://github.com/Brints/unraveldocs-frontend/commit/11c9f9affb8408dcaaeafae56c2c6a636982f3b5))
+
 ## [2.6.1](https://github.com/Brints/unraveldocs-frontend/compare/v2.6.0...v2.6.1) (2026-02-26)
 
 
