@@ -21,9 +21,6 @@ import {environment} from '../../../../environments/environment';
   providedIn: 'root',
 })
 export class AuthService {
-  currentUser() {
-    throw new Error('Method not implemented.');
-  }
   private API_URL = environment.apiUrl;
   private currentUserSubject: BehaviorSubject<User | null> =
     new BehaviorSubject<User | null>(null);
@@ -102,6 +99,16 @@ export class AuthService {
     sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem(this.STORAGE_TYPE_KEY);
+  }
+
+  /**
+   * Clear local session state without making an API call.
+   * Used by the interceptor to avoid calling logout() (which makes an HTTP request
+   * that would itself go through the interceptor and potentially cause loops).
+   */
+  clearSession(): void {
+    this.clearStoredTokens();
+    this.setCurrentUser(null);
   }
 
   private handleError(error: HttpErrorResponse) {
@@ -236,8 +243,6 @@ export class AuthService {
           .pipe(catchError(this.handleError))
       );
 
-      console.log('Signup response:', response); // Debug log
-
       // Handle different possible response structures
       let user: User | null = null;
       let accessToken: string | null = null;
@@ -295,23 +300,6 @@ export class AuthService {
     }
   }
 
-  async socialAuth(request: { provider: string; redirectUrl: string }): Promise<string> {
-    try {
-      const response = await firstValueFrom(
-        this.http.post<{ authUrl: string }>(`${this.API_URL}/auth/social/${request.provider}`, {
-          redirectUrl: request.redirectUrl
-        }).pipe(catchError(this.handleError))
-      );
-
-      if (response) {
-        return response.authUrl;
-      }
-      throw new Error('Social auth initialization failed');
-    } catch (error) {
-      throw this.transformError(error);
-    }
-  }
-
   async logout(): Promise<void> {
     try {
       // Call logout endpoint to invalidate tokens server-side
@@ -343,14 +331,13 @@ export class AuthService {
           .pipe(catchError(this.handleError))
       );
 
-      // Handle wrapped response structure: { statusCode, status, message, data: { accessToken, refreshToken, ... } }
       const tokenData = response?.data || response;
 
       if (tokenData && tokenData.accessToken) {
         // Store in the appropriate storage based on current preference
         const storage = this.getStorage();
         storage.setItem('accessToken', tokenData.accessToken);
-        // Also update refresh token if a new one is provided
+        // Also update refresh token if a new one is provided (rolling refresh)
         if (tokenData.refreshToken) {
           storage.setItem('refreshToken', tokenData.refreshToken);
         }
@@ -358,7 +345,11 @@ export class AuthService {
       }
       throw new Error('Token refresh failed');
     } catch (error) {
-      await this.logout();
+      // Clear local session state — the caller (interceptor / token-refresh service)
+      // is responsible for redirecting to login.
+      // Do NOT call this.logout() here — it makes an HTTP POST which goes through
+      // the interceptor and can cause infinite loops.
+      this.clearSession();
       throw this.transformError(error);
     }
   }

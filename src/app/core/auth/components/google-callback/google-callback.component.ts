@@ -53,7 +53,7 @@ export class GoogleCallbackComponent implements OnInit {
 
     // Redirect after a short delay to show success message
     setTimeout(async () => {
-      const redirectUrl = response.isNewUser ? '/onboarding' : '/dashboard';
+      const redirectUrl = response.isNewUser ? '/onboarding' : '/user/dashboard';
       await this.router.navigate([redirectUrl]);
     }, 2000);
   }

@@ -6,14 +6,17 @@ import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
 
 // URLs that should not have the Authorization header added
-const AUTH_ENDPOINTS = [
+const PUBLIC_ENDPOINTS = [
   '/auth/login',
   '/auth/signup',
   '/auth/refresh-token',
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/verify-email',
-  '/auth/resend-verification'
+  '/auth/resend-verification',
+  '/auth/generate-password',
+  '/plans',
+  '/plans/currencies',
 ];
 
 // State for handling concurrent refresh requests
@@ -34,28 +37,49 @@ function getRefreshToken(): string | null {
   return localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
 }
 
+/**
+ * Check if a request URL matches any of the public endpoints
+ */
+function isPublicEndpoint(url: string): boolean {
+  return PUBLIC_ENDPOINTS.some(endpoint => url.includes(endpoint));
+}
+
+/**
+ * Check if the user was previously authenticated (has a refresh token).
+ * This distinguishes "session expired" from "never logged in".
+ */
+function wasAuthenticated(): boolean {
+  return !!getRefreshToken() || !!getAccessToken();
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Check if this is an auth endpoint that shouldn't have the token
-  const isAuthEndpoint = AUTH_ENDPOINTS.some(endpoint => req.url.includes(endpoint));
+  // Check if this is a public endpoint that shouldn't have the token
+  const isPublic = isPublicEndpoint(req.url);
 
-  if (isAuthEndpoint) {
-    // Don't add Authorization header for auth endpoints
+  if (isPublic) {
+    // Don't add Authorization header for public endpoints, and don't handle 401s
     return next(req);
   }
 
   // Get the auth token from localStorage or sessionStorage
   const token = getAccessToken();
 
-  // Clone the request and add the authorization header if token exists
-  const authReq = token ? addTokenToRequest(req, token) : req;
+  // If there's no token at all, just send the request as-is.
+  // Don't attempt refresh or redirect — the route guard handles unauthenticated access.
+  if (!token) {
+    return next(req);
+  }
+
+  // Clone the request and add the authorization header
+  const authReq = addTokenToRequest(req, token);
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
-      // Handle 401 Unauthorized errors
-      if (error.status === 401 && !isAuthEndpoint) {
+      // Only handle 401 Unauthorized errors for authenticated requests
+      if (error.status === 401) {
         return handleUnauthorizedError(req, next, authService, router);
       }
       return throwError(() => error);
@@ -75,7 +99,8 @@ function addTokenToRequest(req: HttpRequest<unknown>, token: string): HttpReques
 }
 
 /**
- * Handle 401 Unauthorized errors by refreshing the token
+ * Handle 401 Unauthorized errors by refreshing the token.
+ * Only called when the user had a token (was authenticated) and got a 401.
  */
 function handleUnauthorizedError(
   req: HttpRequest<unknown>,
@@ -105,52 +130,18 @@ function handleUnauthorizedError(
           })
           .catch((refreshError) => {
             isRefreshing = false;
-            // Refresh failed, logout and redirect to login
-            authService.logout().then(() => {
-              // Only capture returnUrl if not already on the login page
-              const currentPath = window.location.pathname;
-              if (!currentPath.startsWith('/auth/login')) {
-                router.navigate(['/auth/login'], {
-                  queryParams: {
-                    sessionExpired: 'true',
-                    returnUrl: currentPath
-                  }
-                });
-              } else {
-                // Already on login page, just navigate without returnUrl to break the loop
-                router.navigate(['/auth/login'], {
-                  queryParams: {
-                    sessionExpired: 'true'
-                  }
-                });
-              }
-            });
+            refreshTokenSubject.next(null);
+            // Refresh failed — session is truly expired, redirect to login
+            redirectToLogin(router);
             observer.error(refreshError);
           });
       });
     } else {
-      // No refresh token available, logout
+      // Had an access token but no refresh token — session expired
       isRefreshing = false;
-      authService.logout().then(() => {
-        // Only capture returnUrl if not already on the login page
-        const currentPath = window.location.pathname;
-        if (!currentPath.startsWith('/auth/login')) {
-          router.navigate(['/auth/login'], {
-            queryParams: {
-              sessionExpired: 'true',
-              returnUrl: currentPath
-            }
-          });
-        } else {
-          // Already on login page, just navigate without returnUrl to break the loop
-          router.navigate(['/auth/login'], {
-            queryParams: {
-              sessionExpired: 'true'
-            }
-          });
-        }
-      });
-      return throwError(() => new Error('No refresh token available'));
+      authService.clearSession();
+      redirectToLogin(router);
+      return throwError(() => new Error('Session expired'));
     }
   } else {
     // Token refresh is already in progress, wait for it to complete
@@ -163,3 +154,31 @@ function handleUnauthorizedError(
     );
   }
 }
+
+/**
+ * Redirect to login page with sessionExpired flag.
+ * Avoids redirect loops by checking if already on the login page.
+ */
+function redirectToLogin(router: Router): void {
+  const currentPath = window.location.pathname;
+
+  // Don't redirect if already on the login page
+  if (currentPath.startsWith('/auth/login')) {
+    return;
+  }
+
+  // Don't redirect if on a public page (home, pricing, etc.)
+  const publicPaths = ['/home', '/pricing', '/terms', '/privacy', '/auth/'];
+  const isOnPublicPage = publicPaths.some(p => currentPath.startsWith(p)) || currentPath === '/';
+  if (isOnPublicPage) {
+    return;
+  }
+
+  router.navigate(['/auth/login'], {
+    queryParams: {
+      sessionExpired: 'true',
+      returnUrl: currentPath
+    }
+  });
+}
+

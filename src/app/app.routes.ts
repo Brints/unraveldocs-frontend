@@ -6,19 +6,18 @@ import { redirectIfAuthenticatedGuard } from './core/auth/guards/redirect-if-aut
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
   { path: 'home', component: LandingComponent, canActivate: [redirectIfAuthenticatedGuard] },
-  {
-    path: 'pricing',
-    loadComponent: () => import(
-      './pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
-    title: 'Pricing - ReDraft'
-  },
+  // Backward-compatible redirects for old /dashboard paths
+  { path: 'dashboard', redirectTo: '/user/dashboard', pathMatch: 'full' },
+  { path: 'settings', redirectTo: '/user/settings', pathMatch: 'prefix' },
+  // {
+  //   path: 'pricing',
+  //   loadComponent: () => import(
+  //     './pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
+  //   title: 'Pricing - ReDraft'
+  // },
   {
     path: 'auth',
     loadChildren: () => import('./core/auth/auth.routes').then(m => m.authRoutes)
-  },
-  {
-    path: 'admin',
-    loadChildren: () => import('./features/admin/admin.routes').then(m => m.adminRoutes)
   },
   {
     path: '',

@@ -110,7 +110,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   googleConfig = {
     showMarketingConsent: false,
     showReferralCode: false,
-    redirectAfterSignup: '/dashboard',
+    redirectAfterSignup: '/user/dashboard',
     theme: 'light' as const,
     size: 'medium' as const
   };
@@ -319,7 +319,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     if (response.requiresTwoFactor) {
       this.router.navigate(['/auth/two-factor'], {
         queryParams: {
-          returnUrl: this.redirectUrl() || '/dashboard',
+          returnUrl: this.redirectUrl() || '/user/dashboard',
           methods: response.twoFactorMethods?.join(',')
         }
       });
