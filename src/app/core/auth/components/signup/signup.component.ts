@@ -114,6 +114,13 @@ export class SignupComponent implements OnInit {
   showSuccessModal = signal(false);
   userEmail = signal('');
 
+  // Resend verification email state
+  resendLoading = signal(false);
+  resendSuccess = signal(false);
+  resendError = signal<string | null>(null);
+  resendCooldown = signal(0);
+  private cooldownTimerId: ReturnType<typeof setInterval> | null = null;
+
   // Multi-step form state
   currentStep = signal(1);
   isStep1Valid = signal(false);
@@ -359,7 +366,49 @@ export class SignupComponent implements OnInit {
   // Success modal methods
   closeSuccessModal(): void {
     this.showSuccessModal.set(false);
+    this.resendLoading.set(false);
+    this.resendSuccess.set(false);
+    this.resendError.set(null);
+    this.resendCooldown.set(0);
+    if (this.cooldownTimerId) {
+      clearInterval(this.cooldownTimerId);
+      this.cooldownTimerId = null;
+    }
     this.resetForm();
+  }
+
+  async onResendVerification(): Promise<void> {
+    const email = this.userEmail();
+    if (!email) return;
+
+    this.resendLoading.set(true);
+    this.resendSuccess.set(false);
+    this.resendError.set(null);
+
+    try {
+      await this.authService.resendVerificationEmail(email);
+      this.resendSuccess.set(true);
+
+      // Start 60-second cooldown
+      this.resendCooldown.set(60);
+      this.cooldownTimerId = setInterval(() => {
+        const current = this.resendCooldown();
+        if (current <= 1) {
+          this.resendCooldown.set(0);
+          this.resendSuccess.set(false);
+          if (this.cooldownTimerId) {
+            clearInterval(this.cooldownTimerId);
+            this.cooldownTimerId = null;
+          }
+        } else {
+          this.resendCooldown.set(current - 1);
+        }
+      }, 1000);
+    } catch (error: any) {
+      this.resendError.set(error?.message || 'Failed to resend verification email. Please try again.');
+    } finally {
+      this.resendLoading.set(false);
+    }
   }
 
   resetForm(): void {
