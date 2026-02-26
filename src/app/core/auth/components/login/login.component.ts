@@ -87,6 +87,15 @@ export class LoginComponent implements OnInit, OnDestroy {
   public showPassword = signal(false);
   public sessionExpired = signal(false);
 
+  // Email verification resend state
+  public isEmailNotVerified = signal(false);
+  public resendLoading = signal(false);
+  public resendSuccess = signal(false);
+  public resendError = signal<string | null>(null);
+  public resendCooldown = signal(0);
+  private unverifiedEmail = '';
+  private cooldownTimerId: ReturnType<typeof setInterval> | null = null;
+
   // Computed properties
   public error = computed(() => this.loginError());
   public loading = computed(() => this.isLoading());
@@ -169,6 +178,12 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
         if (this.googleError()) {
           this.googleError.set(null);
+        }
+        // Clear verification state when user starts typing
+        if (this.isEmailNotVerified()) {
+          this.isEmailNotVerified.set(false);
+          this.resendSuccess.set(false);
+          this.resendError.set(null);
         }
         // Clear session expired message when user starts typing
         if (this.sessionExpired()) {
@@ -348,7 +363,9 @@ export class LoginComponent implements OnInit, OnDestroy {
         break;
 
       case LoginErrorCodes.EMAIL_NOT_VERIFIED:
-        // Offer to resend verification email
+        // Capture the email for resend and show verification UI
+        this.isEmailNotVerified.set(true);
+        this.unverifiedEmail = (this.loginForm.value as LoginFormData).email?.toLowerCase().trim() || '';
         break;
 
       case LoginErrorCodes.ACCOUNT_LOCKED:
@@ -375,23 +392,41 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     switch (authError.code) {
       case AuthErrorCodes.Forbidden:
-      case AuthErrorCodes.InvalidCredentials:
+      case AuthErrorCodes.InvalidCredentials: {
+        // Check if the error is about email verification
+        const msgLower = (backendMessage || '').toLowerCase();
+        if (msgLower.includes('not verified') || msgLower.includes('verify your email') || msgLower.includes('email verification')) {
+          return {
+            code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
+            message: backendMessage || 'Please verify your email address before logging in.'
+          };
+        }
         // Keep the backend message which includes attempt count
         return {
           code: LoginErrorCodes.INVALID_CREDENTIALS,
           message: backendMessage || 'Invalid email or password. Please try again.'
         };
+      }
       case AuthErrorCodes.RATE_LIMITED:
         return {
           code: LoginErrorCodes.TOO_MANY_ATTEMPTS,
           message: backendMessage || 'Too many login attempts. Please try again later.',
           retryAfter: 300 // 5 minutes
         };
-      default:
+      default: {
+        // Also check default errors for verification messages
+        const defaultMsgLower = (backendMessage || '').toLowerCase();
+        if (defaultMsgLower.includes('not verified') || defaultMsgLower.includes('verify your email') || defaultMsgLower.includes('email verification')) {
+          return {
+            code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
+            message: backendMessage || 'Please verify your email address before logging in.'
+          };
+        }
         return {
           code: LoginErrorCodes.SERVER_ERROR,
           message: backendMessage || 'An unexpected error occurred.'
         };
+      }
     }
   }
 
@@ -488,5 +523,42 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.loginForm.reset();
     this.loginError.set(null);
     this.googleError.set(null);
+    this.isEmailNotVerified.set(false);
+    this.resendSuccess.set(false);
+    this.resendError.set(null);
+  }
+
+  // Resend verification email
+  async onResendVerification(): Promise<void> {
+    if (!this.unverifiedEmail) return;
+
+    this.resendLoading.set(true);
+    this.resendSuccess.set(false);
+    this.resendError.set(null);
+
+    try {
+      await this.authService.resendVerificationEmail(this.unverifiedEmail);
+      this.resendSuccess.set(true);
+
+      // Start 60-second cooldown
+      this.resendCooldown.set(60);
+      this.cooldownTimerId = setInterval(() => {
+        const current = this.resendCooldown();
+        if (current <= 1) {
+          this.resendCooldown.set(0);
+          this.resendSuccess.set(false);
+          if (this.cooldownTimerId) {
+            clearInterval(this.cooldownTimerId);
+            this.cooldownTimerId = null;
+          }
+        } else {
+          this.resendCooldown.set(current - 1);
+        }
+      }, 1000);
+    } catch (error: any) {
+      this.resendError.set(error?.message || 'Failed to resend verification email. Please try again.');
+    } finally {
+      this.resendLoading.set(false);
+    }
   }
 }

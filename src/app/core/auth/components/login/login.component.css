@@ -357,6 +357,59 @@
   color: #f59e0b;
 }
 
+/* Verification Error Styles */
+.verification-error {
+  background: #fffbeb;
+  border: 1px solid #fbbf24;
+  color: #92400e;
+}
+
+.verification-error-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.resend-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.resend-link-btn:hover:not(:disabled) {
+  color: #764ba2;
+}
+
+.resend-link-btn:disabled {
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+.resend-success-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: #166534;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.resend-error-inline {
+  color: #dc2626;
+  font-size: 0.8125rem;
+}
+
 .error-content {
   flex: 1;
 }
