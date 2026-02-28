@@ -1,3 +1,15 @@
+# [2.8.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.7.1...v2.8.0) (2026-02-28)
+
+
+### Bug Fixes
+
+* Added fix to the header ([b4474b8](https://github.com/Brints/unraveldocs-frontend/commit/b4474b8e7d3e5e64c71e2139d1a3722ccd8c264e))
+
+
+### Features
+
+* **credits:** Use backend currency conversion for credit pack pricing and purchases ([f670c33](https://github.com/Brints/unraveldocs-frontend/commit/f670c337360afedb9b06ade3e65f4945f74c5716))
+
 ## [2.7.1](https://github.com/Brints/unraveldocs-frontend/compare/v2.7.0...v2.7.1) (2026-02-26)
 
 
