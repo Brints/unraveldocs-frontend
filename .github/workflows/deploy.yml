@@ -34,7 +34,7 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build \
+          docker build --no-cache \
             -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest \
             -t ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             .
@@ -52,23 +52,24 @@ jobs:
           host: ${{ secrets.DROPLET_IP }}
           username: root
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          envs: REGISTRY,REGISTRY_NAME,IMAGE_NAME
           script: |
             # Log in to container registry
             doctl registry login --expiry-seconds 600
 
-            # Pull the latest image
-            docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+            # Pull the exact image built in this workflow (not a cached :latest)
+            docker pull ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
             # Stop and remove existing container (if running)
             docker stop redraft-frontend 2>/dev/null || true
             docker rm redraft-frontend 2>/dev/null || true
 
-            # Start new container
+            # Start new container using the exact SHA-tagged image
             docker run -d \
               --name redraft-frontend \
               --restart unless-stopped \
               -p 3000:80 \
-              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:latest
+              ${{ env.REGISTRY }}/${{ env.REGISTRY_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
             # Clean up old images
             docker image prune -f

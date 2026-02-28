@@ -108,13 +108,13 @@ export class CreditStateService {
   // ==================== Actions ====================
 
   /**
-   * Load available credit packs
+   * Load available credit packs with optional currency conversion
    */
-  loadPacks(): void {
+  loadPacks(currency?: string): void {
     this._isLoading.set(true);
     this._error.set(null);
 
-    this.api.getPacks().pipe(
+    this.api.getPacks(currency).pipe(
       tap(packs => {
         this._packs.set(packs);
       }),
@@ -143,14 +143,14 @@ export class CreditStateService {
   }
 
   /**
-   * Load all credit data (packs + balance)
+   * Load all credit data (packs + balance) with optional currency conversion
    */
-  loadAllData(): void {
+  loadAllData(currency?: string): void {
     this._isLoading.set(true);
     this._error.set(null);
 
     forkJoin({
-      packs: this.api.getPacks().pipe(catchError(() => of([]))),
+      packs: this.api.getPacks(currency).pipe(catchError(() => of([]))),
       balance: this.api.getBalance().pipe(catchError(() => of(null))),
     }).pipe(
       tap(({ packs, balance }) => {
@@ -231,9 +231,12 @@ export class CreditStateService {
   }
 
   /**
-   * Purchase the selected credit pack
+   * Purchase the selected credit pack via the backend.
+   * The backend handles currency conversion and payment gateway initialization.
+   *
+   * @param currency - The currency code the user selected for payment (e.g. 'NGN', 'USD', 'GBP')
    */
-  purchasePack(): void {
+  purchasePack(currency: string = 'USD'): void {
     const pack = this._selectedPack();
     const gateway = this._selectedGateway();
 
@@ -257,6 +260,7 @@ export class CreditStateService {
       couponCode: coupon?.code,
       callbackUrl,
       cancelUrl,
+      currency,
     }).pipe(
       tap(response => {
         // Store purchase info for callback verification

@@ -13,6 +13,12 @@ export interface CreditPack {
   currency: string;
   creditsIncluded: number;
   costPerCredit: number;
+  // Converted price fields (populated when ?currency= param is used)
+  convertedPriceInCents?: number;
+  convertedCurrency?: string;
+  formattedPrice?: string;
+  formattedOriginalPrice?: string;
+  exchangeRate?: number;
 }
 
 // ==================== Credit Balance ====================
@@ -33,6 +39,7 @@ export interface CreditPurchaseRequest {
   couponCode?: string;
   callbackUrl?: string;
   cancelUrl?: string;
+  currency: string;
 }
 
 export interface CreditPurchaseResponse {
@@ -42,6 +49,9 @@ export interface CreditPurchaseResponse {
   creditsToReceive: number;
   amountInCents: number;
   discountApplied: number;
+  currency: string;
+  formattedAmount: string;
+  exchangeRate: number;
 }
 
 // ==================== Credit Transfer ====================

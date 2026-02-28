@@ -30,10 +30,16 @@ export class CreditApiService {
   /**
    * Get all available credit packs
    * GET /credits/packs
+   * GET /credits/packs?currency=NGN  (with server-side currency conversion)
    */
-  getPacks(): Observable<CreditPack[]> {
+  getPacks(currency?: string): Observable<CreditPack[]> {
+    let params = new HttpParams();
+    if (currency && currency !== 'USD') {
+      params = params.set('currency', currency);
+    }
     return this.http.get<CreditApiResponse<CreditPack[]>>(
-      `${this.apiUrl}/packs`
+      `${this.apiUrl}/packs`,
+      { params }
     ).pipe(
       map(response => response.data)
     );
