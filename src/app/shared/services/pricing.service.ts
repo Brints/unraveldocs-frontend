@@ -269,6 +269,27 @@ export class PricingService {
   }
 
   /**
+   * Public exchange rate accessor for currency conversion
+   * Returns the approximate exchange rate from USD to the target currency
+   */
+  getExchangeRate(currency: string): number {
+    return this.getFallbackExchangeRate(currency);
+  }
+
+  /**
+   * Convert an amount in USD cents to the target currency
+   * Returns the converted amount in cents and a formatted price string
+   */
+  convertFromUSD(amountInCents: number, targetCurrency: string): { convertedCents: number; formattedPrice: string } {
+    const rate = this.getFallbackExchangeRate(targetCurrency);
+    const convertedCents = Math.round(amountInCents * rate);
+    const amount = convertedCents / 100;
+    const currencyInfo = this._currencies().find(c => c.code === targetCurrency) || { code: targetCurrency, symbol: targetCurrency, name: targetCurrency };
+    const formattedPrice = this.formatFallbackPrice(amount, targetCurrency, currencyInfo.symbol);
+    return { convertedCents, formattedPrice };
+  }
+
+  /**
    * Change currency and reload plans
    */
   changeCurrency(currency: string): void {
