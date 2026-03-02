@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.8.0...v2.9.0) (2026-03-02)
+
+
+### Features
+
+* **ui:** enhance payment history, receipts, billing, and OCR pages ([3cd8fa6](https://github.com/Brints/unraveldocs-frontend/commit/3cd8fa6fbb7a3557e042066cbe3a03e33011f5c2))
+
 # [2.8.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.7.1...v2.8.0) (2026-02-28)
 
 
