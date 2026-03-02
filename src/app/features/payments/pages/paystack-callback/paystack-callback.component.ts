@@ -519,10 +519,11 @@ export class PaystackCallbackComponent implements OnInit {
   private fetchReceipt(reference: string): void {
     // Try to get receipts and find one matching this reference
     this.paymentApi.getReceipts(0, 10).pipe(
-      tap(receipts => {
+      tap(response => {
         // Find receipt that matches this payment reference
         // The receipt might be created with a slight delay, so we check by amount/date as fallback
-        const matchingReceipt = receipts.find(r =>
+        const receiptList = response.content || [];
+        const matchingReceipt = receiptList.find((r: Receipt) =>
           r.receiptNumber?.includes(reference) ||
           (r.paidAt && new Date(r.paidAt).getTime() > Date.now() - 60000) // Within last minute
         );

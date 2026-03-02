@@ -147,6 +147,63 @@ export interface PayPalSubscriptionDetails {
   suspended: boolean;
 }
 
+// ==================== Payment History ====================
+
+export type PayPalPaymentType = 'CREDIT_PURCHASE' | 'ONE_TIME' | 'SUBSCRIPTION';
+
+export interface PayPalPaymentHistoryItem {
+  id: string;
+  userId: string;
+  userEmail: string;
+  order_id: string | null;
+  capture_id: string | null;
+  authorization_id: string | null;
+  subscription_id: string | null;
+  payment_type: PayPalPaymentType;
+  status: string; // 'SUCCEEDED', 'PENDING', 'FAILED', etc.
+  amount: number;
+  currency: string;
+  amount_refunded: number | null;
+  paypal_fee: number | null;
+  net_amount: number | null;
+  intent: string | null;
+  payer_id: string | null;
+  payer_email: string | null;
+  description: string | null;
+  failure_message: string | null;
+  completed_at: string | null;
+  created_at: string;
+}
+
+export interface PayPalPaymentHistoryResponse {
+  content: PayPalPaymentHistoryItem[];
+  empty: boolean;
+  first: boolean;
+  last: boolean;
+  number: number;
+  numberOfElements: number;
+  pageable: {
+    offset: number;
+    pageNumber: number;
+    pageSize: number;
+    paged: boolean;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+    unpaged: boolean;
+  };
+  size: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  totalElements: number;
+  totalPages: number;
+}
+
 // ==================== Subscription History Item ====================
 
 export interface PayPalSubscriptionHistoryItem {

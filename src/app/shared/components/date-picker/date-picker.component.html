@@ -1,0 +1,88 @@
+<div class="date-picker-container" [class.disabled]="disabled">
+    <div class="calendar-input-wrapper" (click)="toggleCalendar()">
+        <input type="text" class="calendar-input" [value]="formattedValue()" [placeholder]="placeholder" [title]="title"
+            [attr.aria-label]="title || placeholder" readonly [disabled]="disabled">
+        <svg class="calendar-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+    </div>
+
+    @if (isOpen() && !disabled) {
+    <div class="calendar-popup" (click)="$event.stopPropagation()">
+        <div class="calendar-header">
+            <button type="button" class="nav-btn" (click)="prev($event)" aria-label="Previous">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+            </button>
+
+            <div class="header-selectors">
+                @if (viewMode() === 'days') {
+                <button type="button" class="selector-btn" (click)="viewMode.set('months'); $event.stopPropagation()">
+                    {{ monthNames[currentMonth()] }}
+                </button>
+                <button type="button" class="selector-btn" (click)="viewMode.set('years'); $event.stopPropagation()">
+                    {{ currentYear() }}
+                </button>
+                } @else if (viewMode() === 'months') {
+                <button type="button" class="selector-btn" (click)="viewMode.set('years'); $event.stopPropagation()">
+                    {{ currentYear() }}
+                </button>
+                } @else {
+                <span class="current-year">{{ yearRange()[0] }} - {{ yearRange()[11] }}</span>
+                }
+            </div>
+
+            <button type="button" class="nav-btn" (click)="next($event)" aria-label="Next">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="calendar-grid">
+            @if (viewMode() === 'days') {
+            <div class="calendar-days-header">
+                @for (day of calendarDays().headers; track day) {
+                <span class="day-header">{{ day }}</span>
+                }
+            </div>
+
+            <div class="calendar-days-body">
+                @for (day of calendarDays().grid; track day.fullDate) {
+                <button type="button" class="day-btn" [class.other-month]="day.month !== 'current'"
+                    [class.today]="day.isToday" [class.selected]="day.isSelected" (click)="selectDate(day, $event)"
+                    [attr.aria-label]="day.fullDate">
+                    {{ day.date }}
+                </button>
+                }
+            </div>
+            } @else if (viewMode() === 'months') {
+            <div class="calendar-months-body">
+                @for (month of shortMonthNames; track $index) {
+                <button type="button" class="grid-cell-btn" [class.selected]="$index === currentMonth()"
+                    (click)="setMonth($index, $event)">
+                    {{ month }}
+                </button>
+                }
+            </div>
+            } @else {
+            <div class="calendar-years-body">
+                @for (year of yearRange(); track year) {
+                <button type="button" class="grid-cell-btn" [class.selected]="year === currentYear()"
+                    (click)="setYear(year, $event)">
+                    {{ year }}
+                </button>
+                }
+            </div>
+            }
+        </div>
+
+        <div class="calendar-footer">
+            <button type="button" class="footer-btn action-clear" (click)="clearSelection($event)">Clear</button>
+            <button type="button" class="footer-btn action-today" (click)="jumpToToday($event)">Today</button>
+        </div>
+    </div>
+    }
+</div>

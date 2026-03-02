@@ -9,6 +9,7 @@ import {
   StripeCustomer,
   StripePaymentIntent,
   StripeRefund,
+  StripePaymentHistoryItem,
   PaystackInitializeResponse,
   PaystackTransaction,
   CreatePaymentIntentRequest,
@@ -16,6 +17,7 @@ import {
   PaystackInitializeRequest,
   PaymentApiResponse,
   PaginatedResponse,
+  CurrencyConversionResponse,
 } from '../models/payment.model';
 
 @Injectable({
@@ -107,8 +109,8 @@ export class PaymentApiService {
    * Get payment history
    * GET /stripe/payment/history
    */
-  getStripePaymentHistory(page = 0, size = 20): Observable<Payment[]> {
-    return this.http.get<Payment[]>(
+  getStripePaymentHistory(page = 0, size = 20): Observable<PaginatedResponse<StripePaymentHistoryItem>> {
+    return this.http.get<PaginatedResponse<StripePaymentHistoryItem>>(
       `${this.apiUrl}/stripe/payment/history`,
       { params: { page: page.toString(), size: size.toString() } }
     );
@@ -176,8 +178,8 @@ export class PaymentApiService {
    * Get user's receipts
    * GET /receipts
    */
-  getReceipts(page = 0, size = 10): Observable<Receipt[]> {
-    return this.http.get<PaymentApiResponse<Receipt[]>>(
+  getReceipts(page = 0, size = 10): Observable<PaginatedResponse<Receipt>> {
+    return this.http.get<PaymentApiResponse<PaginatedResponse<Receipt>>>(
       `${this.apiUrl}/receipts`,
       { params: { page: page.toString(), size: size.toString() } }
     ).pipe(map(response => response.data));
@@ -200,6 +202,40 @@ export class PaymentApiService {
   downloadReceipt(receiptNumber: string): Observable<string> {
     return this.http.get<PaymentApiResponse<string>>(
       `${this.apiUrl}/receipts/${receiptNumber}/download`
+    ).pipe(map(response => response.data));
+  }
+
+  /**
+   * Delete a receipt
+   * DELETE /receipts/{receiptNumber}
+   */
+  deleteReceipt(receiptNumber: string): Observable<void> {
+    return this.http.delete<PaymentApiResponse<null>>(
+      `${this.apiUrl}/receipts/${receiptNumber}`
+    ).pipe(map(() => void 0));
+  }
+
+  /**
+   * Bulk delete receipts
+   * DELETE /receipts?receiptNumbers=REC-1,REC-2
+   */
+  bulkDeleteReceipts(receiptNumbers: string[]): Observable<void> {
+    return this.http.delete<PaymentApiResponse<null>>(
+      `${this.apiUrl}/receipts`,
+      { params: { receiptNumbers: receiptNumbers.join(',') } }
+    ).pipe(map(() => void 0));
+  }
+
+  // ==================== Currency Conversion ====================
+
+  /**
+   * Convert currency using real-time exchange rates
+   * GET /currency/convert
+   */
+  convertCurrency(amountInCents: number, from: string, to: string): Observable<CurrencyConversionResponse> {
+    return this.http.get<PaymentApiResponse<CurrencyConversionResponse>>(
+      `${this.apiUrl}/currency/convert`,
+      { params: { amountInCents: amountInCents.toString(), from, to } }
     ).pipe(map(response => response.data));
   }
 }

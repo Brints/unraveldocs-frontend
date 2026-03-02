@@ -83,6 +83,18 @@ export class OcrStateService {
       );
     }
 
+    if (currentFilter.dateFrom) {
+      const fromDate = new Date(currentFilter.dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      jobs = jobs.filter(job => new Date(job.createdAt) >= fromDate);
+    }
+
+    if (currentFilter.dateTo) {
+      const toDate = new Date(currentFilter.dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      jobs = jobs.filter(job => new Date(job.createdAt) <= toDate);
+    }
+
     return jobs;
   });
 

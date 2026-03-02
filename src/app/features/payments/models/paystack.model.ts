@@ -139,7 +139,7 @@ export interface PaystackPaymentHistoryItem {
   reference: string;
   plan_code: string | null;
   subscription_code: string | null;
-  payment_type: 'ONE_TIME' | 'SUBSCRIPTION';
+  payment_type: 'ONE_TIME' | 'SUBSCRIPTION' | 'CREDIT_PURCHASE';
   status: string; // 'PENDING', 'SUCCESS', 'FAILED', etc.
   amount: number;
   currency: PaystackCurrency;

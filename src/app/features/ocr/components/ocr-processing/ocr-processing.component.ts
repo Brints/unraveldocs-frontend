@@ -7,12 +7,13 @@ import { AiStateService } from '../../../ai/services/ai-state.service';
 import { OcrJob, OcrStatus, OcrData, SUPPORTED_LANGUAGES, PageSelectionOptions, ContentFormat } from '../../models/ocr.model';
 import { SummaryType } from '../../../ai/models/ai.model';
 import { RichTextEditorComponent } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
 import { SafeHtmlPipe } from '../../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-ocr-processing',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, RichTextEditorComponent, SafeHtmlPipe],
+  imports: [CommonModule, RouterModule, FormsModule, RichTextEditorComponent, DatePickerComponent, SafeHtmlPipe],
   templateUrl: './ocr-processing.component.html',
   styleUrls: ['./ocr-processing.component.css']
 })
@@ -37,6 +38,15 @@ export class OcrProcessingComponent implements OnInit {
   startPage = signal<number | null>(null);
   endPage = signal<number | null>(null);
   specificPages = signal('');
+  
+  // Specific Extract Modal
+  showExtractPagesModal = signal(false);
+  extractPagesJob = signal<OcrJob | null>(null);
+
+  // Filters setup
+  searchQuery = signal<string>('');
+  startDateFilter = signal<Date | null>(null);
+  endDateFilter = signal<Date | null>(null);
 
   // Content editing state
   showEditModal = signal(false);
@@ -160,6 +170,30 @@ export class OcrProcessingComponent implements OnInit {
   getTabJobs(): OcrJob[] {
     // Use paginated jobs for display
     return this.paginatedJobs();
+  }
+
+  // Filter actions
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.searchQuery.set(value);
+    this.ocrState.updateFilter({ searchQuery: value });
+  }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.ocrState.updateFilter({ searchQuery: undefined });
+  }
+
+  onStartDateFilter(dateStr: string | null): void {
+    const date = dateStr ? new Date(dateStr) : null;
+    this.startDateFilter.set(date);
+    this.ocrState.updateFilter({ dateFrom: date ? date.toISOString() : undefined });
+  }
+
+  onEndDateFilter(dateStr: string | null): void {
+    const date = dateStr ? new Date(dateStr) : null;
+    this.endDateFilter.set(date);
+    this.ocrState.updateFilter({ dateTo: date ? date.toISOString() : undefined });
   }
 
   // Pagination methods
@@ -458,6 +492,29 @@ export class OcrProcessingComponent implements OnInit {
     }
 
     return undefined;
+  }
+
+  openExtractPagesModal(job: OcrJob): void {
+    this.extractPagesJob.set(job);
+    this.setPageSelectionMode('range'); // Start with range by default as we don't need 'all' here
+    this.showExtractPagesModal.set(true);
+  }
+
+  closeExtractPagesModal(): void {
+    this.showExtractPagesModal.set(false);
+    this.extractPagesJob.set(null);
+    this.setPageSelectionMode('all'); // Reset
+  }
+
+  submitExtractPages(): void {
+    const job = this.extractPagesJob();
+    if (!job || !job.collectionId || !job.documentId) return;
+
+    const options = this.getPageSelectionOptions();
+    if (options) {
+      this.ocrState.extractText(job.collectionId, job.documentId, job.fileName, options);
+      this.closeExtractPagesModal();
+    }
   }
 
   // ==================== AI Actions ====================

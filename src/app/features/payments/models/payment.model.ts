@@ -13,7 +13,7 @@ export type PaymentStatus =
   | 'canceled'
   | 'processing';
 
-export type PaymentProvider = 'stripe' | 'paystack';
+export type PaymentProvider = 'stripe' | 'paystack' | 'paypal' | 'STRIPE' | 'PAYSTACK' | 'PAYPAL';
 
 export type PaymentMethodType = 'card' | 'bank_account' | 'bank_transfer';
 
@@ -61,6 +61,7 @@ export interface Receipt {
   amount: number;
   currency: string;
   paymentMethod?: string;
+  paymentMethodDetails?: string;
   description?: string;
   receiptUrl?: string;
   paidAt: string;
@@ -89,6 +90,16 @@ export interface StripeRefund {
   refundId: string;
   amount: number;
   status: string;
+}
+
+export interface StripePaymentHistoryItem {
+  id: string;
+  stripePaymentIntentId: string;
+  userId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  createdAt: string;
 }
 
 // ==================== Paystack Types ====================
@@ -131,6 +142,22 @@ export interface PaginatedResponse<T> {
   totalPages: number;
   page: number;
   size: number;
+  number: number;
+  numberOfElements: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+// ==================== Currency Conversion ====================
+
+export interface CurrencyConversionResponse {
+  originalAmountUsd: number;
+  convertedAmount: number;
+  currency: string;
+  formattedPrice: string;
+  exchangeRate: number;
+  rateTimestamp: string;
 }
 
 // ==================== Create Payment Intent ====================

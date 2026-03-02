@@ -2,6 +2,7 @@ import { Injectable, inject, signal, computed } from '@angular/core';
 import { catchError, of, tap, finalize, forkJoin } from 'rxjs';
 import { PaymentApiService } from './payment-api.service';
 import { PaystackApiService } from './paystack-api.service';
+import { PayPalApiService } from './paypal-api.service';
 import {
   Payment,
   PaymentMethod,
@@ -9,8 +10,10 @@ import {
   PaymentStatus,
   PaymentProvider,
   PaymentFilterOptions,
+  StripePaymentHistoryItem,
 } from '../models/payment.model';
 import { PaystackPaymentHistoryItem } from '../models/paystack.model';
+import { PayPalPaymentHistoryItem } from '../models/paypal.model';
 
 @Injectable({
   providedIn: 'root'
@@ -18,6 +21,7 @@ import { PaystackPaymentHistoryItem } from '../models/paystack.model';
 export class PaymentStateService {
   private readonly api = inject(PaymentApiService);
   private readonly paystackApi = inject(PaystackApiService);
+  private readonly paypalApi = inject(PayPalApiService);
 
   // ==================== State Signals ====================
 
@@ -38,6 +42,13 @@ export class PaymentStateService {
     totalPages: 0
   });
 
+  private readonly _receiptPagination = signal({
+    page: 0,
+    size: 10,
+    totalElements: 0,
+    totalPages: 0
+  });
+
   // ==================== Public Readonly Signals ====================
 
   readonly payments = this._payments.asReadonly();
@@ -51,6 +62,7 @@ export class PaymentStateService {
   readonly successMessage = this._successMessage.asReadonly();
   readonly filter = this._filter.asReadonly();
   readonly pagination = this._pagination.asReadonly();
+  readonly receiptPagination = this._receiptPagination.asReadonly();
 
   // ==================== Computed Properties ====================
 
@@ -74,11 +86,36 @@ export class PaymentStateService {
       );
     }
 
+    if (currentFilter.dateFrom) {
+      const fromDate = new Date(currentFilter.dateFrom).getTime();
+      payments = payments.filter(p => new Date(p.createdAt).getTime() >= fromDate);
+    }
+
+    if (currentFilter.dateTo) {
+      const toDate = new Date(currentFilter.dateTo).getTime();
+      const toDateEnd = toDate + 24 * 60 * 60 * 1000 - 1;
+      payments = payments.filter(p => new Date(p.createdAt).getTime() <= toDateEnd);
+    }
+
     return payments;
   });
 
   readonly totalPayments = computed(() => this._payments().length);
 
+  readonly hasMorePayments = computed(() => {
+    return this._payments().length < this._pagination().totalElements;
+  });
+
+  readonly totalsByCurrency = computed(() => {
+    const totals = new Map<string, number>();
+    for (const p of this._payments().filter(p => p.status === 'succeeded')) {
+      const currency = p.currency?.toUpperCase() || 'USD';
+      totals.set(currency, (totals.get(currency) || 0) + p.amount);
+    }
+    return totals;
+  });
+
+  // Keep for backward compat — sums all currencies (not meaningful for mixed currencies)
   readonly totalAmount = computed(() => {
     return this._payments()
       .filter(p => p.status === 'succeeded')
@@ -108,38 +145,77 @@ export class PaymentStateService {
   // ==================== Load Actions ====================
 
   /**
-   * Load all payment data (payments, methods, receipts)
+   * Load all payment data (payments from all providers, receipts)
+   * Fetches from Paystack, PayPal, and Stripe in parallel and merges results
    */
   loadAllPaymentData(): void {
     this._isLoading.set(true);
     this._error.set(null);
 
-    // Load real data from APIs
+    const emptyPaginated = {
+      content: [] as any[],
+      totalElements: 0,
+      totalPages: 0,
+      pageable: { pageNumber: 0, pageSize: 50 }
+    };
+
     forkJoin({
-      paystackHistory: this.paystackApi.getPaymentHistory(0, 50).pipe(
+      paystackHistory: this.paystackApi.getPaymentHistory(0, 20).pipe(
         catchError(error => {
           console.error('Failed to load Paystack history:', error);
-          return of({ content: [], totalElements: 0, totalPages: 0, pageable: { pageNumber: 0, pageSize: 20 } });
+          return of(emptyPaginated);
         })
       ),
-      receipts: this.api.getReceipts(0, 50).pipe(
+      paypalHistory: this.paypalApi.getPaymentHistory(0, 20).pipe(
+        catchError(error => {
+          console.error('Failed to load PayPal history:', error);
+          return of(emptyPaginated);
+        })
+      ),
+      stripeHistory: this.api.getStripePaymentHistory(0, 20).pipe(
+        catchError(error => {
+          console.error('Failed to load Stripe history:', error);
+          return of(emptyPaginated);
+        })
+      ),
+      receipts: this.api.getReceipts(0, 20).pipe(
         catchError(error => {
           console.error('Failed to load receipts:', error);
-          return of([]);
+          return of({ content: [], totalElements: 0, totalPages: 0, page: 0, size: 20, number: 0, numberOfElements: 0, first: true, last: true, empty: true });
         })
       )
     }).pipe(
-      tap(({ paystackHistory, receipts }) => {
-        // Convert Paystack history to Payment format
-        const payments = this.convertPaystackHistoryToPayments(paystackHistory.content || []);
-        this._payments.set(payments);
-        this._receipts.set(receipts);
+      tap(({ paystackHistory, paypalHistory, stripeHistory, receipts }) => {
+        // Convert each provider's history to unified Payment format
+        const paystackPayments = this.convertPaystackHistoryToPayments(
+          paystackHistory.content || []
+        );
+        const paypalPayments = this.convertPayPalHistoryToPayments(
+          paypalHistory.content || []
+        );
+        const stripePayments = this.convertStripeHistoryToPayments(
+          stripeHistory.content || []
+        );
 
-        // Update pagination
+        // Merge all payments and sort by date (newest first)
+        const allPayments = [...paystackPayments, ...paypalPayments, ...stripePayments]
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        this._payments.set(allPayments);
+        this._receipts.set(receipts.content || []);
+
+        // Update pagination with combined totals
+        const totalElements =
+          (paystackHistory.totalElements || 0) +
+          (paypalHistory.totalElements || 0) +
+          (stripeHistory.totalElements || 0);
+
         this._pagination.update(p => ({
           ...p,
-          totalElements: paystackHistory.totalElements || 0,
-          totalPages: paystackHistory.totalPages || 0
+          page: 0,
+          size: 20,
+          totalElements,
+          totalPages: Math.ceil(totalElements / 20) || 1
         }));
       }),
       catchError(error => {
@@ -152,21 +228,61 @@ export class PaymentStateService {
   }
 
   /**
-   * Load payment history
+   * Load payment history from all providers
    */
-  loadPaymentHistory(page = 0, size = 20): void {
+  loadPaymentHistory(page = 0, size = 20, append = false): void {
     this._isLoading.set(true);
 
-    this.paystackApi.getPaymentHistory(page, size).pipe(
-      tap(response => {
-        const payments = this.convertPaystackHistoryToPayments(response.content || []);
-        this._payments.set(payments);
+    const emptyPaginated = {
+      content: [] as any[],
+      totalElements: 0,
+      totalPages: 0,
+      pageable: { pageNumber: 0, pageSize: size }
+    };
+
+    forkJoin({
+      paystackHistory: this.paystackApi.getPaymentHistory(page, size).pipe(
+        catchError(() => of(emptyPaginated))
+      ),
+      paypalHistory: this.paypalApi.getPaymentHistory(page, size).pipe(
+        catchError(() => of(emptyPaginated))
+      ),
+      stripeHistory: this.api.getStripePaymentHistory(page, size).pipe(
+        catchError(() => of(emptyPaginated))
+      ),
+    }).pipe(
+      tap(({ paystackHistory, paypalHistory, stripeHistory }) => {
+        const paystackPayments = this.convertPaystackHistoryToPayments(paystackHistory.content || []);
+        const paypalPayments = this.convertPayPalHistoryToPayments(paypalHistory.content || []);
+        const stripePayments = this.convertStripeHistoryToPayments(stripeHistory.content || []);
+
+        const newPayments = [...paystackPayments, ...paypalPayments, ...stripePayments];
+        let allPayments = append ? [...this._payments(), ...newPayments] : newPayments;
+
+        if (append) {
+          const uniqueIds = new Set<string>();
+          allPayments = allPayments.filter(p => {
+             if (uniqueIds.has(p.id)) return false;
+             uniqueIds.add(p.id);
+             return true;
+          });
+        }
+
+        allPayments.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        this._payments.set(allPayments);
+
+        const totalElements =
+          (paystackHistory.totalElements || 0) +
+          (paypalHistory.totalElements || 0) +
+          (stripeHistory.totalElements || 0);
+
         this._pagination.update(p => ({
           ...p,
-          page: response.pageable?.pageNumber || 0,
-          size: response.pageable?.pageSize || size,
-          totalElements: response.totalElements || 0,
-          totalPages: response.totalPages || 0
+          page,
+          size,
+          totalElements,
+          totalPages: Math.ceil(totalElements / size) || 1
         }));
       }),
       catchError(error => {
@@ -176,6 +292,15 @@ export class PaymentStateService {
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
+  }
+
+  /**
+   * Load more payments for infinite scroll
+   */
+  loadMorePayments(): void {
+    if (this._isLoading() || !this.hasMorePayments()) return;
+    const nextPage = this._pagination().page + 1;
+    this.loadPaymentHistory(nextPage, this._pagination().size, true);
   }
 
   /**
@@ -189,13 +314,18 @@ export class PaymentStateService {
    * Convert a single Paystack history item to Payment format
    */
   private convertPaystackItemToPayment(item: PaystackPaymentHistoryItem): Payment {
+    // Build a meaningful description from payment_type
+    const typeLabel = item.payment_type === 'CREDIT_PURCHASE' ? 'Credit Purchase' :
+                      item.payment_type === 'SUBSCRIPTION' ? 'Subscription Payment' : 'Payment';
+    const desc = item.description || `${typeLabel} - ${item.reference}`;
+
     return {
       id: item.id,
       provider: 'paystack',
       amount: item.amount,
       currency: item.currency,
       status: this.mapPaystackStatus(item.status),
-      description: item.description || `Payment - ${item.reference}`,
+      description: desc,
       paymentMethodBrand: item.channel || undefined,
       paymentMethodLast4: undefined,
       receiptNumber: item.reference,
@@ -220,6 +350,98 @@ export class PaymentStateService {
       'REVERSED': 'refunded',
       'QUEUED': 'processing',
       'PROCESSING': 'processing'
+    };
+    return statusMap[normalizedStatus] || 'pending';
+  }
+
+  /**
+   * Convert PayPal payment history items to unified Payment format
+   */
+  private convertPayPalHistoryToPayments(items: PayPalPaymentHistoryItem[]): Payment[] {
+    return items.map(item => this.convertPayPalItemToPayment(item));
+  }
+
+  /**
+   * Convert a single PayPal history item to Payment format
+   */
+  private convertPayPalItemToPayment(item: PayPalPaymentHistoryItem): Payment {
+    return {
+      id: item.id,
+      provider: 'paypal',
+      amount: item.amount,
+      currency: item.currency?.toUpperCase() || 'USD',
+      status: this.mapPayPalStatus(item.status),
+      description: item.description || `PayPal Payment - ${item.order_id || item.capture_id || 'N/A'}`,
+      paymentMethodBrand: 'PayPal',
+      paymentMethodLast4: item.payer_email ? item.payer_email.substring(0, 4) : undefined,
+      receiptNumber: item.order_id || item.capture_id || undefined,
+      refundedAmount: item.amount_refunded || undefined,
+      createdAt: item.created_at,
+      updatedAt: item.completed_at || item.created_at,
+    };
+  }
+
+  /**
+   * Map PayPal transaction status to unified PaymentStatus
+   */
+  private mapPayPalStatus(status: string): PaymentStatus {
+    const normalizedStatus = status?.toUpperCase();
+    const statusMap: Record<string, PaymentStatus> = {
+      'SUCCEEDED': 'succeeded',
+      'COMPLETED': 'succeeded',
+      'CAPTURED': 'succeeded',
+      'APPROVED': 'succeeded',
+      'FAILED': 'failed',
+      'VOIDED': 'canceled',
+      'PENDING': 'pending',
+      'CREATED': 'pending',
+      'SAVED': 'pending',
+      'PAYER_ACTION_REQUIRED': 'pending',
+      'REFUNDED': 'refunded',
+      'PARTIALLY_REFUNDED': 'refunded',
+    };
+    return statusMap[normalizedStatus] || 'pending';
+  }
+
+  /**
+   * Convert Stripe payment history items to unified Payment format
+   */
+  private convertStripeHistoryToPayments(items: StripePaymentHistoryItem[]): Payment[] {
+    return items.map(item => this.convertStripeItemToPayment(item));
+  }
+
+  /**
+   * Convert a single Stripe history item to Payment format
+   */
+  private convertStripeItemToPayment(item: StripePaymentHistoryItem): Payment {
+    return {
+      id: item.id,
+      provider: 'stripe',
+      amount: item.amount,
+      currency: item.currency?.toUpperCase() || 'USD',
+      status: this.mapStripeStatus(item.status),
+      description: `Stripe Payment - ${item.stripePaymentIntentId || 'N/A'}`,
+      paymentMethodBrand: 'Stripe',
+      paymentMethodLast4: undefined,
+      receiptNumber: item.stripePaymentIntentId || undefined,
+      createdAt: item.createdAt,
+      updatedAt: item.createdAt,
+    };
+  }
+
+  /**
+   * Map Stripe status to unified PaymentStatus
+   */
+  private mapStripeStatus(status: string): PaymentStatus {
+    const normalizedStatus = status?.toLowerCase();
+    const statusMap: Record<string, PaymentStatus> = {
+      'succeeded': 'succeeded',
+      'requires_payment_method': 'failed',
+      'requires_action': 'pending',
+      'processing': 'processing',
+      'canceled': 'canceled',
+      'requires_confirmation': 'pending',
+      'requires_capture': 'pending',
     };
     return statusMap[normalizedStatus] || 'pending';
   }
@@ -250,13 +472,19 @@ export class PaymentStateService {
     this._isLoading.set(true);
 
     this.api.getReceipts(page, size).pipe(
-      tap(receipts => {
-        this._receipts.set(receipts);
+      tap(response => {
+        this._receipts.set(response.content || []);
+        this._receiptPagination.set({
+          page: response.number ?? response.page ?? page,
+          size: response.size ?? size,
+          totalElements: response.totalElements ?? 0,
+          totalPages: response.totalPages ?? 0
+        });
       }),
       catchError(error => {
         console.error('Failed to load receipts:', error);
         this.loadMockReceipts();
-        return of([]);
+        return of(null);
       }),
       finalize(() => this._isLoading.set(false))
     ).subscribe();
@@ -369,6 +597,70 @@ export class PaymentStateService {
       catchError(error => {
         this._error.set('Failed to download receipt');
         console.error('Download receipt error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isProcessing.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Convert currency
+   */
+  convertCurrency(amountInCents: number, from: string, to: string) {
+    return this.api.convertCurrency(amountInCents, from, to);
+  }
+
+  /**
+   * Delete a single receipt
+   */
+  deleteReceipt(receiptNumber: string): void {
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    this.api.deleteReceipt(receiptNumber).pipe(
+      tap(() => {
+        this._receipts.update(receipts =>
+          receipts.filter(r => r.receiptNumber !== receiptNumber)
+        );
+        this._receiptPagination.update(p => ({
+          ...p,
+          totalElements: Math.max(0, p.totalElements - 1)
+        }));
+        this._selectedReceipt.set(null);
+        this._successMessage.set('Receipt deleted successfully');
+        this.clearMessageAfterDelay();
+      }),
+      catchError(error => {
+        this._error.set('Failed to delete receipt');
+        console.error('Delete receipt error:', error);
+        return of(null);
+      }),
+      finalize(() => this._isProcessing.set(false))
+    ).subscribe();
+  }
+
+  /**
+   * Bulk delete receipts
+   */
+  bulkDeleteReceipts(receiptNumbers: string[]): void {
+    this._isProcessing.set(true);
+    this._error.set(null);
+
+    this.api.bulkDeleteReceipts(receiptNumbers).pipe(
+      tap(() => {
+        this._receipts.update(receipts =>
+          receipts.filter(r => !receiptNumbers.includes(r.receiptNumber))
+        );
+        this._receiptPagination.update(p => ({
+          ...p,
+          totalElements: Math.max(0, p.totalElements - receiptNumbers.length)
+        }));
+        this._successMessage.set(`${receiptNumbers.length} receipt${receiptNumbers.length > 1 ? 's' : ''} deleted successfully`);
+        this.clearMessageAfterDelay();
+      }),
+      catchError(error => {
+        this._error.set('Failed to delete receipts');
+        console.error('Bulk delete receipts error:', error);
         return of(null);
       }),
       finalize(() => this._isProcessing.set(false))
