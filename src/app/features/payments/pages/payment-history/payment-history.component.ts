@@ -1,14 +1,39 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PaymentStateService } from '../../services/payment-state.service';
 import { Payment, PaymentStatus, PaymentProvider } from '../../models/payment.model';
+import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+
+interface ProviderInfo {
+  name: string;
+  cssClass: string;
+  accentColor: string;
+}
+
+interface CurrencyTotal {
+  code: string;
+  symbol: string;
+  name: string;
+  amount: number;
+  formatted: string;
+}
+
+const SUPPORTED_CURRENCIES: { code: string; symbol: string; name: string }[] = [
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+  { code: 'GHS', symbol: '₵', name: 'Ghanaian Cedi' },
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
+];
 
 @Component({
   selector: 'app-payment-history',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, DatePickerComponent],
   templateUrl: './payment-history.component.html',
   styleUrls: ['./payment-history.component.css']
 })
@@ -20,7 +45,18 @@ export class PaymentHistoryComponent implements OnInit {
   searchQuery = signal('');
   statusFilter = signal<PaymentStatus | ''>('');
   providerFilter = signal<PaymentProvider | ''>('');
+  startDateFilter = signal<string>('');
+  endDateFilter = signal<string>('');
+  selectedCurrency = signal<string>(this.getInitialCurrency());
   showDetailModal = signal(false);
+
+  private getInitialCurrency(): string {
+    try {
+      return localStorage.getItem('preferredCurrency') || 'USD';
+    } catch {
+      return 'USD';
+    }
+  }
 
   // From state service
   readonly payments = this.paymentState.payments;
@@ -30,13 +66,43 @@ export class PaymentHistoryComponent implements OnInit {
   readonly error = this.paymentState.error;
   readonly successMessage = this.paymentState.successMessage;
   readonly totalPayments = this.paymentState.totalPayments;
-  readonly totalAmount = this.paymentState.totalAmount;
   readonly successfulPayments = this.paymentState.successfulPayments;
   readonly failedPayments = this.paymentState.failedPayments;
+  readonly hasMorePayments = this.paymentState.hasMorePayments;
+
+  // Totals broken down by currency
+  readonly currencyTotals = computed((): CurrencyTotal[] => {
+    const totalsMap = this.paymentState.totalsByCurrency();
+    return SUPPORTED_CURRENCIES.map(c => {
+      const amount = totalsMap.get(c.code) || 0;
+      return {
+        ...c,
+        amount,
+        formatted: `${c.symbol}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      };
+    });
+  });
+
+  // Active currency total for the stats display
+  readonly activeCurrencyTotal = computed(() => {
+    const code = this.selectedCurrency();
+    const totals = this.currencyTotals();
+    const active = totals.find(c => c.code === code);
+    return active || totals[0];
+  });
+
+  // Provider map
+  private readonly providerMap: Record<string, ProviderInfo> = {
+    stripe: { name: 'Stripe', cssClass: 'provider-stripe', accentColor: '#6366f1' },
+    paypal: { name: 'PayPal', cssClass: 'provider-paypal', accentColor: '#2563eb' },
+    paystack: { name: 'Paystack', cssClass: 'provider-paystack', accentColor: '#059669' },
+  };
 
   ngOnInit(): void {
     this.paymentState.loadAllPaymentData();
   }
+
+  // ==================== Filters ====================
 
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
@@ -54,12 +120,38 @@ export class PaymentHistoryComponent implements OnInit {
     this.paymentState.updateFilter({ provider: provider || undefined });
   }
 
+  onStartDateFilter(value: string): void {
+    this.startDateFilter.set(value);
+    this.paymentState.updateFilter({ dateFrom: value || undefined });
+  }
+
+  onEndDateFilter(value: string): void {
+    this.endDateFilter.set(value);
+    this.paymentState.updateFilter({ dateTo: value || undefined });
+  }
+
+  onCurrencySelect(value: string): void {
+    this.selectedCurrency.set(value);
+    try {
+      localStorage.setItem('preferredCurrency', value);
+    } catch {}
+  }
+
   clearFilters(): void {
     this.searchQuery.set('');
     this.statusFilter.set('');
     this.providerFilter.set('');
+    this.startDateFilter.set('');
+    this.endDateFilter.set('');
     this.paymentState.clearFilter();
   }
+
+  clearSearch(): void {
+    this.searchQuery.set('');
+    this.paymentState.updateFilter({ searchQuery: '' });
+  }
+
+  // ==================== Actions ====================
 
   viewPaymentDetail(payment: Payment): void {
     this.paymentState.selectPayment(payment);
@@ -72,30 +164,78 @@ export class PaymentHistoryComponent implements OnInit {
   }
 
   viewReceipt(paymentReference: string): void {
-    // Payment reference (PAY_xxx) is not the same as receipt number (REC-xxx)
-    // Navigate to receipts page where user can find their receipt
     this.router.navigate(['/payments/receipts']);
   }
 
-  // Helpers
+  loadMore(): void {
+    this.paymentState.loadMorePayments();
+  }
+
+  exportToCsv(): void {
+    const payments = this.filteredPayments();
+    if (!payments.length) return;
+
+    const headers = ['Date', 'Receipt Number', 'Description', 'Provider', 'Amount', 'Currency', 'Status', 'Payment Method'];
+    const rows = payments.map(p => [
+      new Date(p.createdAt).toISOString(),
+      p.receiptNumber || '',
+      `"${(p.description || '').replace(/"/g, '""')}"`,
+      p.provider,
+      p.amount.toString(),
+      p.currency,
+      p.status,
+      `${this.getProviderName(p.provider)} ${p.paymentMethodLast4 ? '...' + p.paymentMethodLast4 : ''}`.trim()
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `payment_history_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // ==================== Provider helpers ====================
+
+  getProviderInfo(provider: string): ProviderInfo {
+    const key = provider.toLowerCase();
+    return this.providerMap[key] || { name: provider, cssClass: 'provider-default', accentColor: '#6b7280' };
+  }
+
+  getProviderName(provider: string): string {
+    return this.getProviderInfo(provider).name;
+  }
+
+  getProviderClass(provider: string): string {
+    return this.getProviderInfo(provider).cssClass;
+  }
+
+  getProviderAccentClass(provider: string): string {
+    return `accent-${provider.toLowerCase()}`;
+  }
+
+  getProviderIconClass(provider: string): string {
+    return `icon-${provider.toLowerCase()}`;
+  }
+
+  // ==================== Format helpers ====================
+
   formatAmount(amount: number, currency: string): string {
-    // Paystack stores amounts in kobo (smallest currency unit)
-    // Divide by 100 to get the main currency unit
-    const mainAmount = amount / 100;
-
-    // Use custom symbols for currencies not well supported by Intl
-    const currencySymbols: Record<string, string> = {
-      'NGN': '₦',
-      'GHS': '₵',
-      'ZAR': 'R',
-      'KES': 'KSh',
-      'USD': '$',
-      'EUR': '€',
-      'GBP': '£'
-    };
-
-    const symbol = currencySymbols[currency] || currency + ' ';
-    return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+      }).format(amount);
+    } catch {
+      return `${currency} ${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
   }
 
   formatDate(dateString: string): string {
@@ -103,10 +243,20 @@ export class PaymentHistoryComponent implements OnInit {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
   }
+
+  formatDateTime(dateString: string): string {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  // ==================== Status helpers ====================
 
   getStatusClass(status: PaymentStatus): string {
     switch (status) {
@@ -131,9 +281,11 @@ export class PaymentHistoryComponent implements OnInit {
     }
   }
 
-  getProviderIcon(provider: PaymentProvider): string {
-    return provider === 'stripe' ? 'Stripe' : 'Paystack';
+  getStatusLabel(status: PaymentStatus): string {
+    return status.charAt(0).toUpperCase() + status.slice(1);
   }
+
+  // ==================== Card helpers ====================
 
   getCardBrandIcon(brand?: string): string {
     switch (brand?.toLowerCase()) {

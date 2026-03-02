@@ -14,6 +14,7 @@ import {
   PayPalCreateOrderRequest,
   PayPalCreateOrderResponse,
   PayPalCaptureOrderResponse,
+  PayPalPaymentHistoryResponse,
 } from '../models/paypal.model';
 
 /**
@@ -66,6 +67,23 @@ export class PayPalApiService {
       null
     ).pipe(
       map(response => response.data)
+    );
+  }
+
+  // ==================== Payment History ====================
+
+  /**
+   * Get PayPal payment history
+   * GET /paypal/payments/history
+   */
+  getPaymentHistory(page: number = 0, size: number = 20): Observable<PayPalPaymentHistoryResponse> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<PayPalPaymentHistoryResponse>(
+      `${this.apiUrl}/payments/history`,
+      { params }
     );
   }
 

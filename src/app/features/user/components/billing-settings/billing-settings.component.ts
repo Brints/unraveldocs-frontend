@@ -605,11 +605,19 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   }
 
   formatPaystackAmount(amount: number, currency: string): string {
-    // Amount from Paystack API is in kobo, convert to main unit
+    // Amounts from Paystack history API are typically in the lowest unit (kobo/cents)
+    // We must convert them back to the main unit for display
     const mainAmount = amount / 100;
-    const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
-    const symbol = currencyInfo?.symbol || currency;
-    return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+      }).format(mainAmount);
+    } catch {
+      const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
+      const symbol = currencyInfo?.symbol || currency;
+      return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
+    }
   }
 
   getCurrentPlan() {
