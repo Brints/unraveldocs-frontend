@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, HostListener } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -38,7 +38,7 @@ export class OcrProcessingComponent implements OnInit {
   startPage = signal<number | null>(null);
   endPage = signal<number | null>(null);
   specificPages = signal('');
-  
+
   // Specific Extract Modal
   showExtractPagesModal = signal(false);
   extractPagesJob = signal<OcrJob | null>(null);
@@ -47,6 +47,11 @@ export class OcrProcessingComponent implements OnInit {
   searchQuery = signal<string>('');
   startDateFilter = signal<Date | null>(null);
   endDateFilter = signal<Date | null>(null);
+
+  // Computed: whether any filters are active
+  readonly hasActiveFilters = computed(() => {
+    return !!this.searchQuery() || !!this.startDateFilter() || !!this.endDateFilter();
+  });
 
   // Content editing state
   showEditModal = signal(false);
@@ -182,6 +187,23 @@ export class OcrProcessingComponent implements OnInit {
   clearSearch(): void {
     this.searchQuery.set('');
     this.ocrState.updateFilter({ searchQuery: undefined });
+  }
+
+  clearAllFilters(): void {
+    this.searchQuery.set('');
+    this.startDateFilter.set(null);
+    this.endDateFilter.set(null);
+    this.ocrState.clearFilter();
+    // Re-apply tab filter if not on 'all'
+    const tab = this.activeTab();
+    if (tab !== 'all') {
+      const statusMap: Record<string, OcrStatus> = {
+        'processing': 'PROCESSING',
+        'completed': 'COMPLETED',
+        'failed': 'FAILED'
+      };
+      this.ocrState.updateFilter({ status: statusMap[tab] });
+    }
   }
 
   onStartDateFilter(dateStr: string | null): void {

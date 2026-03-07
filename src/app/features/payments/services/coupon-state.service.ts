@@ -137,12 +137,7 @@ export class CouponStateService {
         this._validatedCoupon.set(null);
         this._validationStatus.set('error');
         // Extract error message from various possible response structures
-        const errorMessage = 
-          error.error?.data?.message ||
-          error.error?.message ||
-          error.message ||
-          (error.error?.data?.errorCode ? getCouponErrorMessage(error.error?.data?.errorCode as CouponErrorCode) : null) ||
-          'Invalid coupon code. Please try again.';
+        const errorMessage = this.extractErrorMessage(error);
         this._error.set(errorMessage);
         return of(null);
       })
@@ -152,7 +147,7 @@ export class CouponStateService {
   /**
    * Apply a coupon to an amount
    */
-  applyCoupon(code: string, amount: number): void {
+  applyCoupon(code: string, amount: number, currency: string = 'USD'): void {
     if (!code || code.trim().length === 0) {
       this._error.set('Please enter a coupon code');
       return;
@@ -177,6 +172,7 @@ export class CouponStateService {
             discountAmount: response.discountAmount,
             originalAmount: response.originalAmount,
             finalAmount: response.finalAmount,
+            currency: response.currency || currency,
             minPurchaseAmount: response.minPurchaseAmount,
             minPurchaseRequirementMet: response.minPurchaseRequirementMet,
           });
@@ -192,12 +188,7 @@ export class CouponStateService {
         console.error('Failed to apply coupon:', error);
         this._validationStatus.set('error');
         // Extract error message from various possible response structures
-        const errorMessage = 
-          error.error?.data?.message ||
-          error.error?.message ||
-          error.message ||
-          (error.error?.data?.errorCode ? getCouponErrorMessage(error.error?.data?.errorCode as CouponErrorCode) : null) ||
-          'Invalid coupon code. Please try again.';
+        const errorMessage = this.extractErrorMessage(error);
         this._error.set(errorMessage);
         return of(null);
       })
@@ -237,9 +228,9 @@ export class CouponStateService {
   /**
    * Select an available coupon and apply it
    */
-  selectAvailableCoupon(coupon: AvailableCoupon, amount: number): void {
+  selectAvailableCoupon(coupon: AvailableCoupon, amount: number, currency: string = 'USD'): void {
     this._couponInput.set(coupon.code);
-    this.applyCoupon(coupon.code, amount);
+    this.applyCoupon(coupon.code, amount, currency);
   }
 
   /**
@@ -278,5 +269,19 @@ export class CouponStateService {
     const appliedCoupon = this._appliedCoupon();
     if (!appliedCoupon) return '';
     return `${currencySymbol}${appliedCoupon.discountAmount.toFixed(2)}`;
+  }
+
+  /**
+   * Helper to extract error message from API response
+   */
+  private extractErrorMessage(error: any): string {
+    const errObj = typeof error?.error === 'object' && error?.error !== null ? error.error : {};
+    const dataObj = errObj?.data || {};
+    return errObj?.message ||
+           dataObj?.errorMessage ||
+           dataObj?.message ||
+           (errObj?.errorCode ? getCouponErrorMessage(errObj.errorCode as CouponErrorCode) : null) ||
+           (dataObj?.errorCode ? getCouponErrorMessage(dataObj.errorCode as CouponErrorCode) : null) ||
+           'Invalid coupon code. Please try again.';
   }
 }

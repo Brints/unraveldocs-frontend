@@ -227,6 +227,7 @@ describe('NotificationApiService', () => {
         storageNotifications: true,
         subscriptionNotifications: true,
         teamNotifications: true,
+        couponNotifications: true,
         quietHoursEnabled: false,
         quietHoursStart: null,
         quietHoursEnd: null,
@@ -253,6 +254,7 @@ describe('NotificationApiService', () => {
         storageNotifications: true,
         subscriptionNotifications: true,
         teamNotifications: true,
+        couponNotifications: true,
         quietHoursEnabled: true,
         quietHoursStart: '22:00:00',
         quietHoursEnd: '07:00:00'
@@ -268,6 +270,7 @@ describe('NotificationApiService', () => {
         storageNotifications: true,
         subscriptionNotifications: true,
         teamNotifications: true,
+        couponNotifications: true,
         quietHoursEnabled: true,
         quietHoursStart: '22:00:00',
         quietHoursEnd: '07:00:00',

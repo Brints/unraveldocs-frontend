@@ -342,11 +342,11 @@ export class PayPalStateService {
   /**
    * Set coupon code and calculate discount
    */
-  setCoupon(couponCode: string, discountAmount: number, originalAmount: number): void {
+  setCoupon(couponCode: string, discountAmount: number, originalAmount: number, finalAmount: number): void {
     this._couponCode.set(couponCode);
     this._discountAmount.set(discountAmount);
     this._originalAmount.set(originalAmount);
-    this._discountedAmount.set(originalAmount - discountAmount);
+    this._discountedAmount.set(finalAmount);
   }
 
   /**
@@ -374,7 +374,8 @@ export class PayPalStateService {
 
     if (individualPlan) {
       // Convert plan name like "PRO_MONTHLY" to "Pro Monthly"
-      planName = individualPlan.displayName;
+      const interval = individualPlan.billingInterval === 'MONTH' ? 'Monthly' : 'Yearly';
+      planName = `${individualPlan.displayName} ${interval}`;
     } else if (teamPlan) {
       // For team plans, determine billing based on selected interval
       const interval = this._billingInterval();
@@ -506,9 +507,6 @@ export class PayPalStateService {
     }
 
     const couponCode = this._couponCode()!;
-    const discountAmount = this._discountAmount();
-    const originalAmount = this._originalAmount();
-    const discountedAmount = this._discountedAmount();
     const currency = this.selectedCurrency() || 'USD';
 
     this._isProcessing.set(true);
@@ -518,18 +516,28 @@ export class PayPalStateService {
     const billingInterval = this._billingInterval();
     const description = `${selectedPlan.displayName} - ${billingInterval === 'yearly' ? 'Yearly' : 'Monthly'} (with ${couponCode} coupon)`;
 
+    // Always send the original (full) plan amount — the backend applies the coupon discount
+    let planAmount: number;
+    const individualPlan = this.selectedIndividualPlan();
+    const teamPlan = this.selectedTeamPlan();
+    if (individualPlan) {
+      planAmount = individualPlan.price.convertedAmount;
+    } else if (teamPlan) {
+      planAmount = billingInterval === 'yearly'
+        ? teamPlan.yearlyPrice.convertedAmount
+        : teamPlan.monthlyPrice.convertedAmount;
+    } else {
+      planAmount = this._originalAmount() || 0;
+    }
+
     const request: PayPalCreateOrderRequest = {
-      amount: discountedAmount,
+      amount: planAmount,
       currency: currency.toUpperCase(),
       description: description,
-      returnUrl: `${baseUrl}/payment/success?gateway=paypal&type=order`,
-      cancelUrl: `${baseUrl}/payment/cancel?gateway=paypal&type=order`,
-      metadata: {
-        planId: paypalPlanId,
-        couponCode: couponCode,
-        discountAmount: discountAmount.toFixed(2),
-        originalAmount: originalAmount.toFixed(2)
-      },
+      couponCode: couponCode,
+      planId: internalPlanId,
+      returnUrl: `${baseUrl}/payment/success`,
+      cancelUrl: `${baseUrl}/payment/cancel`,
       intent: 'CAPTURE'
     };
 

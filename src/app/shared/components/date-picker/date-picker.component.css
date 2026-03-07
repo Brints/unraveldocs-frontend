@@ -80,6 +80,11 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+.calendar-popup.align-right {
+  left: auto;
+  right: 0;
+}
+
 /* ==================== Header ==================== */
 .calendar-header {
   display: flex;

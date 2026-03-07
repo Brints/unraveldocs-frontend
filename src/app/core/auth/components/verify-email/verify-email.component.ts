@@ -1,5 +1,4 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { EmailVerificationRequest, AuthError, AuthErrorCodes } from '../../models/auth.model';
@@ -17,7 +16,7 @@ interface EmailVerificationState {
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [RouterModule, NgOptimizedImage],
+  imports: [RouterModule],
   templateUrl: 'verify-email.component.html',
   styleUrl: 'verify-email.component.css'
 })

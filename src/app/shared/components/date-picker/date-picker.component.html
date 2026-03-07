@@ -9,7 +9,7 @@
     </div>
 
     @if (isOpen() && !disabled) {
-    <div class="calendar-popup" (click)="$event.stopPropagation()">
+    <div class="calendar-popup" [class.align-right]="align === 'right'" (click)="$event.stopPropagation()">
         <div class="calendar-header">
             <button type="button" class="nav-btn" (click)="prev($event)" aria-label="Previous">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

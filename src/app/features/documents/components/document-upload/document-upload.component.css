@@ -636,3 +636,96 @@
 .h-12 { height: 3rem; }
 .h-16 { height: 4rem; }
 
+/* ==================== PDF OCR Options ==================== */
+.pdf-ocr-options {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.segment-control {
+  display: flex;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.segment-btn {
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #475569;
+  background: transparent;
+  border: none;
+  border-right: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.segment-btn:last-child {
+  border-right: none;
+}
+
+.segment-btn:hover:not(.active) {
+  background: #f8fafc;
+}
+
+.segment-btn.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.page-range-inputs {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.input-col {
+  flex: 1;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+}
+
+.option-input.text-center {
+  text-align: center;
+}
+
+/* Utilities used in HTML */
+.text-center { text-align: center; }
+.mb-4 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mt-6 { margin-top: 1.5rem; }
+.mt-2 { margin-top: 0.5rem; }
+.pt-8 { padding-top: 2rem; }
+.mx-2 { margin-left: 0.5rem; margin-right: 0.5rem; }
+.block { display: block; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.text-gray-400 { color: #9ca3af; }
+
+@media (max-width: 640px) {
+  .segment-control {
+    flex-direction: column;
+    width: 100%;
+  }
+  .segment-btn {
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    width: 100%;
+  }
+  .segment-btn:last-child {
+    border-bottom: none;
+  }
+}
+

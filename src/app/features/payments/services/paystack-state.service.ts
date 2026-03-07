@@ -283,17 +283,12 @@ export class PaystackStateService {
   /**
    * Set coupon code and discount details
    */
-  setCoupon(
-    couponCode: string,
-    discountPercentage: number,
-    discountAmount: number,
-    originalAmount: number
-  ): void {
-    this._couponCode.set(couponCode);
+  setCoupon(code: string, discountPercentage: number, discountAmount: number, originalAmount: number, finalAmount: number): void {
+    this._couponCode.set(code);
     this._discountPercentage.set(discountPercentage);
     this._discountAmount.set(discountAmount);
     this._originalAmount.set(originalAmount);
-    this._discountedAmount.set(originalAmount - discountAmount);
+    this._discountedAmount.set(finalAmount);
   }
 
   /**
@@ -351,10 +346,9 @@ export class PaystackStateService {
     }
 
     // Convert to kobo (amount from API is already in main currency unit)
-    // If coupon is applied, use the discounted amount
+    // Always send the original (full) amount — the backend applies the coupon discount
     const couponCode = this._couponCode();
-    const finalAmount = couponCode ? this._discountedAmount() : amount;
-    const amountInKobo = toKobo(finalAmount);
+    const amountInKobo = toKobo(amount);
 
     // Generate callback URL
     const callbackUrl = `${window.location.origin}/settings/billing/paystack/callback`;
@@ -369,14 +363,7 @@ export class PaystackStateService {
       metadata: {
         plan_code: planName,
         billingInterval: this._billingInterval(),
-        userId: email,
-        source: 'billing_page',
-        ...(couponCode && {
-          couponCode,
-          originalAmount: amount,
-          discountAmount: this._discountAmount(),
-          discountPercentage: this._discountPercentage()
-        })
+        source: 'billing_page'
       }
     }).pipe(
       tap(response => {

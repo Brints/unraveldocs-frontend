@@ -44,20 +44,14 @@ export interface PayPalPlansResponse {
 
 // ==================== Create Order (for coupon payments) ====================
 
-export interface PayPalOrderMetadata {
-  planId: string;
-  couponCode: string;
-  discountAmount: string;
-  originalAmount: string;
-}
-
 export interface PayPalCreateOrderRequest {
   amount: number;
   currency: string;
   description: string;
+  couponCode?: string;
+  planId?: string;
   returnUrl: string;
   cancelUrl: string;
-  metadata: PayPalOrderMetadata;
   intent: 'CAPTURE' | 'AUTHORIZE';
 }
 

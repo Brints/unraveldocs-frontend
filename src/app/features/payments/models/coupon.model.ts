@@ -173,6 +173,7 @@ export interface AppliedCouponState {
   discountAmount: number;
   originalAmount: number;
   finalAmount: number;
+  currency: string;
   minPurchaseAmount: number | null;
   minPurchaseRequirementMet: boolean;
 }

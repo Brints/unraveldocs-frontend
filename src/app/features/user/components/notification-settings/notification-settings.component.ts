@@ -65,6 +65,11 @@ export class NotificationSettingsComponent implements OnInit {
       key: 'teamNotifications',
       label: 'Team Notifications',
       description: 'Team invitations and member changes'
+    },
+    {
+      key: 'couponNotifications',
+      label: 'Coupon Notifications',
+      description: 'Coupon and promotional offer alerts'
     }
   ];
 
@@ -106,6 +111,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: key === 'storageNotifications' ? newValue : current.storageNotifications,
       subscriptionNotifications: key === 'subscriptionNotifications' ? newValue : current.subscriptionNotifications,
       teamNotifications: key === 'teamNotifications' ? newValue : current.teamNotifications,
+      couponNotifications: key === 'couponNotifications' ? newValue : current.couponNotifications,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: current.quietHoursStart || undefined,
       quietHoursEnd: current.quietHoursEnd || undefined,
@@ -116,7 +122,7 @@ export class NotificationSettingsComponent implements OnInit {
     // Clear local state after API call
     setTimeout(() => {
       this.localPreferences.set(null);
-    }, 500);
+    }, 1500);
   }
 
   // Toggle quiet hours
@@ -135,6 +141,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: current.storageNotifications,
       subscriptionNotifications: current.subscriptionNotifications,
       teamNotifications: current.teamNotifications,
+      couponNotifications: current.couponNotifications,
       quietHoursEnabled: newValue,
       quietHoursStart: current.quietHoursStart || '22:00:00',
       quietHoursEnd: current.quietHoursEnd || '07:00:00',
@@ -159,6 +166,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: current.storageNotifications,
       subscriptionNotifications: current.subscriptionNotifications,
       teamNotifications: current.teamNotifications,
+      couponNotifications: current.couponNotifications,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: time ? `${time}:00` : undefined,
       quietHoursEnd: current.quietHoursEnd || undefined,
@@ -183,6 +191,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: current.storageNotifications,
       subscriptionNotifications: current.subscriptionNotifications,
       teamNotifications: current.teamNotifications,
+      couponNotifications: current.couponNotifications,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: current.quietHoursStart || undefined,
       quietHoursEnd: time ? `${time}:00` : undefined,
@@ -211,6 +220,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: true,
       subscriptionNotifications: true,
       teamNotifications: true,
+      couponNotifications: true,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: current.quietHoursStart || undefined,
       quietHoursEnd: current.quietHoursEnd || undefined,
@@ -233,6 +243,7 @@ export class NotificationSettingsComponent implements OnInit {
       storageNotifications: true, // Keep storage notifications
       subscriptionNotifications: true, // Keep subscription notifications
       teamNotifications: false,
+      couponNotifications: false,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: current.quietHoursStart || undefined,
       quietHoursEnd: current.quietHoursEnd || undefined,
