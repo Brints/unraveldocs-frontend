@@ -292,33 +292,33 @@ In `auth.service.ts`, the `verifyEmail()` method returns `Promise<PasswordResetR
 
 ## 📊 Summary & Priority Matrix
 
-| # | Issue | Severity | Effort | Priority |
-|---|---|---|---|---|
-| 1 | Refresh token not invalidated on logout | 🔴 Critical | Low | **P0** |
-| 2 | Soft-deleted account reactivation | 🔴 Critical | Low | **P0** |
-| 3 | User enumeration via error codes | 🔴 Critical | Low | **P1** |
-| 4 | Token storage in localStorage | 🔴 Critical | High | **P1** |
-| 5 | Resend verification leaks TTL | 🔴 Critical | Low | **P1** |
-| 6 | Wrong HTTP status codes on login | 🟠 High | Medium | **P1** |
-| 7 | No absolute refresh token expiry | 🟠 High | Medium | **P1** |
-| 8 | Login response mixes tokens & profile | 🟠 High | Medium | **P2** |
-| 9 | No "logout all devices" | 🟠 High | Medium | **P2** |
-| 10 | Subscription re-assignment on login | 🟠 High | Low | **P2** |
-| 11 | Inconsistent response DTOs | 🟠 High | Medium | **P2** |
-| 12 | Logout should return 204 | 🟠 High | Low | **P3** |
-| 13 | No rate limiting documented | 🟡 Medium | Medium | **P2** |
-| 14 | Token lifetimes not documented | 🟡 Medium | Low | **P2** |
-| 15 | Lock threshold undocumented | 🟡 Medium | Low | **P2** |
-| 16 | Concurrent session policy | 🟡 Medium | Low | **P2** |
-| 17 | Verify email race condition | 🟡 Medium | Medium | **P3** |
-| 18 | Refresh race condition undocumented | 🟡 Medium | Low | **P3** |
-| 19 | No `Retry-After` header | 🟡 Medium | Low | **P3** |
-| 20 | No machine-readable error codes | 🟡 Medium | Medium | **P2** |
-| 21 | Kafka failure handling undocumented | 🟡 Medium | Low | **P3** |
-| 22 | Login attempt decay undocumented | 🟡 Medium | Low | **P3** |
-| 23 | `rememberMe` not in API spec | 🔵 Low | None | **P4** |
-| 24 | Frontend `transformError()` fragile | 🔵 Low | Medium | **P3** |
-| 25 | Wrong return type for `verifyEmail()` | 🔵 Low | Low | **P4** |
+| #  | Issue                                   | Severity    | Effort | Priority |
+|----|-----------------------------------------|-------------|--------|----------|
+| 1  | Refresh token not invalidated on logout | 🔴 Critical | Low    | **P0**   |
+| 2  | Soft-deleted account reactivation       | 🔴 Critical | Low    | **P0**   |
+| 3  | User enumeration via error codes        | 🔴 Critical | Low    | **P1**   |
+| 4  | Token storage in localStorage           | 🔴 Critical | High   | **P1**   |
+| 5  | Resend verification leaks TTL           | 🔴 Critical | Low    | **P1**   |
+| 6  | Wrong HTTP status codes on login        | 🟠 High     | Medium | **P1**   |
+| 7  | No absolute refresh token expiry        | 🟠 High     | Medium | **P1**   |
+| 8  | Login response mixes tokens & profile   | 🟠 High     | Medium | **P2**   |
+| 9  | No "logout all devices"                 | 🟠 High     | Medium | **P2**   |
+| 10 | Subscription re-assignment on login     | 🟠 High     | Low    | **P2**   |
+| 11 | Inconsistent response DTOs              | 🟠 High     | Medium | **P2**   |
+| 12 | Logout should return 204                | 🟠 High     | Low    | **P3**   |
+| 13 | No rate limiting documented             | 🟡 Medium   | Medium | **P2**   |
+| 14 | Token lifetimes not documented          | 🟡 Medium   | Low    | **P2**   |
+| 15 | Lock threshold undocumented             | 🟡 Medium   | Low    | **P2**   |
+| 16 | Concurrent session policy               | 🟡 Medium   | Low    | **P2**   |
+| 17 | Verify email race condition             | 🟡 Medium   | Medium | **P3**   |
+| 18 | Refresh race condition undocumented     | 🟡 Medium   | Low    | **P3**   |
+| 19 | No `Retry-After` header                 | 🟡 Medium   | Low    | **P3**   |
+| 20 | No machine-readable error codes         | 🟡 Medium   | Medium | **P2**   |
+| 21 | Kafka failure handling undocumented     | 🟡 Medium   | Low    | **P3**   |
+| 22 | Login attempt decay undocumented        | 🟡 Medium   | Low    | **P3**   |
+| 23 | `rememberMe` not in API spec            | 🔵 Low      | None   | **P4**   |
+| 24 | Frontend `transformError()` fragile     | 🔵 Low      | Medium | **P3**   |
+| 25 | Wrong return type for `verifyEmail()`   | 🔵 Low      | Low    | **P4**   |
 
 ---
 

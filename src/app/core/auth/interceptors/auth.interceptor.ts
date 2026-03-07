@@ -13,10 +13,18 @@ const PUBLIC_ENDPOINTS = [
   '/auth/forgot-password',
   '/auth/reset-password',
   '/auth/verify-email',
-  '/auth/resend-verification',
+  '/auth/resend-verification-email',
   '/auth/generate-password',
   '/plans',
   '/plans/currencies',
+];
+
+// Endpoints that need withCredentials: true (for HttpOnly cookie support)
+const COOKIE_ENDPOINTS = [
+  '/auth/login',
+  '/auth/refresh-token',
+  '/auth/logout',
+  '/auth/logout-all',
 ];
 
 // State for handling concurrent refresh requests
@@ -31,13 +39,6 @@ function getAccessToken(): string | null {
 }
 
 /**
- * Get refresh token from the appropriate storage
- */
-function getRefreshToken(): string | null {
-  return localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
-}
-
-/**
  * Check if a request URL matches any of the public endpoints
  */
 function isPublicEndpoint(url: string): boolean {
@@ -45,22 +46,25 @@ function isPublicEndpoint(url: string): boolean {
 }
 
 /**
- * Check if the user was previously authenticated (has a refresh token).
- * This distinguishes "session expired" from "never logged in".
+ * Check if a request URL needs withCredentials for cookie support
  */
-function wasAuthenticated(): boolean {
-  return !!getRefreshToken() || !!getAccessToken();
+function needsCookies(url: string): boolean {
+  return COOKIE_ENDPOINTS.some(endpoint => url.includes(endpoint));
 }
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  // Add withCredentials for cookie-dependent endpoints
+  if (needsCookies(req.url)) {
+    req = req.clone({ withCredentials: true });
+  }
+
   // Check if this is a public endpoint that shouldn't have the token
   const isPublic = isPublicEndpoint(req.url);
 
   if (isPublic) {
-    // Don't add Authorization header for public endpoints, and don't handle 401s
     return next(req);
   }
 
@@ -68,7 +72,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const token = getAccessToken();
 
   // If there's no token at all, just send the request as-is.
-  // Don't attempt refresh or redirect — the route guard handles unauthenticated access.
   if (!token) {
     return next(req);
   }
@@ -99,8 +102,7 @@ function addTokenToRequest(req: HttpRequest<unknown>, token: string): HttpReques
 }
 
 /**
- * Handle 401 Unauthorized errors by refreshing the token.
- * Only called when the user had a token (was authenticated) and got a 401.
+ * Handle 401 Unauthorized errors by refreshing the token via cookie-based refresh.
  */
 function handleUnauthorizedError(
   req: HttpRequest<unknown>,
@@ -112,37 +114,28 @@ function handleUnauthorizedError(
     isRefreshing = true;
     refreshTokenSubject.next(null);
 
-    const refreshToken = getRefreshToken();
+    // Attempt refresh — the server reads the refresh token from the HttpOnly cookie
+    return new Observable(observer => {
+      authService.refreshToken()
+        .then((newAccessToken: string) => {
+          isRefreshing = false;
+          refreshTokenSubject.next(newAccessToken);
 
-    if (refreshToken) {
-      return new Observable(observer => {
-        authService.refreshToken()
-          .then((newAccessToken: string) => {
-            isRefreshing = false;
-            refreshTokenSubject.next(newAccessToken);
-
-            // Retry the original request with the new token
-            next(addTokenToRequest(req, newAccessToken)).subscribe({
-              next: (response) => observer.next(response),
-              error: (err) => observer.error(err),
-              complete: () => observer.complete()
-            });
-          })
-          .catch((refreshError) => {
-            isRefreshing = false;
-            refreshTokenSubject.next(null);
-            // Refresh failed — session is truly expired, redirect to login
-            redirectToLogin(router);
-            observer.error(refreshError);
+          // Retry the original request with the new token
+          next(addTokenToRequest(req, newAccessToken)).subscribe({
+            next: (response) => observer.next(response),
+            error: (err) => observer.error(err),
+            complete: () => observer.complete()
           });
-      });
-    } else {
-      // Had an access token but no refresh token — session expired
-      isRefreshing = false;
-      authService.clearSession();
-      redirectToLogin(router);
-      return throwError(() => new Error('Session expired'));
-    }
+        })
+        .catch((refreshError) => {
+          isRefreshing = false;
+          refreshTokenSubject.next(null);
+          // Refresh failed — session is truly expired, redirect to login
+          redirectToLogin(router);
+          observer.error(refreshError);
+        });
+    });
   } else {
     // Token refresh is already in progress, wait for it to complete
     return refreshTokenSubject.pipe(

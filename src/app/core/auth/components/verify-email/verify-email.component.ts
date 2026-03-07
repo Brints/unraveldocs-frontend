@@ -161,10 +161,14 @@ export class VerifyEmailComponent implements OnInit, OnDestroy {
 
     // Fallback to error codes
     switch (error.code) {
-      case AuthErrorCodes.InvalidToken:
+      case AuthErrorCodes.TokenInvalid:
         return 'This verification link is invalid or has been used already.';
       case AuthErrorCodes.TokenExpired:
         return 'This verification link has expired. Please request a new one.';
+      case AuthErrorCodes.EmailAlreadyVerified:
+        return 'This email address has already been verified. You can log in.';
+      case AuthErrorCodes.VerificationFailed:
+        return 'Verification failed. Please request a new verification email.';
       case AuthErrorCodes.UserNotFound:
         return 'No account found. Please check your email or sign up again.';
       case AuthErrorCodes.ServerError:
