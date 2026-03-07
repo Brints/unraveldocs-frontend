@@ -1,5 +1,7 @@
 /* Header Component */
 .nav-link {
+  position: relative;
+  padding-bottom: 2px;
 }
 
 .nav-link:hover::after {
@@ -14,16 +16,88 @@
   animation: scaleIn 0.3s ease;
 }
 
-.open .mobile-menu-line:nth-child(1) {
-  transform: rotate(45deg) translate(6px, 6px);
+/* Dashboard Button */
+.dashboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.125rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: linear-gradient(135deg, #eff6ff, #e0e7ff);
+  border: 1px solid #bfdbfe;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
-.open .mobile-menu-line:nth-child(2) {
-  opacity: 0;
+.dashboard-btn:hover {
+  background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
 }
 
-.open .mobile-menu-line:nth-child(3) {
-  transform: rotate(-45deg) translate(6px, -6px);
+.dashboard-btn:active {
+  transform: translateY(0);
+}
+
+/* Primary Button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: white;
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #1d4ed8, #4338ca);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Mobile Avatar */
+.mobile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Mobile Menu Animation */
+.animate-slide-down {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {

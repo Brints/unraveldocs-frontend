@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { SignupComponent } from './components/signup/signup.component';
 import { LoginComponent } from './components/login/login.component';
 import { GoogleCallbackComponent } from './components/google-callback/google-callback.component';
+import { redirectIfAuthenticatedGuard } from './guards/redirect-if-authenticated.guard';
 
 export const authRoutes: Routes = [
   {
@@ -12,11 +13,13 @@ export const authRoutes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
+    canActivate: [redirectIfAuthenticatedGuard],
     title: 'Sign In - ReDraft'
   },
   {
     path: 'signup',
     component: SignupComponent,
+    canActivate: [redirectIfAuthenticatedGuard],
     title: 'Create Account - ReDraft'
   },
   {

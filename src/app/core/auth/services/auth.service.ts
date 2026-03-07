@@ -3,15 +3,17 @@ import {HttpClient, HttpErrorResponse} from '@angular/common/http';
 import {BehaviorSubject, firstValueFrom, Observable, of, throwError} from 'rxjs';
 import {catchError} from 'rxjs/operators';
 import {
+  ApiResponse,
   AuthError,
   AuthErrorCodes,
   EmailVerificationRequest,
+  LoginData,
   LoginRequest,
-  LoginResponse,
   PasswordResetConfirm,
   PasswordResetRequest,
   PasswordResetResponse,
   PasswordResetValidation,
+  RefreshTokenData,
   SignupRequest,
   User,
 } from '../models/auth.model';
@@ -27,7 +29,7 @@ export class AuthService {
   public currentUser$: Observable<User | null> =
     this.currentUserSubject.asObservable();
 
-  // Track which storage type is being used
+  // Track which storage type is being used (rememberMe = localStorage, otherwise sessionStorage)
   private useLocalStorage = true;
   private readonly STORAGE_TYPE_KEY = 'authStorageType';
 
@@ -45,19 +47,45 @@ export class AuthService {
     this.useLocalStorage = storageType !== 'session';
 
     const storage = this.getStorage();
-
-    // If the access token is expired, clear everything to avoid stale state
-    // that could trigger unwanted API calls (token refresh, logout, etc.)
     const accessToken = storage.getItem('accessToken');
-    if (accessToken && this.isTokenExpired(accessToken)) {
-      this.clearStoredTokens();
+    const userJson = storage.getItem('currentUser');
+
+    if (!accessToken) {
+      // No token at all — user is not logged in
       return;
     }
 
-    const userJson = storage.getItem('currentUser');
+    // Load cached user data immediately for instant UI
     if (userJson) {
       const user: User = JSON.parse(userJson);
       this.currentUserSubject.next(user);
+    }
+
+    if (this.isTokenExpired(accessToken)) {
+      // Access token is expired but the HttpOnly refresh cookie may still be valid.
+      // Attempt a silent refresh in the background instead of clearing the session.
+      this.attemptSilentRefresh();
+    }
+  }
+
+  /**
+   * Attempt to refresh the access token silently on app startup.
+   * If the refresh cookie is still valid, the user stays logged in.
+   * If it fails, clear the session — the user will need to log in again.
+   */
+  private async attemptSilentRefresh(): Promise<void> {
+    try {
+      await this.refreshToken();
+      // Refresh succeeded — also re-fetch user profile to ensure it's current
+      try {
+        const user = await this.fetchCurrentUserProfile();
+        this.setCurrentUser(user);
+      } catch {
+        // Profile fetch failed but token is valid — keep cached user data
+      }
+    } catch {
+      // Refresh cookie is also expired/invalid — session is truly over
+      this.clearSession();
     }
   }
 
@@ -84,22 +112,22 @@ export class AuthService {
     }
   }
 
-  private storeTokens(accessToken: string, refreshToken: string, rememberMe: boolean = true) {
+  /**
+   * Store only the access token. Refresh token is an HttpOnly cookie managed by the server.
+   */
+  private storeAccessToken(accessToken: string, rememberMe: boolean = true) {
     // Update storage preference
     this.useLocalStorage = rememberMe;
 
     // Clear tokens from both storages first
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
     sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('currentUser');
 
     // Store in the appropriate storage
     const storage = this.getStorage();
     storage.setItem('accessToken', accessToken);
-    storage.setItem('refreshToken', refreshToken);
 
     // Remember which storage type is being used
     if (rememberMe) {
@@ -114,11 +142,9 @@ export class AuthService {
   private clearStoredTokens() {
     // Clear from both storages
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     localStorage.removeItem('currentUser');
     localStorage.removeItem(this.STORAGE_TYPE_KEY);
     sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('currentUser');
     sessionStorage.removeItem(this.STORAGE_TYPE_KEY);
   }
@@ -134,125 +160,158 @@ export class AuthService {
   }
 
   private handleError(error: HttpErrorResponse) {
-    // Return the original error to preserve backend error structure
-    // This allows transformError to properly extract error messages and codes
     return throwError(() => error);
   }
 
   private transformError(error: any): AuthError {
-    // Transform the error into a user-friendly message
     let message = 'An error occurred';
     let code: AuthErrorCodes = AuthErrorCodes.UnknownError;
 
-    // Extract message from backend - try multiple paths
+    // Extract message from backend response envelope
     if (error.error?.message) {
-      // standard error response: { statusCode, error, message }
       message = error.error.message;
     } else if (typeof error.error === 'string') {
-      // Sometimes error is a string
       message = error.error;
     } else if (error.message) {
-      // Fallback to error.message
       message = error.message;
     }
 
-    // Map status codes to error codes and check for specific patterns
+    // Extract errorCode from backend if available
+    const backendErrorCode = error.error?.errorCode || error.error?.error;
+
+    // Map HTTP status + backend error codes to AuthErrorCodes
     if (error.status === 400) {
       code = AuthErrorCodes.InvalidRequest;
-      // Check for specific error types
-      if (message.toLowerCase().includes('disabled') ||
-          message.toLowerCase().includes('account is disabled')) {
-        code = AuthErrorCodes.ACCOUNT_DISABLED;
-      } else if (message.toLowerCase().includes('token has expired') ||
-          message.toLowerCase().includes('expired')) {
+      if (backendErrorCode === 'ACCOUNT_DEACTIVATED') {
+        code = AuthErrorCodes.AccountDeactivated;
+      } else if (backendErrorCode === 'EMAIL_ALREADY_VERIFIED') {
+        code = AuthErrorCodes.EmailAlreadyVerified;
+      } else if (backendErrorCode === 'VERIFICATION_FAILED') {
+        code = AuthErrorCodes.VerificationFailed;
+      } else if (backendErrorCode === 'TOKEN_EXPIRED') {
         code = AuthErrorCodes.TokenExpired;
-      } else if (message.toLowerCase().includes('invalid') &&
-                 message.toLowerCase().includes('token')) {
-        code = AuthErrorCodes.InvalidToken;
       }
     } else if (error.status === 401) {
       code = AuthErrorCodes.Unauthorized;
-    } else if (error.status === 403) {
-      if (message.toLowerCase().includes('invalid credentials') ||
-          message.toLowerCase().includes('attempts left')) {
+      if (backendErrorCode === 'INVALID_CREDENTIALS') {
         code = AuthErrorCodes.InvalidCredentials;
-      } else {
-        code = AuthErrorCodes.Forbidden;
+      } else if (backendErrorCode === 'TOKEN_MISSING') {
+        code = AuthErrorCodes.TokenMissing;
+      } else if (backendErrorCode === 'TOKEN_INVALID') {
+        code = AuthErrorCodes.TokenInvalid;
+      } else if (backendErrorCode === 'ACCOUNT_NOT_VERIFIED') {
+        code = AuthErrorCodes.AccountNotVerified;
+      }
+    } else if (error.status === 403) {
+      code = AuthErrorCodes.Forbidden;
+      if (backendErrorCode === 'ACCOUNT_NOT_VERIFIED') {
+        code = AuthErrorCodes.AccountNotVerified;
+      } else if (backendErrorCode === 'ACCOUNT_LOCKED') {
+        code = AuthErrorCodes.AccountLocked;
       }
     } else if (error.status === 404) {
       code = AuthErrorCodes.NotFound;
       if (message.toLowerCase().includes('user')) {
         code = AuthErrorCodes.UserNotFound;
       }
+    } else if (error.status === 409) {
+      code = AuthErrorCodes.USER_EXISTS;
     } else if (error.status === 500) {
       message = 'Server error. Please try again later.';
       code = AuthErrorCodes.ServerError;
+    } else if (error.status === 0) {
+      message = 'Network error. Please check your connection.';
+      code = AuthErrorCodes.NETWORK_ERROR;
+    }
+
+    // Fallback: check message content for hint if no explicit errorCode
+    if (code === AuthErrorCodes.InvalidRequest || code === AuthErrorCodes.Forbidden) {
+      const msgLower = message.toLowerCase();
+      if (msgLower.includes('not verified') || msgLower.includes('verify your email') || msgLower.includes('disabled')) {
+        code = AuthErrorCodes.AccountNotVerified;
+      } else if (msgLower.includes('locked')) {
+        code = AuthErrorCodes.AccountLocked;
+      } else if (msgLower.includes('deactivated') || msgLower.includes('deleted')) {
+        code = AuthErrorCodes.AccountDeactivated;
+      }
     }
 
     return { message, code };
   }
 
-  async login(request: LoginRequest): Promise<LoginResponse> {
+  /**
+   * Fetch the current user's profile from GET /api/v1/user/me
+   */
+  private async fetchCurrentUserProfile(): Promise<User> {
+    const response = await firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/user/me`).pipe(catchError(this.handleError))
+    );
+
+    const userData = response?.data || response;
+
+    const user: User = {
+      id: userData.id,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      profilePicture: userData.profilePicture || undefined,
+      role: userData.role,
+      lastLogin: userData.lastLogin,
+      isActive: userData.isActive,
+      isVerified: userData.isVerified,
+      emailVerified: userData.emailVerified ?? userData.isVerified ?? false,
+      termsAccepted: userData.termsAccepted,
+      marketingOptIn: userData.marketingOptIn,
+      isPlatformAdmin: userData.isPlatformAdmin,
+      isOrganizationAdmin: userData.isOrganizationAdmin,
+      country: userData.country,
+      profession: userData.profession,
+      organization: userData.organization,
+      phoneNumber: userData.phoneNumber,
+      createdAt: userData.createdAt,
+      updatedAt: userData.updatedAt,
+      plan: userData.plan,
+    };
+
+    return user;
+  }
+
+  /**
+   * Login user. API returns { userId, accessToken, tokenType, accessExpiresIn }.
+   * Refresh token is set as an HttpOnly cookie by the server.
+   * User profile is fetched separately via GET /api/v1/user/me.
+   *
+   * @param request LoginRequest (email + password)
+   * @param rememberMe UI-only preference: true = localStorage, false = sessionStorage
+   */
+  async login(request: LoginRequest, rememberMe: boolean = true): Promise<LoginData> {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<any>(`${this.API_URL}/auth/login`, request)
+          .post<ApiResponse<LoginData>>(`${this.API_URL}/auth/login`, request, {
+            withCredentials: true, // Allow server to set HttpOnly refresh token cookie
+          })
           .pipe(catchError(this.handleError))
       );
 
-      // Handle the backend response structure which wraps data
-      let loginData: any = null;
+      const loginData: LoginData = response?.data || response;
 
-      // Check if response has a data wrapper (your backend structure)
-      if (response && response.data) {
-        loginData = response.data;
-      } else if (response) {
-        loginData = response;
+      if (loginData && loginData.accessToken) {
+        // Store only the access token (refresh token is an HttpOnly cookie)
+        this.storeAccessToken(loginData.accessToken, rememberMe);
+
+        // Fetch user profile from GET /api/v1/user/me
+        try {
+          const user = await this.fetchCurrentUserProfile();
+          this.setCurrentUser(user);
+        } catch (profileError) {
+          console.warn('Failed to fetch user profile after login:', profileError);
+          // Don't fail the login — user can still navigate
+        }
+
+        return loginData;
       }
-
-      if (loginData && loginData.accessToken && loginData.refreshToken) {
-        // Extract user data and tokens from the response
-        const { accessToken, refreshToken, ...userData } = loginData;
-
-        // Map backend user fields to frontend User model
-        const user: User = {
-          id: userData.id,
-          email: userData.email,
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          profilePicture: userData.profilePicture || undefined,
-          role: userData.role,
-          lastLogin: userData.lastLogin,
-          isActive: userData.isActive,
-          isVerified: userData.isVerified,
-          emailVerified: userData.emailVerified ?? userData.isVerified ?? false,
-          termsAccepted: userData.termsAccepted,
-          marketingOptIn: userData.marketingOptIn,
-          isPlatformAdmin: userData.isPlatformAdmin,
-          isOrganizationAdmin: userData.isOrganizationAdmin,
-          country: userData.country,
-          profession: userData.profession,
-          organization: userData.organization,
-          phoneNumber: userData.phoneNumber,
-          createdAt: userData.createdAt,
-          updatedAt: userData.updatedAt,
-          plan: userData.plan
-        };
-
-        // Store tokens and user
-        this.storeTokens(accessToken, refreshToken, request.rememberMe ?? true);
-        this.setCurrentUser(user);
-
-        // Return properly formatted response
-        return {
-          user,
-          accessToken,
-          refreshToken,
-          requiresTwoFactor: loginData.requiresTwoFactor,
-          twoFactorMethods: loginData.twoFactorMethods
-        };
-      }
-      throw new Error('Login failed');
+      throw new Error('Login failed: no access token received');
     } catch (error) {
       throw this.transformError(error);
     }
@@ -267,30 +326,14 @@ export class AuthService {
 
       // Handle different possible response structures
       let user: User | null = null;
-      let accessToken: string | null = null;
-      let refreshToken: string | null = null;
       let backendUser: any = null;
 
-      // Check if response has a data wrapper (your backend structure)
+      // Check if response has a data wrapper (backend structure)
       if (response && response.data) {
-        if (response.data.user) {
-          backendUser = response.data.user;
-          accessToken = response.data.accessToken || response.data.access_token || response.accessToken || response.access_token;
-          refreshToken = response.data.refreshToken || response.data.refresh_token || response.refreshToken || response.refresh_token;
-        } else if (response.data.id && response.data.email) {
+        if (response.data.id && response.data.email) {
           backendUser = response.data;
-          accessToken = response.accessToken || response.access_token;
-          refreshToken = response.refreshToken || response.refresh_token;
         }
-      }
-      // Check if response has a nested user object
-      else if (response && response.user) {
-        backendUser = response.user;
-        accessToken = response.accessToken || response.access_token;
-        refreshToken = response.refreshToken || response.refresh_token;
-      }
-      // Check if response is the user object directly
-      else if (response && response.id && response.email) {
+      } else if (response && response.id && response.email) {
         backendUser = response;
       }
 
@@ -302,17 +345,21 @@ export class AuthService {
           firstName: backendUser.firstName,
           lastName: backendUser.lastName,
           profilePicture: backendUser.profilePicture || undefined,
+          role: backendUser.role,
+          isActive: backendUser.isActive,
+          isVerified: backendUser.isVerified,
           emailVerified: backendUser.emailVerified ?? backendUser.isVerified ?? false,
+          termsAccepted: backendUser.termsAccepted,
+          marketingOptIn: backendUser.marketingOptIn,
+          country: backendUser.country,
+          profession: backendUser.profession,
+          organization: backendUser.organization,
           createdAt: backendUser.createdAt,
           updatedAt: backendUser.updatedAt,
-          plan: backendUser.plan
         };
 
-        // Store tokens if available
-        if (accessToken && refreshToken) {
-          this.storeTokens(accessToken, refreshToken);
-        }
-        this.setCurrentUser(user);
+        // Note: Signup does NOT return tokens or auto-login.
+        // User must verify their email first, then log in.
         return user;
       }
 
@@ -322,12 +369,18 @@ export class AuthService {
     }
   }
 
+  /**
+   * Logout current session. Server invalidates tokens and clears the HttpOnly cookie.
+   * Expects 204 No Content.
+   */
   async logout(): Promise<void> {
     try {
-      // Call logout endpoint to invalidate tokens server-side
       await firstValueFrom(
         this.http
-          .post(`${this.API_URL}/auth/logout`, {})
+          .post(`${this.API_URL}/auth/logout`, {}, {
+            withCredentials: true,
+            observe: 'response',
+          })
           .pipe(catchError(() => of(null)))
       );
     } catch (error) {
@@ -338,39 +391,54 @@ export class AuthService {
     }
   }
 
-  async refreshToken(): Promise<string> {
-    const refreshToken = localStorage.getItem('refreshToken') || sessionStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      throw new Error('No refresh token available');
+  /**
+   * Logout from all devices. Server invalidates all refresh tokens.
+   * Expects 204 No Content.
+   */
+  async logoutAllDevices(): Promise<void> {
+    try {
+      await firstValueFrom(
+        this.http
+          .post(`${this.API_URL}/auth/logout-all`, {}, {
+            withCredentials: true,
+            observe: 'response',
+          })
+          .pipe(catchError(() => of(null)))
+      );
+    } catch (error) {
+      console.warn('Logout all devices endpoint failed:', error);
+    } finally {
+      this.clearStoredTokens();
+      this.setCurrentUser(null);
     }
+  }
 
+  /**
+   * Refresh the access token. The server reads the refresh token from the HttpOnly cookie.
+   * No request body needed. Returns a new access token.
+   */
+  async refreshToken(): Promise<string> {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<any>(`${this.API_URL}/auth/refresh-token`, {
-            refreshToken,
+          .post<ApiResponse<RefreshTokenData>>(`${this.API_URL}/auth/refresh-token`, {}, {
+            withCredentials: true, // Send the HttpOnly refresh token cookie
           })
           .pipe(catchError(this.handleError))
       );
 
-      const tokenData = response?.data || response;
+      const tokenData: RefreshTokenData = response?.data || response;
 
       if (tokenData && tokenData.accessToken) {
-        // Store in the appropriate storage based on current preference
+        // Store only the access token (new refresh token set as HttpOnly cookie by server)
         const storage = this.getStorage();
         storage.setItem('accessToken', tokenData.accessToken);
-        // Also update refresh token if a new one is provided (rolling refresh)
-        if (tokenData.refreshToken) {
-          storage.setItem('refreshToken', tokenData.refreshToken);
-        }
         return tokenData.accessToken;
       }
       throw new Error('Token refresh failed');
     } catch (error) {
       // Clear local session state — the caller (interceptor / token-refresh service)
       // is responsible for redirecting to login.
-      // Do NOT call this.logout() here — it makes an HTTP POST which goes through
-      // the interceptor and can cause infinite loops.
       this.clearSession();
       throw this.transformError(error);
     }
@@ -443,11 +511,20 @@ export class AuthService {
   }
 
   /**
-   * Check if user is authenticated
+   * Check if user is authenticated.
+   * Returns true if the access token is valid, OR if a cached user + token exist
+   * (expired token being silently refreshed in the background).
    */
   isAuthenticated(): boolean {
     const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
-    return !!token && !this.isTokenExpired(token);
+    if (!token) return false;
+
+    // Token is valid — clearly authenticated
+    if (!this.isTokenExpired(token)) return true;
+
+    // Token is expired but we have a cached user — silent refresh may be in progress
+    // The interceptor will handle refreshing on the next API call
+    return this.currentUserSubject.value !== null;
   }
 
   /**
@@ -466,12 +543,16 @@ export class AuthService {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/auth/verify-email`, request)
+          .post<any>(`${this.API_URL}/auth/verify-email`, request)
           .pipe(catchError(this.handleError))
       );
 
+      // Backend returns { statusCode, status, message, data: null }
       if (response) {
-        return response;
+        return {
+          message: response.message || response.data?.message || 'Email verified successfully',
+          success: response.status === 'success' || response.statusCode === 200,
+        };
       }
       throw new Error('Email verification failed');
     } catch (error) {
@@ -480,24 +561,44 @@ export class AuthService {
   }
 
   /**
-   * Resend email verification
+   * Resend email verification.
+   * Note: API always returns 200 OK regardless of email existence (anti-enumeration).
    */
   async resendVerificationEmail(email: string): Promise<PasswordResetResponse> {
     try {
       const response = await firstValueFrom(
         this.http
-          .post<PasswordResetResponse>(`${this.API_URL}/auth/resend-verification-email`, {
+          .post<any>(`${this.API_URL}/auth/resend-verification-email`, {
             email,
           })
           .pipe(catchError(this.handleError))
       );
 
       if (response) {
-        return response;
+        return {
+          message: response.message || 'If an account with this email exists and is unverified, a verification email has been sent.',
+          success: true,
+        };
       }
       throw new Error('Resend verification failed');
     } catch (error) {
       throw this.transformError(error);
     }
+  }
+
+  /**
+   * Update the stored user profile (e.g., after profile edits)
+   */
+  updateStoredUser(user: User): void {
+    this.setCurrentUser(user);
+  }
+
+  /**
+   * Re-fetch and update the current user profile from the server
+   */
+  async refreshUserProfile(): Promise<User> {
+    const user = await this.fetchCurrentUserProfile();
+    this.setCurrentUser(user);
+    return user;
   }
 }

@@ -1,13 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
-import {AuthService} from '../../../../core/auth/services/auth.service';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../../../core/auth/services/auth.service';
 import { Logo } from '../../logo/logo';
+import { ProfileDropdownComponent } from '../../profile-dropdown/profile-dropdown.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, Logo],
+  imports: [CommonModule, RouterModule, Logo, ProfileDropdownComponent],
   templateUrl: 'header.component.html',
   styleUrls: ['header.component.css']
 })
@@ -17,19 +18,11 @@ export class HeaderComponent {
 
   isScrolled = false;
   mobileMenuOpen = false;
-  userMenuOpen = false;
 
   constructor() {
     if (typeof window !== 'undefined') {
       window.addEventListener('scroll', () => {
         this.isScrolled = window.scrollY > 50;
-      });
-
-      // Close user menu when clicking outside
-      document.addEventListener('click', (event) => {
-        if (!event.target || !(event.target as Element).closest('.relative')) {
-          this.userMenuOpen = false;
-        }
       });
     }
   }
@@ -52,10 +45,6 @@ export class HeaderComponent {
     this.mobileMenuOpen = !this.mobileMenuOpen;
   }
 
-  toggleUserMenu(): void {
-    this.userMenuOpen = !this.userMenuOpen;
-  }
-
   closeMobileMenu(): void {
     this.mobileMenuOpen = false;
   }
@@ -70,34 +59,12 @@ export class HeaderComponent {
   }
 
   logout(): void {
-    this.userMenuOpen = false;
     this.closeMobileMenu();
     this.authService.logout()
       .then(() => this.router.navigate(['/']))
-      .then(() => {
-        // Optionally handle post-navigation actions here
-      })
       .catch(err => {
-        console.error('Logout/navigation failed', err);
+        console.error('Logout failed', err);
       });
-  }
-
-  getPlanBadgeClasses(plan: string): string {
-    const classes = {
-      free: 'bg-gray-100 text-gray-800',
-      pro: 'bg-blue-100 text-blue-800',
-      enterprise: 'bg-purple-100 text-purple-800'
-    };
-    return classes[plan as keyof typeof classes] || classes.free;
-  }
-
-  getPlanLabel(plan: string): string {
-    const labels: { [key: string]: string } = {
-      free: 'Free',
-      pro: 'Pro',
-      enterprise: 'Enterprise'
-    };
-    return labels[plan] || 'Free';
   }
 
   getInitials(name: string): string {
@@ -111,10 +78,6 @@ export class HeaderComponent {
   }
 
   getUserAvatar(user: any): string {
-    return user?.profilePicture || '/assets/default-avatar.png';
-  }
-
-  getUserPlan(user: any): string {
-    return user?.plan || 'free';
+    return user?.profilePicture || 'assets/default-avatar.png';
   }
 }

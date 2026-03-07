@@ -2,7 +2,7 @@ import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { PasswordResetConfirm, AuthError } from '../../models/auth.model';
+import { PasswordResetConfirm, AuthError, AuthErrorCodes } from '../../models/auth.model';
 
 interface ResetPasswordState {
   isLoading: boolean;
@@ -237,14 +237,14 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
 
     // Use error codes as fallback
     switch (error.code) {
-      case 'INVALID_TOKEN':
-      case 'TOKEN_EXPIRED':
+      case AuthErrorCodes.TokenInvalid:
+      case AuthErrorCodes.TokenExpired:
         return 'This reset link is invalid or has expired. Please request a new one.';
-      case 'PASSWORD_TOO_WEAK':
+      case AuthErrorCodes.WEAK_PASSWORD:
         return 'Password does not meet security requirements.';
-      case 'INVALID_REQUEST':
+      case AuthErrorCodes.InvalidRequest:
         return 'Invalid request. Please check your input and try again.';
-      case 'SERVER_ERROR':
+      case AuthErrorCodes.ServerError:
         return 'Server error. Please try again later.';
       default:
         return error.message || 'An unexpected error occurred. Please try again.';

@@ -1,11 +1,10 @@
 import { Routes } from '@angular/router';
 import { LandingComponent } from './features/landing-page/components/landing.component';
 import { authGuard } from './core/auth/guards/auth.guard';
-import { redirectIfAuthenticatedGuard } from './core/auth/guards/redirect-if-authenticated.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
-  { path: 'home', component: LandingComponent, canActivate: [redirectIfAuthenticatedGuard] },
+  { path: 'home', component: LandingComponent },
   // Backward-compatible redirects for old /dashboard paths
   { path: 'dashboard', redirectTo: '/user/dashboard', pathMatch: 'full' },
   { path: 'settings', redirectTo: '/user/settings', pathMatch: 'prefix' },

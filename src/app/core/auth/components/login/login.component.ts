@@ -15,8 +15,8 @@ import {
 import {
   AuthError,
   AuthErrorCodes,
+  LoginData,
   LoginRequest,
-  LoginResponse,
   LoginError,
   LoginErrorCodes
 } from '../../models/auth.model';
@@ -221,10 +221,10 @@ export class LoginComponent implements OnInit, OnDestroy {
       const loginRequest: LoginRequest = {
         email: formValue.email.toLowerCase().trim(),
         password: formValue.password,
-        rememberMe: formValue.rememberMe
       };
 
-      const response = await this.authService.login(loginRequest);
+      // rememberMe is a UI-only preference (not sent to API)
+      const response = await this.authService.login(loginRequest, formValue.rememberMe);
 
       this.handleLoginSuccess(response);
 
@@ -322,7 +322,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   // Success/Error Handlers
-  private handleLoginSuccess(response: LoginResponse): void {
+  private handleLoginSuccess(_response: LoginData): void {
     // Reset login attempts
     this.loginAttempts.set(0);
     this.attemptsRemaining.set(null);
@@ -330,16 +330,6 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Clear session expired message
     this.sessionExpired.set(false);
 
-    // Handle two-factor authentication if required
-    if (response.requiresTwoFactor) {
-      this.router.navigate(['/auth/two-factor'], {
-        queryParams: {
-          returnUrl: this.redirectUrl() || '/user/dashboard',
-          methods: response.twoFactorMethods?.join(',')
-        }
-      });
-      return;
-    }
 
     this.navigateAfterLogin();
   }
@@ -372,6 +362,10 @@ export class LoginComponent implements OnInit, OnDestroy {
         // Show account recovery options
         break;
 
+      case LoginErrorCodes.ACCOUNT_DEACTIVATED:
+        // Account has been soft-deleted
+        break;
+
       case LoginErrorCodes.INVALID_CREDENTIALS:
         // Focus on password field for retry - removed invalid focus() call
         this.passwordControl.markAsTouched();
@@ -386,45 +380,73 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     // Convert AuthError to LoginError
     const authError = error as AuthError;
-
-    // Use the actual backend message instead of hardcoded messages
     const backendMessage = authError.message;
 
     switch (authError.code) {
-      case AuthErrorCodes.Forbidden:
-      case AuthErrorCodes.InvalidCredentials: {
-        // Check if the error is about email verification
-        const msgLower = (backendMessage || '').toLowerCase();
-        if (msgLower.includes('not verified') || msgLower.includes('verify your email') || msgLower.includes('email verification')) {
-          return {
-            code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
-            message: backendMessage || 'Please verify your email address before logging in.'
-          };
-        }
-        // Keep the backend message which includes attempt count
+      case AuthErrorCodes.InvalidCredentials:
         return {
           code: LoginErrorCodes.INVALID_CREDENTIALS,
-          message: backendMessage || 'Invalid email or password. Please try again.'
+          message: backendMessage || 'Invalid email or password. Please try again.',
         };
-      }
+
+      case AuthErrorCodes.AccountNotVerified:
+        return {
+          code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
+          message: backendMessage || 'Please verify your email address before logging in.',
+        };
+
+      case AuthErrorCodes.AccountLocked:
+        return {
+          code: LoginErrorCodes.ACCOUNT_LOCKED,
+          message: backendMessage || 'Your account has been locked due to too many failed attempts.',
+        };
+
+      case AuthErrorCodes.AccountDeactivated:
+        return {
+          code: LoginErrorCodes.ACCOUNT_DEACTIVATED,
+          message: backendMessage || 'Your account has been deactivated.',
+        };
+
       case AuthErrorCodes.RATE_LIMITED:
         return {
           code: LoginErrorCodes.TOO_MANY_ATTEMPTS,
           message: backendMessage || 'Too many login attempts. Please try again later.',
-          retryAfter: 300 // 5 minutes
+          retryAfter: 300,
         };
-      default: {
-        // Also check default errors for verification messages
-        const defaultMsgLower = (backendMessage || '').toLowerCase();
-        if (defaultMsgLower.includes('not verified') || defaultMsgLower.includes('verify your email') || defaultMsgLower.includes('email verification')) {
+
+      case AuthErrorCodes.Forbidden: {
+        // Check message for more specific error type
+        const msgLower = (backendMessage || '').toLowerCase();
+        if (msgLower.includes('not verified') || msgLower.includes('verify your email')) {
           return {
             code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
-            message: backendMessage || 'Please verify your email address before logging in.'
+            message: backendMessage || 'Please verify your email address before logging in.',
+          };
+        }
+        if (msgLower.includes('locked')) {
+          return {
+            code: LoginErrorCodes.ACCOUNT_LOCKED,
+            message: backendMessage || 'Your account has been locked.',
           };
         }
         return {
           code: LoginErrorCodes.SERVER_ERROR,
-          message: backendMessage || 'An unexpected error occurred.'
+          message: backendMessage || 'Access denied.',
+        };
+      }
+
+      default: {
+        // Fallback: check message for known patterns
+        const defaultMsgLower = (backendMessage || '').toLowerCase();
+        if (defaultMsgLower.includes('not verified') || defaultMsgLower.includes('verify your email')) {
+          return {
+            code: LoginErrorCodes.EMAIL_NOT_VERIFIED,
+            message: backendMessage || 'Please verify your email address before logging in.',
+          };
+        }
+        return {
+          code: LoginErrorCodes.SERVER_ERROR,
+          message: backendMessage || 'An unexpected error occurred.',
         };
       }
     }
