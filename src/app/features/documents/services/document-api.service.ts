@@ -65,6 +65,17 @@ export class DocumentApiService {
     if (options?.enableEncryption !== undefined) {
       formData.append('enableEncryption', String(options.enableEncryption));
     }
+    if (options?.pageOptions) {
+      if (options.pageOptions.startPage !== undefined && options.pageOptions.startPage !== null) {
+        formData.append('startPage', String(options.pageOptions.startPage));
+      }
+      if (options.pageOptions.endPage !== undefined && options.pageOptions.endPage !== null) {
+        formData.append('endPage', String(options.pageOptions.endPage));
+      }
+      if (options.pageOptions.pages && options.pageOptions.pages.length > 0) {
+        formData.append('pages', options.pageOptions.pages.join(','));
+      }
+    }
 
     const req = new HttpRequest('POST', `${this.apiUrl}/collections/upload/extract-all`, formData, {
       reportProgress: true

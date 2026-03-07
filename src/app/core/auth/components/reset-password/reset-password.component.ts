@@ -1,5 +1,4 @@
 import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -20,7 +19,7 @@ interface ResetPasswordState {
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterModule, NgOptimizedImage],
+  imports: [ReactiveFormsModule, RouterModule],
   templateUrl: 'reset-password.component.html',
   styleUrl: 'reset-password.component.css'
 })

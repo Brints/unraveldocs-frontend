@@ -5,6 +5,8 @@
 
 .logo-icon {
   flex-shrink: 0;
+  display: block;
+  object-fit: contain;
 }
 
 .logo-text-container {

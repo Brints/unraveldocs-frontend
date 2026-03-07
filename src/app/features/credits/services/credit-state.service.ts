@@ -88,6 +88,7 @@ export class CreditStateService {
         originalPrice,
         finalPrice: coupon.finalAmount,
         discountAmount: coupon.discountAmount,
+        couponCurrency: coupon.currency,
         hasDiscount: true,
       };
     }
@@ -96,6 +97,7 @@ export class CreditStateService {
       originalPrice,
       finalPrice: originalPrice,
       discountAmount: 0,
+      couponCurrency: pack.currency,
       hasDiscount: false,
     };
   });

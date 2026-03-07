@@ -21,6 +21,7 @@ export class DatePickerComponent {
   @Input() placeholder: string = 'Select date';
   @Input() disabled: boolean = false;
   @Input() title: string = '';
+  @Input() align: 'left' | 'right' = 'left';
   @Output() valueChange = new EventEmitter<string>();
 
   private elementRef = inject(ElementRef);
@@ -41,13 +42,13 @@ export class DatePickerComponent {
   readonly calendarDays = computed(() => {
     const year = this.currentYear();
     const month = this.currentMonth();
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const daysInPrevMonth = new Date(year, month, 0).getDate();
-    
+
     const days: { date: number; month: 'prev' | 'current' | 'next'; fullDate: string; isToday: boolean; isSelected: boolean }[] = [];
-    
+
     // Previous month's padding
     for (let i = firstDay - 1; i >= 0; i--) {
       const d = daysInPrevMonth - i;
@@ -61,12 +62,12 @@ export class DatePickerComponent {
         isSelected: false
       });
     }
-    
+
     // Current month
     const today = new Date();
     const todayString = this.formatDate(today.getFullYear(), today.getMonth(), today.getDate());
     const val = this._value();
-    
+
     for (let i = 1; i <= daysInMonth; i++) {
       const fullDate = this.formatDate(year, month, i);
       days.push({
@@ -77,7 +78,7 @@ export class DatePickerComponent {
         isSelected: fullDate === val
       });
     }
-    
+
     // Next month's padding
     const remainingDays = 42 - days.length; // Always show 6 weeks (42 days)
     for (let i = 1; i <= remainingDays; i++) {
@@ -91,7 +92,7 @@ export class DatePickerComponent {
         isSelected: false
       });
     }
-    
+
     return {
       headers: this.daysInWeek,
       grid: days
@@ -128,7 +129,7 @@ export class DatePickerComponent {
   toggleCalendar() {
     if (this.disabled) return;
     this.isOpen.update(v => !v);
-    
+
     // If opening, jump to the currently selected date's month (or today)
     if (this.isOpen()) {
       let targetDate = new Date();

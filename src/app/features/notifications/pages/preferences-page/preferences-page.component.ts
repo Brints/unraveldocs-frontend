@@ -88,6 +88,7 @@ export class PreferencesPageComponent implements OnInit {
       storageNotifications: optimisticUpdate.storageNotifications,
       subscriptionNotifications: optimisticUpdate.subscriptionNotifications,
       teamNotifications: optimisticUpdate.teamNotifications,
+      couponNotifications: optimisticUpdate.couponNotifications,
       quietHoursEnabled: optimisticUpdate.quietHoursEnabled,
       quietHoursStart: optimisticUpdate.quietHoursStart || undefined,
       quietHoursEnd: optimisticUpdate.quietHoursEnd || undefined,
@@ -98,7 +99,7 @@ export class PreferencesPageComponent implements OnInit {
     // Sync local preferences with state after API call completes
     setTimeout(() => {
       this.localPreferences.set(null);
-    }, 500);
+    }, 1500);
   }
 
   updateQuietHoursStart(time: string): void {
@@ -114,6 +115,7 @@ export class PreferencesPageComponent implements OnInit {
       storageNotifications: current.storageNotifications,
       subscriptionNotifications: current.subscriptionNotifications,
       teamNotifications: current.teamNotifications,
+      couponNotifications: current.couponNotifications,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: time ? `${time}:00` : undefined,
       quietHoursEnd: current.quietHoursEnd || undefined,
@@ -135,6 +137,7 @@ export class PreferencesPageComponent implements OnInit {
       storageNotifications: current.storageNotifications,
       subscriptionNotifications: current.subscriptionNotifications,
       teamNotifications: current.teamNotifications,
+      couponNotifications: current.couponNotifications,
       quietHoursEnabled: current.quietHoursEnabled,
       quietHoursStart: current.quietHoursStart || undefined,
       quietHoursEnd: time ? `${time}:00` : undefined,

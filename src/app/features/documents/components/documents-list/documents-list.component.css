@@ -678,9 +678,63 @@
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
 }
 
+
 .input-hint {
   font-size: 0.8125rem;
   color: #94a3b8;
   margin-top: 0.5rem;
   text-align: left;
+}
+
+/* ==================== Mobile Responsiveness ==================== */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  
+  .toolbar-left, .toolbar-right {
+    width: 100%;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+
+  .view-toggle {
+    display: none; /* Hide view toggle on mobile, default to grid/stack */
+  }
+
+  .collection-card.list-view {
+    flex-direction: column;
+  }
+  
+  .collection-card.list-view .card-link {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .collection-card.list-view .card-content {
+    text-align: center;
+  }
+  
+  .collection-card.list-view .card-meta {
+    justify-content: center;
+  }
+
+  .collection-card.list-view .card-actions {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    padding-right: 0;
+  }
 }

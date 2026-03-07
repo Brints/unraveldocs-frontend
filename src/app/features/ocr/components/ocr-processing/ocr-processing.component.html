@@ -151,7 +151,7 @@
   </div>
 
   <!-- Tabs -->
-  <div class="flex items-center gap-1 border-b border-gray-200 mb-4">
+  <div class="flex items-center gap-1 border-b border-gray-200 mb-0">
     <button type="button" class="tab-btn" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
       All
       <span class="tab-badge">{{ jobs().length }}</span>
@@ -171,28 +171,43 @@
       <span class="tab-badge failed">{{ failedJobs().length }}</span>
     </button>
 
-    <!-- Bulk Actions -->
-    <div class="ml-auto flex items-center gap-3 relative">
-      <div class="filter-group">
-        <div class="search-input-wrapper">
-          <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input type="text" [value]="searchQuery()" (input)="onSearch($event)" placeholder="Search documents..."
-            class="search-input" aria-label="Search documents" />
-          @if (searchQuery()) {
-          <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
-            <svg class="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          }
-        </div>
-      </div>
+    <!-- Clear completed/failed inline -->
+    <div class="ml-auto flex items-center gap-2">
+      @if (completedJobs().length > 0 && activeTab() === 'completed') {
+      <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearCompleted()">
+        Clear completed
+      </button>
+      }
+      @if (failedJobs().length > 0 && activeTab() === 'failed') {
+      <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearFailed()">
+        Clear failed
+      </button>
+      }
+    </div>
+  </div>
 
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-bar-left">
+      <div class="search-input-wrapper">
+        <svg class="w-4 h-4 text-gray-400 search-icon-pos" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input type="text" [value]="searchQuery()" (input)="onSearch($event)" placeholder="Search documents..."
+          class="search-input" aria-label="Search documents" />
+        @if (searchQuery()) {
+        <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
+          <svg class="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor"
+            viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+        }
+      </div>
+    </div>
+
+    <div class="filter-bar-right">
       <div class="filter-group">
         <app-date-picker [title]="'Start Date'" [placeholder]="'Start Date'"
           [value]="startDateFilter()?.toISOString() || ''" (valueChange)="onStartDateFilter($event)">
@@ -200,19 +215,17 @@
       </div>
 
       <div class="filter-group">
-        <app-date-picker [title]="'End Date'" [placeholder]="'End Date'" [value]="endDateFilter()?.toISOString() || ''"
-          (valueChange)="onEndDateFilter($event)">
+        <app-date-picker [title]="'End Date'" [placeholder]="'End Date'" [align]="'right'"
+          [value]="endDateFilter()?.toISOString() || ''" (valueChange)="onEndDateFilter($event)">
         </app-date-picker>
       </div>
 
-      @if (completedJobs().length > 0 && activeTab() === 'completed') {
-      <button type="button" class="text-sm text-gray-500 hover:text-gray-700 ml-2" (click)="clearCompleted()">
-        Clear completed
-      </button>
-      }
-      @if (failedJobs().length > 0 && activeTab() === 'failed') {
-      <button type="button" class="text-sm text-gray-500 hover:text-gray-700 ml-2" (click)="clearFailed()">
-        Clear failed
+      @if (hasActiveFilters()) {
+      <button type="button" class="clear-filters-btn" (click)="clearAllFilters()">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        <span>Clear filters</span>
       </button>
       }
     </div>
@@ -433,7 +446,6 @@
   </div>
   }
   }
-</div>
 
 <!-- Upload Modal -->
 @if (showUploadModal()) {
@@ -1056,3 +1068,4 @@
   </div>
 </div>
 }
+

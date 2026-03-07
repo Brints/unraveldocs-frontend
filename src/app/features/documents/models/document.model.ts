@@ -100,6 +100,7 @@ export interface UpdateDocumentRequest {
 export interface UploadOptions {
   collectionName?: string;
   enableEncryption?: boolean;
+  pageOptions?: PageSelectionOptions;
 }
 
 // Legacy type alias for backward compatibility

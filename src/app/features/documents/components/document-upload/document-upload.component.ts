@@ -1,4 +1,4 @@
-import { Component, inject, signal, HostListener } from '@angular/core';
+import { Component, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -34,6 +34,15 @@ export class DocumentUploadComponent {
   extractOcrOnUpload = signal(true);
   collectionName = signal('');
   enableEncryption = signal(false);
+
+  // PDF Page Selection
+  pageSelectionMode = signal<'all' | 'range' | 'specific'>('all');
+  startPage = signal<number | null>(null);
+  endPage = signal<number | null>(null);
+  specificPages = signal<string>('');
+
+  // Utilities for template
+  parseInt = parseInt;
 
   // From state service
   readonly isUploading = this.documentState.isUploading;
@@ -173,6 +182,33 @@ export class DocumentUploadComponent {
       options.enableEncryption = true;
     }
 
+    if (this.extractOcrOnUpload() && this.hasPdfFiles()) {
+      const mode = this.pageSelectionMode();
+      if (mode !== 'all') {
+        const pageOptions: any = {};
+        
+        if (mode === 'specific') {
+          const sPages = this.specificPages().trim();
+          if (sPages) {
+            // Parse comma-separated pages
+            const parsedPages = sPages.split(',').map(p => parseInt(p.trim(), 10)).filter(p => !isNaN(p));
+            if (parsedPages.length > 0) {
+              pageOptions.pages = parsedPages;
+            }
+          }
+        } else if (mode === 'range') {
+          const sPage = this.startPage();
+          const ePage = this.endPage();
+          if (sPage !== null) pageOptions.startPage = sPage;
+          if (ePage !== null) pageOptions.endPage = ePage;
+        }
+
+        if (Object.keys(pageOptions).length > 0) {
+          options.pageOptions = pageOptions;
+        }
+      }
+    }
+
     this.documentState.uploadFiles(validFiles, this.extractOcrOnUpload(), options);
 
     // Navigate to documents list after a short delay
@@ -215,19 +251,23 @@ export class DocumentUploadComponent {
     return 'FILE';
   }
 
-  get hasValidFiles(): boolean {
+  hasValidFiles = computed(() => {
     return this.selectedFiles().some(f => !f.error);
-  }
+  });
 
-  get validFileCount(): number {
+  hasPdfFiles = computed(() => {
+    return this.selectedFiles().some(f => !f.error && f.file.type === 'application/pdf');
+  });
+
+  validFileCount = computed(() => {
     return this.selectedFiles().filter(f => !f.error).length;
-  }
+  });
 
-  get overallProgress(): number {
+  overallProgress = computed(() => {
     const progress = this.uploadProgress();
     if (progress.length === 0) return 0;
     const total = progress.reduce((sum, p) => sum + p.progress, 0);
     return Math.round(total / progress.length);
-  }
+  });
 }
 

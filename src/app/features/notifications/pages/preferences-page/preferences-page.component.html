@@ -40,7 +40,7 @@
       <!-- Push Notifications Section -->
       <section class="preference-section">
         <div class="section-header">
-          <h2>Push Notifications</h2>
+          <h2>🔔 Push Notifications</h2>
           <p>Receive real-time notifications in your browser</p>
         </div>
 
@@ -145,7 +145,7 @@
       @if (preferences) {
         <section class="preference-section">
           <div class="section-header">
-            <h2>Notification Types</h2>
+            <h2>📋 Notification Types</h2>
             <p>Choose which notifications you want to receive</p>
           </div>
 
@@ -238,12 +238,27 @@
               <span class="slider"></span>
             </label>
           </div>
+
+          <div class="preference-toggle">
+            <div class="toggle-info">
+              <label>Coupon Notifications</label>
+              <span>Coupon and promotional offer alerts</span>
+            </div>
+            <label class="switch">
+              <input
+                type="checkbox"
+                [checked]="preferences.couponNotifications"
+                (change)="updatePreference('couponNotifications', $any($event.target).checked)"
+                [disabled]="notificationState.isProcessing()">
+              <span class="slider"></span>
+            </label>
+          </div>
         </section>
 
         <!-- Quiet Hours Section -->
         <section class="preference-section">
           <div class="section-header">
-            <h2>Quiet Hours</h2>
+            <h2>🌙 Quiet Hours</h2>
             <p>Pause notifications during specific hours</p>
           </div>
 
@@ -288,7 +303,7 @@
       <!-- Registered Devices Section -->
       <section class="preference-section">
         <div class="section-header">
-          <h2>Registered Devices</h2>
+          <h2>💻 Registered Devices</h2>
           <p>Devices that receive push notifications</p>
         </div>
 

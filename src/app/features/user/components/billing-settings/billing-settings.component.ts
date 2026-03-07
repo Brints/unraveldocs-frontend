@@ -86,8 +86,16 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   readonly isLoading = this.paystackState.isLoading;
   readonly paymentHistory = this.paystackState.paymentHistory;
   readonly hasActiveSubscription = this.paystackState.hasActiveSubscription;
-  readonly formattedSelectedPrice = this.paystackState.formattedSelectedPrice;
-  readonly selectedPlan = this.paystackState.selectedPlan;
+  readonly formattedSelectedPrice = computed(() => {
+    return this.selectedGateway() === 'paypal'
+      ? this.paypalState.formattedSelectedPrice()
+      : this.paystackState.formattedSelectedPrice();
+  });
+  readonly selectedPlan = computed(() => {
+    return this.selectedGateway() === 'paypal'
+      ? this.paypalState.selectedPlan()
+      : this.paystackState.selectedPlan();
+  });
 
   // Combined state for processing/errors across payment gateways
   readonly isProcessing = computed(() =>
@@ -311,6 +319,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.displayCurrency.set(currency);
     // Update paystack state to reload plans
     this.paystackState.setCurrency(currency);
+    // Clear coupon since the amounts are tied to the old currency
+    this.couponState.clearCoupon();
+    this.couponInput.set('');
+    this.paystackState.clearCoupon();
+    this.paypalState.clearCoupon();
   }
 
   setBillingInterval(interval: 'monthly' | 'yearly'): void {
@@ -339,6 +352,12 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         localStorage.setItem('billing_currency', defaultCurrency);
         this.paystackState.setCurrency(defaultCurrency);
       }
+
+      // Clear coupon since the currency/gateway changed and amounts may no longer be valid
+      this.couponState.clearCoupon();
+      this.couponInput.set('');
+      this.paystackState.clearCoupon();
+      this.paypalState.clearCoupon();
     }
   }
 
@@ -366,8 +385,6 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   }
 
   proceedToCheckout(): void {
-    this.showCheckoutModal.set(false);
-
     const selectedGateway = this.selectedGateway();
 
     // Get selected plan from the appropriate state based on gateway
@@ -388,13 +405,15 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
           appliedCoupon.code,
           appliedCoupon.discountPercentage,
           appliedCoupon.discountAmount,
-          appliedCoupon.originalAmount
+          appliedCoupon.originalAmount,
+          appliedCoupon.finalAmount
         );
       } else if (selectedGateway === 'paypal') {
         this.paypalState.setCoupon(
           appliedCoupon.code,
           appliedCoupon.discountAmount,
-          appliedCoupon.originalAmount
+          appliedCoupon.originalAmount,
+          appliedCoupon.finalAmount
         );
       }
     }
@@ -454,7 +473,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Get the plan price
+    // Get the plan price in the currently selected currency
     let amount: number;
     if ('price' in selectedPlan) {
       amount = (selectedPlan as IndividualPlan).price.convertedAmount;
@@ -466,7 +485,9 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         : teamPlan.yearlyPrice.convertedAmount;
     }
 
-    this.couponState.applyCoupon(code.trim(), amount);
+    // Pass the current currency so the coupon state knows what currency the amounts are in
+    const currency = this.selectedCurrency() || this.displayCurrency();
+    this.couponState.applyCoupon(code.trim(), amount, currency);
   }
 
   /**

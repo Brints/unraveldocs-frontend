@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -75,6 +75,9 @@ export class CollectionDetailComponent implements OnInit {
   showClassifyModal = signal(false);
   classifyDocument = signal<DocumentFile | null>(null);
 
+  // Action Dropdown
+  activeDropdownId = signal<string | null>(null);
+
   // From state service
   readonly collection = this.documentState.currentCollection;
   readonly collections = this.documentState.collections;
@@ -99,6 +102,13 @@ export class CollectionDetailComponent implements OnInit {
         this.documentState.loadCollections();
       }
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (this.activeDropdownId()) {
+      this.closeDropdown();
+    }
   }
 
   onSearch(event: Event): void {
@@ -201,7 +211,21 @@ export class CollectionDetailComponent implements OnInit {
 
   isPdf(document: DocumentFile): boolean {
     return document.mimeType === 'application/pdf' ||
-      document.originalFileName?.toLowerCase().endsWith('.pdf');
+      document.originalFileName?.toLowerCase().endsWith('.pdf') || false;
+  }
+
+  // Action Dropdown
+  toggleDropdown(event: Event, documentId: string): void {
+    event.stopPropagation();
+    if (this.activeDropdownId() === documentId) {
+      this.activeDropdownId.set(null);
+    } else {
+      this.activeDropdownId.set(documentId);
+    }
+  }
+
+  closeDropdown(): void {
+    this.activeDropdownId.set(null);
   }
 
   // AI Summarize

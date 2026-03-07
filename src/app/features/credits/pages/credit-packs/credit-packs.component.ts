@@ -151,6 +151,8 @@ export class CreditPacksComponent implements OnInit {
     if (gatewayInfo) {
       this.modalCurrency.set(gatewayInfo.defaultCurrency);
     }
+    // Clear coupon since the currency changed and amounts are no longer valid
+    this.removeCoupon();
   }
 
   purchasePack(): void {
@@ -179,6 +181,8 @@ export class CreditPacksComponent implements OnInit {
   setModalCurrency(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.modalCurrency.set(select.value);
+    // Clear coupon since the currency changed and amounts are no longer valid
+    this.removeCoupon();
   }
 
   /**
@@ -254,8 +258,23 @@ export class CreditPacksComponent implements OnInit {
     const code = this.couponInput();
     const pack = this.selectedPack();
     if (!code || !pack) return;
-    const amount = pack.priceInCents / 100;
-    this.couponState.applyCoupon(code.trim(), amount);
+
+    // Calculate the amount in the current modal currency
+    const currency = this.modalCurrency();
+    let amount: number;
+
+    if (currency === 'USD') {
+      amount = pack.priceInCents / 100;
+    } else if (pack.exchangeRate && pack.convertedCurrency === currency) {
+      // Use the backend's exchange rate for accurate conversion
+      amount = Math.round(pack.priceInCents * pack.exchangeRate) / 100;
+    } else {
+      // Fallback: use PricingService approximate conversion
+      const converted = this.pricingService.convertFromUSD(pack.priceInCents, currency);
+      amount = converted.convertedCents / 100;
+    }
+
+    this.couponState.applyCoupon(code.trim(), amount, currency);
   }
 
   removeCoupon(): void {
@@ -278,6 +297,17 @@ export class CreditPacksComponent implements OnInit {
 
   formatPrice(cents: number, currency: string = 'USD'): string {
     return formatCentsToPrice(cents, currency);
+  }
+
+  /**
+   * Format a main currency unit amount (not cents) for display.
+   * e.g. formatCurrencyAmount(199.95, 'NGN') => '₦199.95'
+   */
+  formatCurrencyAmount(amount: number, currency: string = 'USD'): string {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+    }).format(amount);
   }
 
   getPackIcon(name: string): string {

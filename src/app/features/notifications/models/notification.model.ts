@@ -123,6 +123,7 @@ export interface NotificationPreferences {
   storageNotifications: boolean;
   subscriptionNotifications: boolean;
   teamNotifications: boolean;
+  couponNotifications: boolean;
   quietHoursEnabled: boolean;
   quietHoursStart: string | null;
   quietHoursEnd: string | null;
@@ -139,6 +140,7 @@ export interface UpdatePreferencesRequest {
   storageNotifications: boolean;
   subscriptionNotifications: boolean;
   teamNotifications: boolean;
+  couponNotifications: boolean;
   quietHoursEnabled?: boolean;
   quietHoursStart?: string;
   quietHoursEnd?: string;
