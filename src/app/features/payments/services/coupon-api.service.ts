@@ -29,11 +29,9 @@ export class CouponApiService {
    * Validate a coupon code for the current user
    * GET /coupons/validate/{code}
    */
-  validateCoupon(code: string): Observable<CouponValidationData> {
-    return this.http.get<CouponValidationResponse>(
+  validateCoupon(code: string): Observable<any> {
+    return this.http.get<any>(
       `${this.apiUrl}/validate/${encodeURIComponent(code)}`
-    ).pipe(
-      map(response => response.data)
     );
   }
 
@@ -43,17 +41,15 @@ export class CouponApiService {
    * Apply a coupon to calculate discount
    * POST /coupons/apply
    */
-  applyCoupon(couponCode: string, amount: number): Observable<CouponApplyData> {
+  applyCoupon(couponCode: string, amount: number): Observable<any> {
     const request: CouponApplyRequest = {
       couponCode,
       amount
     };
 
-    return this.http.post<CouponApplyResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/apply`,
       request
-    ).pipe(
-      map(response => response.data)
     );
   }
 

@@ -699,19 +699,29 @@ export class OcrStateService {
   /**
    * Download extracted text
    */
-  downloadText(job: OcrJob): void {
-    if (!job.extractedText) return;
+  downloadText(job: OcrJob, type: 'original' | 'edited' = 'original'): void {
+    let textToExport = job.extractedText;
+
+    if (type === 'edited' && job.editedContent) {
+      // Strip HTML tags for TXT download
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = job.editedContent;
+      textToExport = tempDiv.textContent || tempDiv.innerText || '';
+    } else if (!textToExport) {
+      return;
+    }
+
     const fileName = job.fileName.replace(/\.[^/.]+$/, '');
-    this.api.downloadAsText(job.extractedText, fileName);
+    this.api.downloadAsText(textToExport, fileName);
   }
 
   /**
    * Download as Word document
    */
-  downloadDocx(job: OcrJob): void {
+  downloadDocx(job: OcrJob, type: 'original' | 'edited' = 'original'): void {
     if (!job.collectionId || !job.documentId) return;
 
-    this.api.downloadAsDocx(job.collectionId, job.documentId).pipe(
+    this.api.downloadAsDocx(job.collectionId, job.documentId, type).pipe(
       tap(blob => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -728,29 +738,7 @@ export class OcrStateService {
     ).subscribe();
   }
 
-  /**
-   * Download as JSON
-   */
-  downloadJson(job: OcrJob): void {
-    if (!job.extractedText) return;
-    const data: OcrData = {
-      documentId: job.documentId,
-      originalFileName: job.fileName,
-      status: job.status,
-      extractedText: job.extractedText,
-      editedContent: job.editedContent || null,
-      contentFormat: job.contentFormat || null,
-      editedBy: job.editedBy || null,
-      editedAt: job.editedAt || null,
-      errorMessage: job.error || null,
-      aiSummary: job.aiSummary || null,
-      documentType: job.documentType || null,
-      aiTags: job.aiTags || null,
-      createdAt: job.createdAt,
-    };
-    const fileName = job.fileName.replace(/\.[^/.]+$/, '');
-    this.api.downloadAsJson(data, fileName);
-  }
+
 
   /**
    * Copy text to clipboard

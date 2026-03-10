@@ -6,11 +6,16 @@ import {
   viewChild,
   ElementRef,
   AfterViewInit,
+  OnDestroy,
+  effect,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SafeHtmlPipe } from '../../pipes/safe-html.pipe';
+import { Editor } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
 
-export type ContentFormat = 'HTML' | 'MARKDOWN';
 export type FormatAction =
   | 'bold'
   | 'italic'
@@ -31,35 +36,36 @@ interface ToolbarButton {
   label: string;
   icon: string;
   group: string;
+  isActive?: boolean;
 }
 
 @Component({
   selector: 'app-rich-text-editor',
   standalone: true,
-  imports: [CommonModule, SafeHtmlPipe],
+  imports: [CommonModule],
   templateUrl: './rich-text-editor.component.html',
   styleUrls: ['./rich-text-editor.component.css'],
 })
-export class RichTextEditorComponent implements AfterViewInit {
-  /** The current content format */
-  format = input<ContentFormat>('HTML');
-
-  /** The content string (two-way) */
+export class RichTextEditorComponent implements AfterViewInit, OnDestroy {
+  /** The content string (HTML) */
   content = input<string>('');
   contentChange = output<string>();
 
   /** Placeholder text */
   placeholder = input<string>('Start editing content...');
 
-  /** Textarea ref */
-  textareaRef = viewChild<ElementRef<HTMLTextAreaElement>>('editorTextarea');
+  /** Editor element ref */
+  editorRef = viewChild<ElementRef<HTMLElement>>('editorElement');
+
+  /** TipTap Editor instance */
+  editor: Editor | null = null;
 
   /** Word & char count */
   charCount = signal(0);
   wordCount = signal(0);
 
-  /** Source / Preview toggle */
-  activeTab = signal<'source' | 'preview'>('source');
+  /** Active states for toolbar buttons */
+  activeStates = signal<Record<string, boolean>>({});
 
   /** Toolbar button definitions */
   readonly toolbarGroups: { name: string; buttons: ToolbarButton[] }[] = [
@@ -98,298 +104,167 @@ export class RichTextEditorComponent implements AfterViewInit {
     },
   ];
 
+  constructor() {
+    // Update editor content when the input changes externally,
+    // but avoid circular updates when the change comes from TipTap itself.
+    effect(() => {
+      const newContent = this.content();
+      if (this.editor && this.editor.getHTML() !== newContent) {
+        this.editor.commands.setContent(newContent);
+        this.updateCounts(this.editor.getText());
+      }
+    });
+  }
+
   ngAfterViewInit(): void {
-    this.updateCounts(this.content());
-  }
+    const el = this.editorRef()?.nativeElement;
+    if (!el) return;
 
-  onTextInput(event: Event): void {
-    const textarea = event.target as HTMLTextAreaElement;
-    const value = textarea.value;
-    this.contentChange.emit(value);
-    this.updateCounts(value);
-  }
+    this.editor = new Editor({
+      element: el,
+      extensions: [
+        StarterKit,
+        Underline,
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            rel: 'noopener noreferrer',
+            target: '_blank',
+          },
+        }),
+        Placeholder.configure({
+          placeholder: this.placeholder(),
+        }),
+      ],
+      content: this.content(),
+      onUpdate: ({ editor }) => {
+        const html = editor.getHTML();
+        this.contentChange.emit(html);
+        this.updateCounts(editor.getText());
+      },
+      onSelectionUpdate: ({ editor }) => {
+        this.updateActiveStates(editor);
+      },
+      onTransaction: ({ editor }) => {
+        this.updateActiveStates(editor);
+      },
+      editorProps: {
+        attributes: {
+          class: 'rte-tiptap-editor',
+          spellcheck: 'true',
+        },
+      },
+    });
 
-  onKeyDown(event: KeyboardEvent): void {
-    if (!(event.ctrlKey || event.metaKey)) return;
-
-    const key = event.key.toLowerCase();
-    const shortcuts: Record<string, FormatAction> = {
-      b: 'bold',
-      i: 'italic',
-      u: 'underline',
-      k: 'link',
-    };
-
-    if (shortcuts[key]) {
-      event.preventDefault();
-      this.applyFormat(shortcuts[key]);
+    if (this.editor) {
+      this.updateCounts(this.editor.getText());
+      this.updateActiveStates(this.editor);
     }
+  }
+
+  ngOnDestroy(): void {
+    this.editor?.destroy();
+  }
+
+  private updateActiveStates(editor: Editor): void {
+    this.activeStates.set({
+      bold: editor.isActive('bold'),
+      italic: editor.isActive('italic'),
+      underline: editor.isActive('underline'),
+      strikethrough: editor.isActive('strike'),
+      h1: editor.isActive('heading', { level: 1 }),
+      h2: editor.isActive('heading', { level: 2 }),
+      h3: editor.isActive('heading', { level: 3 }),
+      ul: editor.isActive('bulletList'),
+      ol: editor.isActive('orderedList'),
+      link: editor.isActive('link'),
+      code: editor.isActive('codeBlock') || editor.isActive('code'),
+      blockquote: editor.isActive('blockquote'),
+    });
   }
 
   applyFormat(action: FormatAction): void {
-    const textarea = this.textareaRef()?.nativeElement;
-    if (!textarea) return;
+    if (!this.editor) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-    const selected = text.substring(start, end);
-    const isHtml = this.format() === 'HTML';
-
-    let before = '';
-    let after = '';
-    let insert = '';
-    let cursorOffset = 0;
+    // Focus the editor before applying formats
+    this.editor.chain().focus();
 
     switch (action) {
       case 'bold':
-        if (isHtml) {
-          before = '<strong>';
-          after = '</strong>';
-        } else {
-          before = '**';
-          after = '**';
-        }
+        this.editor.chain().focus().toggleBold().run();
         break;
-
       case 'italic':
-        if (isHtml) {
-          before = '<em>';
-          after = '</em>';
-        } else {
-          before = '_';
-          after = '_';
-        }
+        this.editor.chain().focus().toggleItalic().run();
         break;
-
       case 'underline':
-        if (isHtml) {
-          before = '<u>';
-          after = '</u>';
-        } else {
-          before = '<u>';
-          after = '</u>';
-        }
+        this.editor.chain().focus().toggleUnderline().run();
         break;
-
       case 'strikethrough':
-        if (isHtml) {
-          before = '<del>';
-          after = '</del>';
-        } else {
-          before = '~~';
-          after = '~~';
-        }
+        this.editor.chain().focus().toggleStrike().run();
         break;
-
       case 'h1':
-        if (isHtml) {
-          before = '<h1>';
-          after = '</h1>';
-        } else {
-          insert = this.wrapLine(text, start, end, '# ');
-          this.setContent(textarea, insert, start, start + insert.length);
-          return;
-        }
+        this.editor.chain().focus().toggleHeading({ level: 1 }).run();
         break;
-
       case 'h2':
-        if (isHtml) {
-          before = '<h2>';
-          after = '</h2>';
-        } else {
-          insert = this.wrapLine(text, start, end, '## ');
-          this.setContent(textarea, insert, start, start + insert.length);
-          return;
-        }
+        this.editor.chain().focus().toggleHeading({ level: 2 }).run();
         break;
-
       case 'h3':
-        if (isHtml) {
-          before = '<h3>';
-          after = '</h3>';
-        } else {
-          insert = this.wrapLine(text, start, end, '### ');
-          this.setContent(textarea, insert, start, start + insert.length);
-          return;
-        }
+        this.editor.chain().focus().toggleHeading({ level: 3 }).run();
         break;
-
       case 'ul':
-        if (isHtml) {
-          const ulItems = selected
-            ? selected
-                .split('\n')
-                .map((line) => `  <li>${line}</li>`)
-                .join('\n')
-            : '  <li></li>';
-          insert = `<ul>\n${ulItems}\n</ul>`;
-          cursorOffset = insert.indexOf('</li>');
-        } else {
-          insert = selected
-            ? selected
-                .split('\n')
-                .map((line) => `- ${line}`)
-                .join('\n')
-            : '- ';
-          cursorOffset = insert.length;
-        }
-        this.replaceSelection(textarea, text, start, end, insert, cursorOffset);
-        return;
-
+        this.editor.chain().focus().toggleBulletList().run();
+        break;
       case 'ol':
-        if (isHtml) {
-          const olItems = selected
-            ? selected
-                .split('\n')
-                .map((line) => `  <li>${line}</li>`)
-                .join('\n')
-            : '  <li></li>';
-          insert = `<ol>\n${olItems}\n</ol>`;
-          cursorOffset = insert.indexOf('</li>');
-        } else {
-          insert = selected
-            ? selected
-                .split('\n')
-                .map((line, i) => `${i + 1}. ${line}`)
-                .join('\n')
-            : '1. ';
-          cursorOffset = insert.length;
-        }
-        this.replaceSelection(textarea, text, start, end, insert, cursorOffset);
-        return;
-
-      case 'link': {
-        const url = 'https://';
-        const linkText = selected || 'link text';
-        if (isHtml) {
-          insert = `<a href="${url}">${linkText}</a>`;
-          cursorOffset = 9; // position in href=""
-        } else {
-          insert = `[${linkText}](${url})`;
-          cursorOffset = insert.indexOf('(') + 1;
-        }
-        this.replaceSelection(textarea, text, start, end, insert, cursorOffset);
-        return;
-      }
-
+        this.editor.chain().focus().toggleOrderedList().run();
+        break;
+      case 'blockquote':
+        this.editor.chain().focus().toggleBlockquote().run();
+        break;
       case 'code':
-        if (isHtml) {
-          if (selected && selected.includes('\n')) {
-            before = '<pre><code>';
-            after = '</code></pre>';
-          } else {
-            before = '<code>';
-            after = '</code>';
-          }
+        if (this.editor.isActive('codeBlock')) {
+          this.editor.chain().focus().toggleCodeBlock().run();
+        } else if (this.editor.isActive('code')) {
+          this.editor.chain().focus().toggleCode().run();
         } else {
-          if (selected && selected.includes('\n')) {
-            before = '```\n';
-            after = '\n```';
+          // If multiple lines are selected, toggle codeblock, otherwise inline code
+          const { state } = this.editor;
+          const { selection } = state;
+          const selectedText = state.doc.textBetween(selection.from, selection.to, '\\n');
+          if (selectedText.includes('\\n')) {
+            this.editor.chain().focus().toggleCodeBlock().run();
           } else {
-            before = '`';
-            after = '`';
+            this.editor.chain().focus().toggleCode().run();
           }
         }
         break;
+      case 'hr':
+        this.editor.chain().focus().setHorizontalRule().run();
+        break;
+      case 'link': {
+        const previousUrl = this.editor.getAttributes('link')['href'];
+        const url = window.prompt('URL:', previousUrl || 'https://');
 
-      case 'blockquote':
-        if (isHtml) {
-          before = '<blockquote>';
-          after = '</blockquote>';
-        } else {
-          insert = selected
-            ? selected
-                .split('\n')
-                .map((line) => `> ${line}`)
-                .join('\n')
-            : '> ';
-          cursorOffset = insert.length;
-          this.replaceSelection(textarea, text, start, end, insert, cursorOffset);
+        if (url === null) {
           return;
         }
-        break;
 
-      case 'hr':
-        if (isHtml) {
-          insert = '\n<hr>\n';
-        } else {
-          insert = '\n---\n';
+        if (url === '') {
+          this.editor.chain().focus().extendMarkRange('link').unsetLink().run();
+          return;
         }
-        this.replaceSelection(textarea, text, start, end, insert, insert.length);
-        return;
+
+        this.editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+        break;
+      }
     }
-
-    // Default wrap selection
-    const wrapped = before + (selected || '') + after;
-    const newText = text.substring(0, start) + wrapped + text.substring(end);
-    const newCursorPos = selected ? start + wrapped.length : start + before.length;
-
-    textarea.value = newText;
-    textarea.selectionStart = selected ? start : newCursorPos;
-    textarea.selectionEnd = selected ? start + wrapped.length : newCursorPos;
-    textarea.focus();
-
-    this.contentChange.emit(newText);
-    this.updateCounts(newText);
-  }
-
-  private wrapLine(
-    text: string,
-    start: number,
-    end: number,
-    prefix: string
-  ): string {
-    const selected = text.substring(start, end) || 'Heading';
-    const lineStart = text.lastIndexOf('\n', start - 1) + 1;
-    const beforeLine = text.substring(0, lineStart);
-    const afterLine = text.substring(end);
-    const newContent = beforeLine + prefix + selected + afterLine;
-
-    const textarea = this.textareaRef()?.nativeElement;
-    if (textarea) {
-      textarea.value = newContent;
-      const cursor = lineStart + prefix.length + selected.length;
-      textarea.selectionStart = cursor;
-      textarea.selectionEnd = cursor;
-      textarea.focus();
-      this.contentChange.emit(newContent);
-      this.updateCounts(newContent);
-    }
-    return prefix + selected;
-  }
-
-  private replaceSelection(
-    textarea: HTMLTextAreaElement,
-    text: string,
-    start: number,
-    end: number,
-    insert: string,
-    cursorOffset: number
-  ): void {
-    const newText = text.substring(0, start) + insert + text.substring(end);
-    textarea.value = newText;
-    textarea.selectionStart = start + cursorOffset;
-    textarea.selectionEnd = start + cursorOffset;
-    textarea.focus();
-
-    this.contentChange.emit(newText);
-    this.updateCounts(newText);
-  }
-
-  private setContent(
-    textarea: HTMLTextAreaElement,
-    _insert: string,
-    _start: number,
-    _end: number
-  ): void {
-    // Content already set in wrapLine
   }
 
   private updateCounts(text: string): void {
-    this.charCount.set(text.length);
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const plainText = text || '';
+    this.charCount.set(plainText.length);
+    const words = plainText.trim() ? plainText.trim().split(/\\s+/).length : 0;
     this.wordCount.set(words);
   }
 }
+
 

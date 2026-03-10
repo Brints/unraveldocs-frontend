@@ -291,10 +291,11 @@ export class OcrApiService {
    * Download OCR result as DOCX
    * GET /collections/{collectionId}/documents/{documentId}/download/docx
    */
-  downloadAsDocx(collectionId: string, documentId: string): Observable<Blob> {
+  downloadAsDocx(collectionId: string, documentId: string, type: 'original' | 'edited' = 'original'): Observable<Blob> {
+    const params = new HttpParams().set('type', type);
     return this.http.get(
       `${this.apiUrl}/collections/${collectionId}/documents/${documentId}/download/docx`,
-      { responseType: 'blob' }
+      { params, responseType: 'blob' }
     );
   }
 
@@ -306,13 +307,7 @@ export class OcrApiService {
     this.downloadBlob(blob, `${fileName}.txt`);
   }
 
-  /**
-   * Download OCR result as JSON
-   */
-  downloadAsJson(data: OcrData, fileName: string): void {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    this.downloadBlob(blob, `${fileName}.json`);
-  }
+
 
   // ==================== Delete Operations ====================
 

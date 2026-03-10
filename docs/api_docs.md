@@ -1,1093 +1,759 @@
-# Auth Package — API Documentation
+# OCR Processing API Documentation
 
-> **Base URL:** `/api/v1/auth`  
-> **Package:** `com.extractor.unraveldocs.auth`  
-> **Last Updated:** 2026-03-07
+> **Base URL:** `/api/v1/collections`
+>
+> **Authentication:** All endpoints require a valid JWT Bearer token in the `Authorization` header.
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Package Structure](#package-structure)
-3. [Data Models](#data-models)
-   - [Enums](#enums)
-   - [Entities](#entities)
-   - [Request DTOs](#request-dtos)
-   - [Response DTOs](#response-dtos)
-4. [Endpoints](#endpoints)
-   - [Generate Password](#1-generate-password)
-   - [Sign Up](#2-sign-up)
-   - [Login](#3-login)
-   - [Verify Email](#4-verify-email)
-   - [Resend Verification Email](#5-resend-verification-email)
-   - [Refresh Token](#6-refresh-token)
-   - [Logout](#7-logout)
-   - [Logout All Devices](#8-logout-all-devices)
-5. [Service Layer](#service-layer)
-   - [AuthService (Facade)](#authservice-facade)
-   - [SignupUserImpl](#signupuserimpl)
-   - [LoginUserImpl](#loginuserimpl)
-   - [EmailVerificationImpl](#emailverificationimpl)
-   - [GeneratePasswordImpl](#generatepasswordimpl)
-   - [RefreshTokenImpl](#refreshtokenimpl)
-   - [CustomUserDetailsService](#customuserdetailsservice)
-6. [Events & Async Processing](#events--async-processing)
-   - [UserRegisteredEvent](#userregisteredevent)
-   - [WelcomeEvent](#welcomeevent)
-   - [UserRegisteredEventHandler](#userregisteredeventhandler)
-7. [Security & Token Strategy](#security--token-strategy)
-8. [Validation Rules](#validation-rules)
-9. [Error Reference](#error-reference)
-10. [Flow Diagrams](#flow-diagrams)
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Endpoints](#endpoints)
+  - [Upload & Extract All](#1-upload--extract-all)
+  - [Extract Single Document](#2-extract-text-from-single-document)
+  - [Get Collection Results](#3-get-collection-results)
+  - [Get Document OCR Data](#4-get-document-ocr-data)
+  - [Update Edited Content](#5-update-edited-content)
+- [Data Models](#data-models)
+  - [OcrData Entity](#ocrdata-entity)
+  - [Enums](#enums)
+- [Request / Response DTOs](#request--response-dtos)
+  - [DocumentCollectionResponse\<T\>](#documentcollectionresponset)
+  - [FileResultData](#fileresultdata)
+  - [CollectionResultResponse](#collectionresultresponse)
+  - [UpdateOcrContentRequest](#updateocrcontentrequest)
+  - [DocumentCollectionUploadData](#documentcollectionuploaddata)
+- [Processing Pipeline](#processing-pipeline)
+  - [OCR Providers](#ocr-providers)
+  - [Processing Flow](#processing-flow)
+  - [Elasticsearch Integration](#elasticsearch-integration)
+  - [Notifications](#notifications)
+- [Rich Text Editing](#rich-text-editing)
+  - [Content Formats](#content-formats)
+  - [HTML Sanitization](#html-sanitization)
+- [Error Handling](#error-handling)
+- [Database Schema](#database-schema)
 
 ---
 
 ## Overview
 
-The **Auth** package handles all authentication and authorization concerns for the UnravelDocs API. It covers the full user lifecycle from registration through email verification, login, session management (JWT-based access + rolling refresh tokens), and logout.
+The OCR Processing module extracts text from uploaded documents (images, PDFs, Office files) using configurable OCR providers. It supports:
 
-Key capabilities:
-
-| Feature             | Description                                                                                                                  |
-|---------------------|------------------------------------------------------------------------------------------------------------------------------|
-| User Registration   | Creates a new user account, assigns a default subscription, grants sign-up credits, and sends a verification email via Kafka |
-| Email Verification  | Token-based verification with configurable TTL (default 3 hours)                                                             |
-| Login               | Authenticates credentials, issues JWT access token in body + refresh token as HttpOnly cookie, tracks login attempts         |
-| Token Refresh       | Rolling refresh token strategy — reads refresh token from HttpOnly cookie, invalidates old, issues new pair                  |
-| Logout              | Blacklists the current access token, invalidates all refresh tokens, clears the cookie, returns `204 No Content`             |
-| Logout All Devices  | Invalidates all active sessions across all devices for the user                                                              |
-| Password Generation | Utility endpoint to generate cryptographically strong passwords of configurable length                                       |
+- **Bulk upload & extraction** — upload multiple files and trigger OCR for all at once.
+- **Single document extraction** — extract text from a specific file with optional page selection for PDFs.
+- **Result retrieval** — fetch OCR results per document or per collection.
+- **Rich text editing** — users can review, correct, and format OCR-extracted text with HTML or Markdown.
+- **Full-text search** — extracted/edited content is indexed in Elasticsearch.
+- **AI enhancements** — AI-generated summaries, document classification, and tagging.
+- **Push notifications** — users are notified when OCR processing starts, completes, or fails.
 
 ---
 
-## Package Structure
+## Architecture
 
 ```
-auth/
-├── components/
-│   └── UserRegisteredEventHandler.java      # Kafka event handler — sends verification email
-├── config/
-│   └── RoleEnumConverter.java               # JPA converter for Role enum
-├── controller/
-│   └── AuthController.java                  # REST controller — maps HTTP requests to AuthService
-├── datamodel/
-│   ├── Role.java                            # Enum: USER | MODERATOR | ADMIN | SUPER_ADMIN
-│   └── VerifiedStatus.java                  # Enum: PENDING | VERIFIED | EXPIRED | FAILED
-├── dto/
-│   ├── LoginData.java                       # Login response payload (token-only; profile via GET /api/v1/user/me)
-│   ├── LoginResult.java                     # Internal wrapper — holds response + raw refresh token for cookie
-│   ├── PasswordMatches.java                 # Custom constraint annotation
-│   ├── PasswordMatchesValidator.java        # Validator for password == confirmPassword
-│   ├── RefreshLoginData.java                # Refresh token response payload (access token only)
-│   ├── RefreshResult.java                   # Internal wrapper — holds response + raw refresh token for cookie
-│   ├── SignupData.java                      # Signup response payload
-│   └── request/
-│       ├── EmailVerificationRequestDto.java # Verify email request
-│       ├── GeneratePasswordDto.java         # Password generation request
-│       ├── LoginRequestDto.java             # Login request
-│       ├── ResendEmailVerificationDto.java  # Resend verification email request
-│       ├── SignupRequestDto.java            # User registration request
-│       └── VerifyEmailDto.java              # (alias/internal use)
-├── events/
-│   ├── UserRegisteredEvent.java             # Event payload published after user registration
-│   └── WelcomeEvent.java                    # Event payload published after email verification
-├── impl/
-│   ├── EmailVerificationImpl.java           # Email verification business logic
-│   ├── GeneratePasswordImpl.java            # Password generation logic
-│   ├── LoginUserImpl.java                   # Login business logic
-│   ├── RefreshTokenImpl.java                # Token refresh and logout logic
-│   └── SignupUserImpl.java                  # User registration business logic
-├── interfaces/
-│   ├── EmailVerificationService.java        # Contract for email verification
-│   ├── GeneratePasswordService.java         # Contract for password generation
-│   ├── LoginUserService.java                # Contract for login
-│   ├── RefreshTokenService.java             # Contract for token refresh / logout
-│   ├── SignupUserService.java               # Contract for user registration
-│   └── UserEntityById.java                  # Contract for loading User entity by ID
-├── model/
-│   └── UserVerification.java               # JPA entity — stores verification tokens
-├── repository/
-│   └── UserVerificationRepository.java      # JPA repository for UserVerification
-├── service/
-│   ├── AuthService.java                     # Facade — delegates to individual service implementations
-│   └── CustomUserDetailsService.java        # Spring Security UserDetailsService integration
-└── documentation/
-    └── api_docs.md                          # This file
+┌──────────────────────────────────────────────────────────┐
+│                  OcrDocumentController                    │
+│   POST /upload/extract-all                               │
+│   POST /{collectionId}/document/{documentId}/extract     │
+│   GET  /{collectionId}/document/results                  │
+│   GET  /{collectionId}/document/{documentId}/ocr-data    │
+│   PUT  /{collectionId}/document/{documentId}/content     │
+└────────────────────────┬─────────────────────────────────┘
+                         │
+                    ┌────▼────┐
+                    │OcrService│  (Facade)
+                    └────┬────┘
+                         │
+          ┌──────────────┼──────────────────────┐
+          │              │                      │
+          ▼              ▼                      ▼
+    ┌───────────┐  ┌──────────┐    ┌─────────────────────┐
+    │ Bulk      │  │ Extract  │    │ UpdateOcrContent     │
+    │ Upload &  │  │ Single   │    │ Impl                 │
+    │ Extract   │  │ Document │    │ (Rich text editing)  │
+    └─────┬─────┘  └────┬─────┘    └──────────┬──────────┘
+          │              │                     │
+          ▼              ▼                     ▼
+    ┌───────────────────────────────────────────────┐
+    │              OcrDataRepository                │
+    └──────────────────┬────────────────────────────┘
+                       │
+    ┌──────────────────┼────────────────┐
+    │                  │                │
+    ▼                  ▼                ▼
+┌─────────┐   ┌──────────────┐  ┌───────────┐
+│ ProcessOcr│  │Elasticsearch │  │ Database  │
+│ (async)   │  │Indexing      │  │ (ocr_data)│
+└─────┬─────┘  └──────────────┘  └───────────┘
+      │
+      ▼
+┌───────────────────┐
+│ OcrProviderFactory│
+│  ├─ Tesseract     │
+│  └─ Google Vision │
+└───────────────────┘
 ```
 
----
+### Package Structure
 
-## Data Models
-
-### Enums
-
-#### `Role`
-**Package:** `com.extractor.unraveldocs.auth.datamodel`
-
-Defines the authorization roles assignable to a user account.
-
-| Value         | String Representation | Description                            |
-|---------------|-----------------------|----------------------------------------|
-| `USER`        | `"user"`              | Default role for registered users      |
-| `MODERATOR`   | `"moderator"`         | Elevated content-management privileges |
-| `ADMIN`       | `"admin"`             | Administrative access                  |
-| `SUPER_ADMIN` | `"super_admin"`       | Full platform access                   |
-
-**Helper methods:**
-
-| Method          | Signature                             | Description                                                      |
-|-----------------|---------------------------------------|------------------------------------------------------------------|
-| `fromString`    | `static Role fromString(String role)` | Case-insensitive lookup; throws `BadRequestException` if unknown |
-| `getValidRoles` | `static String[] getValidRoles()`     | Returns all role string values                                   |
-
----
-
-#### `VerifiedStatus`
-**Package:** `com.extractor.unraveldocs.auth.datamodel`
-
-Tracks the state of a user's email verification lifecycle.
-
-| Value      | String Representation | Description                                   |
-|------------|-----------------------|-----------------------------------------------|
-| `PENDING`  | `"pending"`           | Verification email sent; awaiting user action |
-| `VERIFIED` | `"verified"`          | Email successfully verified                   |
-| `EXPIRED`  | `"expired"`           | Token passed its TTL without being used       |
-| `FAILED`   | `"failed"`            | Verification process encountered an error     |
-
----
-
-### Entities
-
-#### `UserVerification`
-**Package:** `com.extractor.unraveldocs.auth.model`  
-**Table:** `user_verification`
-
-Stores all verification and password-reset token data for a `User`. Has a one-to-one relationship with the `User` entity.
-
-| Column                         | Type                   | Nullable | Description                                  |
-|--------------------------------|------------------------|----------|----------------------------------------------|
-| `id`                           | `String` (UUID)        | No       | Primary key                                  |
-| `user_id`                      | `String` (FK → `User`) | No       | Owning user                                  |
-| `emailVerified`                | `boolean`              | No       | `true` once email verification completes     |
-| `emailVerificationToken`       | `String`               | Yes      | Hex token sent in the verification email     |
-| `status`                       | `VerifiedStatus`       | No       | Current verification state                   |
-| `emailVerificationTokenExpiry` | `OffsetDateTime`       | Yes      | Expiry timestamp (typically `now + 3 hours`) |
-| `passwordResetToken`           | `String`               | Yes      | Token for password reset flow                |
-| `passwordResetTokenExpiry`     | `OffsetDateTime`       | Yes      | Expiry for password reset token              |
-| `deletedAt`                    | `OffsetDateTime`       | Yes      | Soft-delete timestamp                        |
-| `createdAt`                    | `OffsetDateTime`       | No       | Auto-set on insert                           |
-
-**Indexes:** `email_verification_token`, `password_reset_token`
-
----
-
-### Request DTOs
-
-#### `SignupRequestDto`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-| Field                  | Type      | Required | Constraints                                                                         | Example                 |
-|------------------------|-----------|----------|-------------------------------------------------------------------------------------|-------------------------|
-| `firstName`            | `String`  | ✅        | 2–80 characters                                                                     | `"John"`                |
-| `lastName`             | `String`  | ✅        | 2–80 characters                                                                     | `"Doe"`                 |
-| `email`                | `String`  | ✅        | Valid email; max 100 chars                                                          | `"johndoe@example.com"` |
-| `password`             | `String`  | ✅        | Min 8 chars; must contain uppercase, lowercase, digit, and special char (`@$!%*?&`) | `"P@ssw0rd123"`         |
-| `confirmPassword`      | `String`  | ✅        | Must match `password` (validated by `@PasswordMatches`)                             | `"P@ssw0rd123"`         |
-| `acceptTerms`          | `Boolean` | ✅        | Must be `true`                                                                      | `true`                  |
-| `subscribeToMarketing` | `Boolean` | ❌        | Defaults to `false`                                                                 | `false`                 |
-| `profession`           | `String`  | ❌        | Max 100 characters                                                                  | `"Software Engineer"`   |
-| `organization`         | `String`  | ❌        | Max 100 characters                                                                  | `"Tech Company"`        |
-| `country`              | `String`  | ✅        | —                                                                                   | `"USA"`                 |
-
-> ⚠️ **Security note:** The `toString()` override on this record redacts `email`, `password`, and `confirmPassword` from logs.
-
----
-
-#### `LoginRequestDto`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-| Field      | Type     | Required | Constraints        | Example               |
-|------------|----------|----------|--------------------|-----------------------|
-| `email`    | `String` | ✅        | Valid email format | `"john-doe@test.com"` |
-| `password` | `String` | ✅        | Not blank          | `"P@ssw0rd123"`       |
-
----
-
-#### `EmailVerificationRequestDto`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-| Field   | Type     | Required | Constraints        | Example              |
-|---------|----------|----------|--------------------|----------------------|
-| `email` | `String` | ✅        | Valid email format | `"test@example.com"` |
-| `token` | `String` | ✅        | Not null           | `"fc2dec961bfb..."`  |
-
----
-
-#### `ResendEmailVerificationDto`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-| Field   | Type     | Required | Constraints            | Example               |
-|---------|----------|----------|------------------------|-----------------------|
-| `email` | `String` | ✅        | Valid email; not blank | `"john-doe@test.com"` |
-
----
-
-#### `RefreshTokenRequest`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-> ⚠️ **Deprecated:** The refresh token is now read from an HttpOnly cookie, not from the request body. This DTO is retained for backward compatibility but its fields are no longer required.
-
----
-
-#### `GeneratePasswordDto`
-**Package:** `com.extractor.unraveldocs.auth.dto.request`
-
-| Field            | Type     | Required | Constraints                                    | Example       |
-|------------------|----------|----------|------------------------------------------------|---------------|
-| `passwordLength` | `String` | ✅        | Numeric string; value must be ≥ 8 when parsed  | `"12"`        |
-| `excludedChars`  | `String` | ❌        | Characters to omit from the generated password | `"^=Av3r@ge"` |
-
----
-
-### Response DTOs
-
-#### `SignupData`
-Returned inside `UnravelDocsResponse<SignupData>` on successful registration.
-
-| Field                 | Type             | Description                                   |
-|-----------------------|------------------|-----------------------------------------------|
-| `id`                  | `String`         | User UUID                                     |
-| `profilePicture`      | `String`         | URL of the profile picture (nullable)         |
-| `firstName`           | `String`         | Capitalized first name                        |
-| `lastName`            | `String`         | Capitalized last name                         |
-| `email`               | `String`         | Lowercase email address                       |
-| `role`                | `Role`           | Assigned role (always `USER` on registration) |
-| `lastLogin`           | `OffsetDateTime` | Null at registration                          |
-| `isActive`            | `boolean`        | `false` until email is verified               |
-| `isVerified`          | `boolean`        | `false` until email is verified               |
-| `termsAccepted`       | `boolean`        | Reflects `acceptTerms` from request           |
-| `marketingOptIn`      | `boolean`        | Reflects `subscribeToMarketing` from request  |
-| `isPlatformAdmin`     | `boolean`        | `false` by default                            |
-| `isOrganizationAdmin` | `boolean`        | `false` by default                            |
-| `country`             | `String`         | Country from request                          |
-| `profession`          | `String`         | Profession from request (nullable)            |
-| `organization`        | `String`         | Organization from request (nullable)          |
-| `createdAt`           | `OffsetDateTime` | Account creation timestamp                    |
-| `updatedAt`           | `OffsetDateTime` | Last update timestamp                         |
-
----
-
-#### `LoginData`
-Returned inside `UnravelDocsResponse<LoginData>` on successful login. Contains **only authentication data**; user profile data is available via `GET /api/v1/user/me`.
-
-| Field             | Type     | Description                      |
-|-------------------|----------|----------------------------------|
-| `userId`          | `String` | User UUID                        |
-| `accessToken`     | `String` | Short-lived JWT access token     |
-| `tokenType`       | `String` | Always `"Bearer"`                |
-| `accessExpiresIn` | `Long`   | Access token TTL in milliseconds |
-
-> ℹ️ The refresh token is **not** included in the JSON body. It is set as an `HttpOnly` cookie by the server.
-
----
-
-#### `RefreshLoginData`
-Returned inside `UnravelDocsResponse<RefreshLoginData>` on successful token refresh. Contains **only the new access token**; the new refresh token is set as an `HttpOnly` cookie.
-
-| Field             | Type     | Description                      |
-|-------------------|----------|----------------------------------|
-| `accessToken`     | `String` | Newly issued JWT access token    |
-| `tokenType`       | `String` | Always `"Bearer"`                |
-| `accessExpiresIn` | `Long`   | Access token TTL in milliseconds |
+| Package        | Purpose                                            |
+|----------------|----------------------------------------------------|
+| `controller`   | REST endpoints for OCR operations                  |
+| `service`      | Facade (`OcrService`), processing (`ProcessOcr`)   |
+| `impl`         | Service interface implementations                  |
+| `interfaces`   | Service contracts (one per operation)              |
+| `model`        | JPA entities                                       |
+| `dto/request`  | Inbound request DTOs                               |
+| `dto/response` | Outbound response DTOs                             |
+| `datamodel`    | Enums (`OcrStatus`, `ContentFormat`)               |
+| `provider`     | OCR provider abstraction (Tesseract, Google Cloud) |
+| `repository`   | Spring Data JPA repositories                       |
+| `utils`        | Shared utilities (validation, file storage, etc.)  |
+| `events`       | Event-driven OCR processing triggers               |
+| `config`       | OCR-specific configuration                         |
+| `metrics`      | OCR processing metrics                             |
+| `quota`        | OCR quota management                               |
+| `exception`    | OCR-specific exceptions                            |
 
 ---
 
 ## Endpoints
 
-All endpoints are prefixed with `/api/v1/auth`.
+### 1. Upload & Extract All
 
----
+Upload multiple files and trigger OCR extraction for the entire collection.
 
-### 1. Generate Password
+```
+POST /api/v1/collections/upload/extract-all
+Content-Type: multipart/form-data
+```
 
-| Property          | Value                            |
-|-------------------|----------------------------------|
-| **Method**        | `POST`                           |
-| **Path**          | `/api/v1/auth/generate-password` |
-| **Auth Required** | No                               |
-| **Content-Type**  | `application/json`               |
+**Request:**
 
-**Request Body:** `GeneratePasswordDto`
+| Parameter   | Type              | Required | Description                                                                          |
+|-------------|-------------------|----------|--------------------------------------------------------------------------------------|
+| `files`     | `MultipartFile[]` | ✅        | Array of files to upload                                                             |
+| `startPage` | `Integer`         | No       | Start page for PDF extraction (1-indexed, inclusive). Only applies to PDF files.     |
+| `endPage`   | `Integer`         | No       | End page for PDF extraction (1-indexed, inclusive). Only applies to PDF files.       |
+| `pages`     | `List<Integer>`   | No       | Specific pages (comma-separated). Overrides start/end page. Example: `?pages=3,8,16` |
+
+**Response:** `200 OK`
 
 ```json
 {
-  "passwordLength": "16",
-  "excludedChars": "O0l1"
+  "data": {
+    "collectionId": "b936275a-ab87-48f6-8252-d79de2bbf900",
+    "files": [
+      {
+        "documentId": "ba40291f-cbb2-4e29-9c9b-7cc947078b85",
+        "originalFileName": "machine-learning-roadmap-v2.pdf",
+        "displayName": null,
+        "fileSize": 2823327,
+        "fileUrl": "https://unraveldocs-s3.s3.eu-central-1.amazonaws.com/documents/24294b53-75a4-4f4e-8be6-fb4d63b5bfa9-machine_learning_roadmap_v2.pdf",
+        "status": "success",
+        "encrypted": false
+      }
+    ],
+    "overallStatus": "processing"
+  },
+  "message": "1 document(s) uploaded successfully and queued for processing. 0 failed.",
+  "status": "processing",
+  "statusCode": 202
 }
 ```
 
-**Success Response — `200 OK`**
+**Errors:**
+
+| Code  | Condition              |
+|-------|------------------------|
+| `400` | No files provided      |
+| `403` | User not authenticated |
+
+---
+
+### 2. Extract Text from Single Document
+
+Trigger OCR text extraction for a single document. Returns existing data if already processed.
+
+```
+POST /api/v1/collections/{collectionId}/document/{documentId}/extract
+```
+
+**Path Parameters:**
+
+| Parameter      | Type     | Description                   |
+|----------------|----------|-------------------------------|
+| `collectionId` | `String` | ID of the document collection |
+| `documentId`   | `String` | ID of the document            |
+
+**Query Parameters (PDF only):**
+
+| Parameter   | Type            | Required | Description                                                                          |
+|-------------|-----------------|----------|--------------------------------------------------------------------------------------|
+| `startPage` | `Integer`       | No       | Start page (1-indexed, inclusive)                                                    |
+| `endPage`   | `Integer`       | No       | End page (1-indexed, inclusive)                                                      |
+| `pages`     | `List<Integer>` | No       | Specific pages (comma-separated). Overrides start/end page. Example: `?pages=3,8,16` |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "id": "bd869603-1750-4ff0-a415-cb7618e532a6",
+    "documentId": "a25fde5a-54eb-4584-91e7-ebbd19782c9a",
+    "status": "COMPLETED",
+    "extractedText": "2 \r\n` \r\n \r\nWithin these pages, you will find a blend of fundamental \r\nconcepts, advanced topics, and real-world scenarios that are \r\nfrequently encountered in interviews. Each chapter is \r\nstructured to build your understanding progressively, \r\nensuring that you are well-prepared for even the most \r\nchallenging questions. \r\n \r\nIn addition to the technical content, this book offers some \r\nvaluable real interview reports. By fostering a deeper \r\ncomprehension of Java and its applications, this book aims \r\nto equip you with the confidence and competence needed to \r\nstand out in any interview. \r\n \r\nWhether you are a fresh graduate aiming for your first job, \r\na seasoned professional looking to switch roles, or someone \r\nre-entering the workforce, \"Cracking the JAVA \r\nINTERVIEWS WITH SUMIT\" is your essential \r\ncompanion. The practical advice, detailed explanations, and \r\ninsider tips provided by Sumit will not only help you \r\nsucceed in your interviews but also inspire you to approach \r\nthem with a new level of preparedness and enthusiasm.\n--- Page 7 ---\n7 \r\n` \r\n \r\nparticularly important for senior developers targeting \r\ncaptives. \r\n- Memory Management: Understanding garbage collection, \r\nmemory leaks, and the Java memory model is critical for \r\nexperienced candidates. \r\n- Spring and Hibernate: Framework-related questions that \r\nsenior developers need to master, especially for product-\r\nbased and enterprise-level applications. \r\n- Java 8 and Beyond: With a focus on functional \r\nprogramming, streams, and lambdas, this chapter is vital for \r\ndevelopers of all experience levels. \r\n \r\nInterview Focus Areas \r\n1. For Junior Developers:  \r\n   - Mastering core Java and OOP concepts is crucial. Expect \r\nquestions about basic syntax, exception handling, and the \r\nfundamentals of how Java works under the hood. \r\n   - Understanding simple multithreading and basic memory \r\nmanagement concepts may also come up, but these are not \r\ntypically the main focus for junior roles. \r\n    \r\n \r\n2. For Experienced Developers:",
+    "editedContent": null,
+    "contentFormat": null,
+    "editedBy": null,
+    "editedAt": null,
+    "errorMessage": null,
+    "aiSummary": null,
+    "documentType": null,
+    "aiTags": null,
+    "createdAt": "2026-03-03T00:58:14.448205+01:00",
+    "updatedAt": "2026-03-03T00:58:14.467903+01:00"
+  },
+  "message": "Text extraction completed successfully.",
+  "status": "success",
+  "statusCode": 200
+}
+```
+
+**Errors:**
+
+| Code  | Condition                           |
+|-------|-------------------------------------|
+| `403` | User not authorized / not logged in |
+| `404` | Collection or file not found        |
+| `500` | OCR processing failed               |
+
+---
+
+### 3. Get Collection Results
+
+Retrieve OCR results for all documents in a collection.
+
+```
+GET /api/v1/collections/{collectionId}/document/results
+```
+
+**Path Parameters:**
+
+| Parameter      | Type     | Description                   |
+|----------------|----------|-------------------------------|
+| `collectionId` | `String` | ID of the document collection |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "collectionId": "b0756849-bf74-4445-9434-7f9c387fcccc",
+    "files": [
+      {
+        "aiSummary": null,
+        "aiTags": ["pdf", "java", "interview"],
+        "contentFormat": null,
+        "createdAt": "2026-03-02T23:58:14.448205Z",
+        "documentId": "a25fde5a-54eb-4584-91e7-ebbd19782c9a",
+        "documentType": null,
+        "editedAt": null,
+        "editedBy": null,
+        "editedContent": null,
+        "errorMessage": null,
+        "extractedText": "2 \r\n` \r\n \r\nWithin these pages, you will find a blend of fundamental \r\nconcepts, advanced topics, and real-world scenarios that are \r\nfrequently encountered in interviews. Each chapter is \r\nstructured to build your understanding progressively, \r\nensuring that you are well-prepared for even the most \r\nchallenging questions. \r\n \r\nIn addition to the technical content, this book offers some \r\nvaluable real interview reports. By fostering a deeper \r\ncomprehension of Java and its applications, this book aims \r\nto equip you with the confidence and competence needed to \r\nstand out in any interview. \r\n \r\nWhether you are a fresh graduate aiming for your first job, \r\na seasoned professional looking to switch roles, or someone \r\nre-entering the workforce, \"Cracking the JAVA \r\nINTERVIEWS WITH SUMIT\" is your essential \r\ncompanion. The practical advice, detailed explanations, and \r\ninsider tips provided by Sumit will not only help you \r\nsucceed in your interviews but also inspire you to approach \r\nthem with a new level of preparedness and enthusiasm.\n--- Page 7 ---\n7 \r\n` \r\n \r\nparticularly important for senior developers targeting \r\ncaptives. \r\n- Memory Management: Understanding garbage collection, \r\nmemory leaks, and the Java memory model is critical for \r\nexperienced candidates. \r\n- Spring and Hibernate: Framework-related questions that \r\nsenior developers need to master, especially for product-\r\nbased and enterprise-level applications. \r\n- Java 8 and Beyond: With a focus on functional \r\nprogramming, streams, and lambdas, this chapter is vital for \r\ndevelopers of all experience levels. \r\n \r\nInterview Focus Areas \r\n1. For Junior Developers:  \r\n   - Mastering core Java and OOP concepts is crucial. Expect \r\nquestions about basic syntax, exception handling, and the \r\nfundamentals of how Java works under the hood. \r\n   - Understanding simple multithreading and basic memory \r\nmanagement concepts may also come up, but these are not \r\ntypically the main focus for junior roles. \r\n    \r\n \r\n2. For Experienced Developers:",
+        "originalFileName": "5T2bHZ8XTZXkVCEkrHAUU4.pdf",
+        "status": "completed"
+      }
+    ],
+    "overallStatus": "completed"
+  },
+  "message": "OCR results retrieved successfully.",
+  "status": "success",
+  "statusCode": 200
+}
+```
+
+**Errors:**
+
+| Code  | Condition            |
+|-------|----------------------|
+| `403` | User not authorized  |
+| `404` | Collection not found |
+
+---
+
+### 4. Get Document OCR Data
+
+Retrieve OCR data for a specific document.
+
+```
+GET /api/v1/collections/{collectionId}/document/{documentId}/ocr-data
+```
+
+**Path Parameters:**
+
+| Parameter      | Type     | Description                   |
+|----------------|----------|-------------------------------|
+| `collectionId` | `String` | ID of the document collection |
+| `documentId`   | `String` | ID of the document            |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "aiSummary": null,
+    "aiTags": null,
+    "contentFormat": null,
+    "createdAt": "2026-03-02T23:58:14.448205Z",
+    "documentId": "a25fde5a-54eb-4584-91e7-ebbd19782c9a",
+    "documentType": null,
+    "editedAt": null,
+    "editedBy": null,
+    "editedContent": null,
+    "errorMessage": null,
+    "extractedText": "2 \r\n` \r\n \r\nWithin these pages, you will find a blend of fundamental \r\nconcepts, advanced topics, and real-world scenarios that are \r\nfrequently encountered in interviews. Each chapter is \r\nstructured to build your understanding progressively, \r\nensuring that you are well-prepared for even the most \r\nchallenging questions. \r\n \r\nIn addition to the technical content, this book offers some \r\nvaluable real interview reports. By fostering a deeper \r\ncomprehension of Java and its applications, this book aims \r\nto equip you with the confidence and competence needed to \r\nstand out in any interview. \r\n \r\nWhether you are a fresh graduate aiming for your first job, \r\na seasoned professional looking to switch roles, or someone \r\nre-entering the workforce, \"Cracking the JAVA \r\nINTERVIEWS WITH SUMIT\" is your essential \r\ncompanion. The practical advice, detailed explanations, and \r\ninsider tips provided by Sumit will not only help you \r\nsucceed in your interviews but also inspire you to approach \r\nthem with a new level of preparedness and enthusiasm.\n--- Page 7 ---\n7 \r\n` \r\n \r\nparticularly important for senior developers targeting \r\ncaptives. \r\n- Memory Management: Understanding garbage collection, \r\nmemory leaks, and the Java memory model is critical for \r\nexperienced candidates. \r\n- Spring and Hibernate: Framework-related questions that \r\nsenior developers need to master, especially for product-\r\nbased and enterprise-level applications. \r\n- Java 8 and Beyond: With a focus on functional \r\nprogramming, streams, and lambdas, this chapter is vital for \r\ndevelopers of all experience levels. \r\n \r\nInterview Focus Areas \r\n1. For Junior Developers:  \r\n   - Mastering core Java and OOP concepts is crucial. Expect \r\nquestions about basic syntax, exception handling, and the \r\nfundamentals of how Java works under the hood. \r\n   - Understanding simple multithreading and basic memory \r\nmanagement concepts may also come up, but these are not \r\ntypically the main focus for junior roles. \r\n    \r\n \r\n2. For Experienced Developers:",
+    "originalFileName": "5T2bHZ8XTZXkVCEkrHAUU4.pdf",
+    "status": "COMPLETED"
+  },
+  "message": "OCR data retrieved successfully.",
+  "status": "success",
+  "statusCode": 200
+}
+```
+
+**Errors:**
+
+| Code  | Condition                           |
+|-------|-------------------------------------|
+| `403` | User not authorized / not logged in |
+| `404` | Document or OCR data not found      |
+
+---
+
+### 5. Update Edited Content
+
+Save user-reviewed and edited content for a document. Supports both HTML and Markdown.
+
+```
+PUT /api/v1/collections/{collectionId}/document/{documentId}/content
+Content-Type: application/json
+```
+
+**Path Parameters:**
+
+| Parameter      | Type     | Description                   |
+|----------------|----------|-------------------------------|
+| `collectionId` | `String` | ID of the document collection |
+| `documentId`   | `String` | ID of the document            |
+
+**Request Body:**
+
+```json
+{
+  "editedContent": "<p>User-corrected <b>formatted</b> text with <a href=\"https://example.com\">links</a></p>",
+  "contentFormat": "HTML"
+}
+```
+
+| Field           | Type            | Required | Description                                 |
+|-----------------|-----------------|----------|---------------------------------------------|
+| `editedContent` | `String`        | ✅        | The user-edited content                     |
+| `contentFormat` | `ContentFormat` | ✅        | Format of the content: `HTML` or `MARKDOWN` |
+
+**Response:** `200 OK`
+
+```json
+{
+    "data": {
+        "aiSummary": "Interview preparation guide covering Java fundamentals, advanced topics, and real-world scenarios.",
+        "aiTags": ["legal", "contract"],
+        "contentFormat": "HTML",
+        "createdAt": "2026-03-02T23:58:14.448205Z",
+        "documentId": "a25fde5a-54eb-4584-91e7-ebbd19782c9a",
+        "documentType": "book",
+        "editedAt": "2026-03-03T01:21:12.6928448+01:00",
+        "editedBy": "3e3c6fc7-e48b-4682-ab54-0e9375a039b8",
+        "editedContent": "2 ` Within these pages, you will find a blend of fundamental concepts, advanced topics, and real-world scenarios that are frequently encountered in interviews. Each chapter is structured to build your understanding progressively, ensuring that you are well-prepared for even the most challenging questions. In addition to the technical content, this book offers some valuable real interview reports. By fostering a deeper comprehension of Java and its applications, this book aims to equip you with the confidence and competence needed to stand out in any interview. Whether you are a fresh graduate aiming for your first job, a seasoned professional looking to switch roles, or someone re-entering the workforce, \"Cracking the JAVA INTERVIEWS WITH SUMIT\" is your essential companion. The practical advice, detailed explanations, and insider tips provided by Sumit will not only help you succeed in your interviews but also inspire you to approach them with a new level of preparedness and enthusiasm. --- Page 7 --- 7 ` particularly important for senior developers targeting captives. - Memory Management: Understanding garbage collection, memory leaks, and the Java memory model is critical for experienced candidates. - <strong>Spring and Hibernate</strong>: Framework-related questions that senior developers need to master, especially for product- based and enterprise-level applications. - Java 8 and Beyond: With a focus on functional programming, streams, and lambdas, this chapter is vital for developers of all experience levels. Interview Focus Areas 1. For Junior Developers: - Mastering core Java and OOP concepts is crucial. Expect questions about basic syntax, exception handling, and the fundamentals of how Java works under the hood. - Understanding simple multithreading and basic memory management concepts may also come up, but these are not typically the main focus for junior roles. 2.\n<p>For Experienced Developers:</p>",
+        "errorMessage": null,
+        "extractedText": "2 \r\n` \r\n \r\nWithin these pages, you will find a blend of fundamental \r\nconcepts, advanced topics, and real-world scenarios that are \r\nfrequently encountered in interviews. Each chapter is \r\nstructured to build your understanding progressively, \r\nensuring that you are well-prepared for even the most \r\nchallenging questions. \r\n \r\nIn addition to the technical content, this book offers some \r\nvaluable real interview reports. By fostering a deeper \r\ncomprehension of Java and its applications, this book aims \r\nto equip you with the confidence and competence needed to \r\nstand out in any interview. \r\n \r\nWhether you are a fresh graduate aiming for your first job, \r\na seasoned professional looking to switch roles, or someone \r\nre-entering the workforce, \"Cracking the JAVA \r\nINTERVIEWS WITH SUMIT\" is your essential \r\ncompanion. The practical advice, detailed explanations, and \r\ninsider tips provided by Sumit will not only help you \r\nsucceed in your interviews but also inspire you to approach \r\nthem with a new level of preparedness and enthusiasm.\n--- Page 7 ---\n7 \r\n` \r\n \r\nparticularly important for senior developers targeting \r\ncaptives. \r\n- Memory Management: Understanding garbage collection, \r\nmemory leaks, and the Java memory model is critical for \r\nexperienced candidates. \r\n- Spring and Hibernate: Framework-related questions that \r\nsenior developers need to master, especially for product-\r\nbased and enterprise-level applications. \r\n- Java 8 and Beyond: With a focus on functional \r\nprogramming, streams, and lambdas, this chapter is vital for \r\ndevelopers of all experience levels. \r\n \r\nInterview Focus Areas \r\n1. For Junior Developers:  \r\n   - Mastering core Java and OOP concepts is crucial. Expect \r\nquestions about basic syntax, exception handling, and the \r\nfundamentals of how Java works under the hood. \r\n   - Understanding simple multithreading and basic memory \r\nmanagement concepts may also come up, but these are not \r\ntypically the main focus for junior roles. \r\n    \r\n \r\n2. For Experienced Developers:",
+        "originalFileName": "5T2bHZ8XTZXkVCEkrHAUU4.pdf",
+        "status": "COMPLETED"
+    },
+    "message": "Document content updated successfully.",
+    "status": "success",
+    "statusCode": 200
+}
+```
+
+**Errors:**
+
+| Code  | Condition                                   |
+|-------|---------------------------------------------|
+| `400` | OCR not completed, or invalid/blank input   |
+| `403` | User not authorized or not logged in        |
+| `404` | Collection, document, or OCR data not found |
+
+> [!IMPORTANT]
+> The original `extractedText` is **never overwritten**. Edited content is stored separately in `editedContent`.
+
+---
+
+## Data Models
+
+### OcrData Entity
+
+The core JPA entity stored in the `ocr_data` table:
+
+| Column           | Type             | Nullable | Description                                    |
+|------------------|------------------|----------|------------------------------------------------|
+| `id`             | `VARCHAR (UUID)` | No       | Primary key, auto-generated                    |
+| `document_id`    | `VARCHAR`        | No       | Foreign key to `file_entries`, unique          |
+| `status`         | `VARCHAR (enum)` | No       | OCR processing status                          |
+| `extracted_text` | `TEXT`           | Yes      | Raw OCR-extracted text                         |
+| `edited_content` | `TEXT`           | Yes      | User-edited content (HTML or Markdown)         |
+| `content_format` | `VARCHAR(20)`    | Yes      | Format of edited content (`HTML` / `MARKDOWN`) |
+| `edited_by`      | `VARCHAR(255)`   | Yes      | User ID of the editor                          |
+| `edited_at`      | `TIMESTAMPTZ`    | Yes      | Timestamp of the last edit                     |
+| `error_message`  | `VARCHAR`        | Yes      | Error details if OCR failed                    |
+| `ai_summary`     | `TEXT`           | Yes      | AI-generated summary of the document           |
+| `document_type`  | `VARCHAR(50)`    | Yes      | AI-classified document type (e.g., "invoice")  |
+| `ai_tags`        | `VARCHAR(500)`   | Yes      | Comma-separated AI-generated tags              |
+| `created_at`     | `TIMESTAMPTZ`    | No       | Record creation timestamp (auto)               |
+| `updated_at`     | `TIMESTAMPTZ`    | No       | Record update timestamp (auto)                 |
+
+### Enums
+
+#### OcrStatus
+
+Represents the OCR processing lifecycle:
+
+| Value        | Description                          |
+|--------------|--------------------------------------|
+| `PENDING`    | OCR queued but not yet started       |
+| `PROCESSING` | OCR extraction is in progress        |
+| `COMPLETED`  | OCR extraction finished successfully |
+| `FAILED`     | OCR extraction encountered an error  |
+
+#### ContentFormat
+
+Represents the format of user-edited content:
+
+| Value      | Description                                           |
+|------------|-------------------------------------------------------|
+| `HTML`     | HTML content — sanitized server-side via Jsoup        |
+| `MARKDOWN` | Markdown content — stored as-is, rendered by frontend |
+
+---
+
+## Request / Response DTOs
+
+### DocumentCollectionResponse\<T\>
+
+Generic wrapper for all API responses:
 
 ```json
 {
   "statusCode": 200,
   "status": "success",
-  "message": "Password successfully generated.",
-  "data": {
-    "generatedPassword": "xK#9mQr$vL&2Zp!n"
-  }
+  "message": "Human-readable message",
+  "data": { }
 }
 ```
 
-**Error Responses**
+| Field        | Type     | Description                   |
+|--------------|----------|-------------------------------|
+| `statusCode` | `int`    | HTTP status code              |
+| `status`     | `String` | `"success"` or `"error"`      |
+| `message`    | `String` | Human-readable result message |
+| `data`       | `T`      | Payload (varies by endpoint)  |
 
-| Status            | Condition                                                    |
-|-------------------|--------------------------------------------------------------|
-| `400 Bad Request` | `passwordLength` is missing or parses to a value less than 8 |
+### FileResultData
+
+Returned when querying individual document OCR data:
+
+| Field              | Type             | Description                                              |
+|--------------------|------------------|----------------------------------------------------------|
+| `documentId`       | `String`         | Unique document identifier                               |
+| `originalFileName` | `String`         | Original uploaded file name                              |
+| `status`           | `String`         | OCR status (`PENDING`/`PROCESSING`/`COMPLETED`/`FAILED`) |
+| `errorMessage`     | `String`         | Error message if OCR failed                              |
+| `createdAt`        | `OffsetDateTime` | When the OCR record was created                          |
+| `extractedText`    | `String`         | Original OCR-extracted text                              |
+| `editedContent`    | `String`         | User-edited content (if any)                             |
+| `contentFormat`    | `String`         | Format of edited content (`HTML`/`MARKDOWN`)             |
+| `editedBy`         | `String`         | User ID who last edited                                  |
+| `editedAt`         | `OffsetDateTime` | When the content was last edited                         |
+| `aiSummary`        | `String`         | AI-generated summary                                     |
+| `documentType`     | `String`         | AI-classified document type                              |
+| `aiTags`           | `List<String>`   | AI-generated tags                                        |
+
+### CollectionResultResponse
+
+Returned when querying all results for a collection:
+
+| Field           | Type                   | Description                         |
+|-----------------|------------------------|-------------------------------------|
+| `collectionId`  | `String`               | Collection ID                       |
+| `overallStatus` | `DocumentStatus`       | Aggregated status of the collection |
+| `files`         | `List<FileResultData>` | OCR results for each file           |
+
+### UpdateOcrContentRequest
+
+Request body for the content update endpoint:
+
+| Field           | Type            | Required | Validation                   |
+|-----------------|-----------------|----------|------------------------------|
+| `editedContent` | `String`        | ✅        | Must not be blank            |
+| `contentFormat` | `ContentFormat` | ✅        | Must be `HTML` or `MARKDOWN` |
+
+### DocumentCollectionUploadData
+
+Returned after bulk upload — contains the new collection ID and uploaded file metadata.
 
 ---
 
-### 2. Sign Up
+## Processing Pipeline
 
-| Property          | Value                 |
-|-------------------|-----------------------|
-| **Method**        | `POST`                |
-| **Path**          | `/api/v1/auth/signup` |
-| **Auth Required** | No                    |
-| **Content-Type**  | `application/json`    |
+### OCR Providers
 
-**Request Body:** `SignupRequestDto`
+The system uses a **provider abstraction** pattern for OCR processing, with automatic provider selection based on subscription plan and credit balance:
 
-```json
-{
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "johndoe@example.com",
-  "password": "P@ssw0rd123",
-  "confirmPassword": "P@ssw0rd123",
-  "acceptTerms": true,
-  "subscribeToMarketing": false,
-  "profession": "Software Engineer",
-  "organization": "Tech Company",
-  "country": "USA"
-}
+| Provider                | Description                            | Used When                                   |
+|-------------------------|----------------------------------------|---------------------------------------------|
+| **Tesseract**           | Open-source OCR engine (local)         | Free plan users without credits             |
+| **Google Cloud Vision** | Cloud-based OCR with superior accuracy | Paid plan users, or free users with credits |
+
+#### Provider Selection Rules
+
+| User Plan | Has Credits? | Provider Used | Credits Deducted?               |
+|-----------|--------------|---------------|---------------------------------|
+| Free      | No           | Tesseract     | No                              |
+| Free      | Not enough   | Tesseract     | No                              |
+| Free      | Yes          | Google Vision | **Yes** (1 credit per document) |
+| Paid      | Any          | Google Vision | **No**                          |
+
+The `OcrProcessingService.resolveProvider(userId)` method implements this logic by checking the user's subscription via `SubscriptionFeatureService` and credit balance via `CreditBalanceService`.
+
+If the primary provider fails and `fallbackEnabled` is `true`, the system falls back to the secondary provider via the `OcrProviderFactory`.
+
+#### OcrRequest
+
+Input to OCR providers:
+
+| Field             | Type            | Description                               |
+|-------------------|-----------------|-------------------------------------------|
+| `documentId`      | `String`        | Document identifier                       |
+| `collectionId`    | `String`        | Collection identifier                     |
+| `imageUrl`        | `String`        | URL of the file to process                |
+| `mimeType`        | `String`        | MIME type of the file                     |
+| `userId`          | `String`        | User ID (for provider resolution & quota) |
+| `fallbackEnabled` | `boolean`       | Whether fallback to secondary is enabled  |
+| `startPage`       | `Integer`       | Start page for PDFs (1-indexed, optional) |
+| `endPage`         | `Integer`       | End page for PDFs (1-indexed, optional)   |
+| `pages`           | `List<Integer>` | Specific pages for PDFs (optional)        |
+
+#### OcrResult
+
+Output from OCR providers:
+
+| Field           | Type      | Description                  |
+|-----------------|-----------|------------------------------|
+| `extractedText` | `String`  | Extracted text content       |
+| `success`       | `boolean` | Whether extraction succeeded |
+| `errorMessage`  | `String`  | Error details if failed      |
+| `providerType`  | `String`  | Which provider was used      |
+
+### Processing Flow
+
+```
+1. User uploads files via POST /upload/extract-all
+   │
+2. Files are stored in cloud storage (S3)
+   │
+3. DocumentCollection + FileEntry records created
+   │
+4. OcrData record created per file (status: PENDING)
+   │
+5. OCR event published asynchronously
+   │
+6. ProcessOcr picks up the event
+   │
+   ├─ Sets OcrData status → PROCESSING
+   ├─ Sends "OCR Started" push notification
+   ├─ Builds OcrRequest and calls OcrProcessingService
+   │   └─ resolveProvider(userId) selects provider:
+   │       ├─ Paid plan → Google Vision
+   │       ├─ Free + credits → Google Vision
+   │       └─ Free + no credits → Tesseract
+   │       (Fallback to secondary provider if primary fails)
+   ├─ Updates OcrData with extracted text or error
+   ├─ Deducts 1 credit (only if free plan + Google Vision used)
+   ├─ Updates collection status (PROCESSED / FAILED_OCR / PROCESSING)
+   ├─ Indexes in Elasticsearch (on COMPLETED)
+   └─ Sends "OCR Completed" or "OCR Failed" push notification
 ```
 
-**Success Response — `201 Created`**
+#### Collection Status Resolution
 
-```json
-{
-  "statusCode": 201,
-  "status": "success",
-  "message": "User registered successfully",
-  "data": {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "profilePicture": null,
-    "firstName": "John",
-    "lastName": "Doe",
-    "email": "johndoe@example.com",
-    "role": "user",
-    "lastLogin": null,
-    "isActive": false,
-    "isVerified": false,
-    "termsAccepted": true,
-    "marketingOptIn": false,
-    "isPlatformAdmin": false,
-    "isOrganizationAdmin": false,
-    "country": "USA",
-    "profession": "Software Engineer",
-    "organization": "Tech Company",
-    "createdAt": "2026-02-26T10:00:00Z",
-    "updatedAt": "2026-02-26T10:00:00Z"
-  }
-}
-```
+The collection status is derived from individual file statuses:
 
-**Side Effects**
+| Condition                     | Collection Status |
+|-------------------------------|-------------------|
+| All files completed           | `PROCESSED`       |
+| All files completed or failed | `FAILED_OCR`      |
+| Some files still pending      | `PROCESSING`      |
 
-- A `UserVerification` record is created with status `PENDING` and a 3-hour token TTL.
-- A `LoginAttempts` record is initialized for the user.
-- A default subscription is assigned via `AssignSubscriptionService`.
-- A `UserRegisteredEvent` is published to Kafka **after transaction commit**, which triggers a verification email.
-- The user is indexed in Elasticsearch (if the indexing service is available).
-- A `WELCOME` push notification is dispatched.
-- Sign-up bonus credits are granted via `CreditBalanceService`.
+### Elasticsearch Integration
 
-**Error Responses**
+Successfully processed documents are indexed in Elasticsearch for full-text search:
 
-| Status            | Condition                                                          |
-|-------------------|--------------------------------------------------------------------|
-| `400 Bad Request` | Validation failure (missing/invalid fields, passwords don't match) |
-| `400 Bad Request` | Password is the same as the email address                          |
-| `409 Conflict`    | Email already registered                                           |
+- **On OCR completion:** Indexed with `IndexAction.CREATE`
+- **On content edit:** Re-indexed with `IndexAction.UPDATE`
+- **Search priority:** If `editedContent` exists, it is used as the searchable text. Otherwise, `extractedText` is used.
+
+The Elasticsearch document includes:
+
+| Field           | Source                                           |
+|-----------------|--------------------------------------------------|
+| `id`            | `FileEntry.documentId`                           |
+| `userId`        | `DocumentCollection.user.id`                     |
+| `collectionId`  | `DocumentCollection.id`                          |
+| `fileName`      | `FileEntry.originalFileName`                     |
+| `fileType`      | `FileEntry.fileType`                             |
+| `fileSize`      | `FileEntry.fileSize`                             |
+| `status`        | `DocumentCollection.collectionStatus`            |
+| `ocrStatus`     | `OcrData.status`                                 |
+| `extractedText` | `OcrData.editedContent ?? OcrData.extractedText` |
+| `fileUrl`       | `FileEntry.fileUrl`                              |
+
+### Notifications
+
+Push notifications are sent to users during the OCR lifecycle:
+
+| Event                    | Notification Type          |
+|--------------------------|----------------------------|
+| OCR processing started   | `OCR_PROCESSING_STARTED`   |
+| OCR processing completed | `OCR_PROCESSING_COMPLETED` |
+| OCR processing failed    | `OCR_PROCESSING_FAILED`    |
+
+Each notification includes `documentId` and `collectionId` as metadata.
 
 ---
 
-### 3. Login
+## Rich Text Editing
 
-| Property          | Value                |
-|-------------------|----------------------|
-| **Method**        | `POST`               |
-| **Path**          | `/api/v1/auth/login` |
-| **Auth Required** | No                   |
-| **Content-Type**  | `application/json`   |
+### Content Formats
 
-**Request Body:** `LoginRequestDto`
+The system supports two content formats for user-edited text:
 
-```json
-{
-  "email": "johndoe@example.com",
-  "password": "P@ssw0rd123"
-}
+| Format       | Server Behavior                          | Frontend Responsibility          |
+|--------------|------------------------------------------|----------------------------------|
+| **HTML**     | Sanitized via Jsoup before storage       | Render sanitized HTML            |
+| **MARKDOWN** | Stored as-is (no server-side processing) | Render Markdown and sanitize XSS |
+
+### HTML Sanitization
+
+HTML content is sanitized using [Jsoup](https://jsoup.org/) (v1.22.1) with a `relaxed` safelist extended with additional formatting tags.
+
+**Allowed Tags:**
+
+All tags in Jsoup's `Safelist.relaxed()`, plus: `span`, `div`, `br`, `hr`, `pre`, `code`, `mark`, `sub`, `sup`, `u`, `s`
+
+**Allowed Attributes:**
+
+| Tag    | Allowed Attributes               |
+|--------|----------------------------------|
+| `a`    | `href`, `title`, `target`, `rel` |
+| `span` | `style`                          |
+| `p`    | `style`                          |
+| `div`  | `style`                          |
+
+**Allowed URL Protocols (for `<a href>`):** `http`, `https`, `mailto`
+
+**Stripped Content:**
+- `<script>` tags and inline JavaScript
+- `<iframe>`, `<object>`, `<embed>` tags
+- `onclick`, `onerror`, and other event handler attributes
+- `javascript:` protocol URLs
+
+**Example:**
+
 ```
-
-**Success Response — `200 OK`**
-
-The access token is returned in the JSON body. The refresh token is set as an `HttpOnly` cookie (`__Host-refresh_token` or `refresh_token`).
-
-```json
-{
-  "statusCode": 200,
-  "status": "success",
-  "message": "User logged in successfully",
-  "data": {
-    "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "accessToken": "eyJhbGciOiJSUzI1NiJ9...",
-    "tokenType": "Bearer",
-    "accessExpiresIn": 3600000
-  }
-}
+Input:  <p>Text</p><script>alert('xss')</script><b>Bold</b>
+Output: <p>Text</p><b>Bold</b>
 ```
-
-**Response Headers:**
-```
-Set-Cookie: __Host-refresh_token=eyJhbGci...; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000
-```
-
-> ℹ️ **Profile data** (name, email, role, etc.) is not included in the login response. Use `GET /api/v1/user/me` (with the access token) to retrieve the full user profile.
-
-**Side Effects**
-
-- `lastLogin` is updated to `OffsetDateTime.now()`.
-- Failed login attempts are tracked; blocked users are rejected before authentication.
-- Successful login resets failed login attempt counter.
-- Refresh token JTI is stored in Redis for validation.
-- Soft-deleted accounts are **blocked** from login (not reactivated).
-
-**Error Responses**
-
-| Status              | `errorCode`          | Condition                                         |
-|---------------------|----------------------|---------------------------------------------------|
-| `400 Bad Request`   | `ACCOUNT_DEACTIVATED`| Account has been soft-deleted                     |
-| `401 Unauthorized`  | `INVALID_CREDENTIALS`| Invalid email or password                         |
-| `403 Forbidden`     | `ACCOUNT_NOT_VERIFIED`| Account is disabled (email not verified)          |
-| `403 Forbidden`     | `ACCOUNT_LOCKED`     | Account is locked due to too many failed attempts |
 
 ---
 
-### 4. Verify Email
+## Error Handling
 
-| Property          | Value                       |
-|-------------------|-----------------------------|
-| **Method**        | `POST`                      |
-| **Path**          | `/api/v1/auth/verify-email` |
-| **Auth Required** | No                          |
-| **Content-Type**  | `application/json`          |
-
-**Request Body:** `EmailVerificationRequestDto`
+All errors follow the `DocumentCollectionResponse` format:
 
 ```json
 {
-  "email": "johndoe@example.com",
-  "token": "fc2dec961bfbcfb224e3d56b6516a2986904323c6520db012c2516e1e8170a3b4559772399831afc"
-}
-```
-
-**Success Response — `200 OK`**
-
-```json
-{
-  "statusCode": 200,
-  "status": "success",
-  "message": "Email verified successfully",
+  "statusCode": 400,
+  "status": "error",
+  "message": "Human-readable error description",
   "data": null
 }
 ```
 
-**Side Effects**
+### Common Error Scenarios
 
-- `UserVerification.status` set to `VERIFIED`, token fields cleared.
-- `User.isVerified` set to `true`, `User.isActive` set to `true`.
-- A `WelcomeEvent` is published to Kafka **after transaction commit**, which triggers a welcome email.
+| HTTP Code | Exception             | Scenarios                                                |
+|-----------|-----------------------|----------------------------------------------------------|
+| `400`     | `BadRequestException` | No files provided; OCR not completed (editing attempted) |
+| `403`     | `ForbiddenException`  | Not logged in; user doesn't own the collection           |
+| `404`     | `NotFoundException`   | Collection/document/OCR data not found                   |
+| `500`     | Internal Server Error | OCR engine failure; Elasticsearch failure                |
 
-**Error Responses**
+### Pre-conditions for Content Editing
 
-> ℹ️ All error cases return `400 Bad Request` with generic messages to prevent user enumeration.
+Before content can be edited, the following must be true:
 
-| Status            | `errorCode`              | Condition                                                |
-|-------------------|--------------------------|----------------------------------------------------------|
-| `400 Bad Request` | `EMAIL_ALREADY_VERIFIED` | User is already verified                                 |
-| `400 Bad Request` | `VERIFICATION_FAILED`    | Token is invalid, user not found, or does not match      |
-| `400 Bad Request` | `TOKEN_EXPIRED`          | Token has expired (`VerifiedStatus` is set to `EXPIRED`) |
-
----
-
-### 5. Resend Verification Email
-
-| Property          | Value                                    |
-|-------------------|------------------------------------------|
-| **Method**        | `POST`                                   |
-| **Path**          | `/api/v1/auth/resend-verification-email` |
-| **Auth Required** | No                                       |
-| **Content-Type**  | `application/json`                       |
-
-**Request Body:** `ResendEmailVerificationDto`
-
-```json
-{
-  "email": "johndoe@example.com"
-}
-```
-
-**Success Response — `200 OK`**
-
-> ⚠️ **Anti-enumeration:** This endpoint **always** returns `200 OK` with a generic message, regardless of whether the user exists, is already verified, or has an active token. This prevents attackers from discovering registered email addresses.
-
-```json
-{
-  "statusCode": 200,
-  "status": "success",
-  "message": "If an account with this email exists and is unverified, a verification email has been sent.",
-  "data": null
-}
-```
-
-**Side Effects (when applicable)**
-
-- If the user exists and is unverified with no active token: a new verification token is generated with a fresh 3-hour TTL, `UserVerification.status` is reset to `PENDING`, and a `UserRegisteredEvent` is published to Kafka.
-- If the user does not exist, is already verified, or has an active token: no side effects occur. The response is identical.
-
-**Error Responses**
-
-None — this endpoint always returns `200 OK` to prevent user enumeration.
+1. User must be authenticated (valid JWT)
+2. User must own the document collection
+3. OCR status must be `COMPLETED`
+4. `editedContent` must not be blank
+5. `contentFormat` must be a valid enum value (`HTML` or `MARKDOWN`)
 
 ---
 
-### 6. Refresh Token
+## Database Schema
 
-| Property          | Value                                                       |
-|-------------------|-------------------------------------------------------------|
-| **Method**        | `POST`                                                      |
-| **Path**          | `/api/v1/auth/refresh-token`                                |
-| **Auth Required** | No (but an HttpOnly refresh token cookie must be present)   |
-| **Content-Type**  | — (no request body)                                         |
+### Table: `ocr_data`
 
-**Request Body:** None — the refresh token is read from the `__Host-refresh_token` (or `refresh_token`) HttpOnly cookie.
-
-> ⚠️ Requests must include `credentials: 'include'` (fetch) or `withCredentials: true` (axios) for the browser to send cookies.
-
-**Success Response — `200 OK`**
-
-The new access token is returned in the JSON body. The new refresh token is set as an HttpOnly cookie (replacing the old one).
-
-```json
-{
-  "statusCode": 200,
-  "status": "success",
-  "message": "Token refreshed successfully",
-  "data": {
-    "accessToken": "eyJhbGciOiJSUzI1NiJ9...",
-    "tokenType": "Bearer",
-    "accessExpiresIn": 3600000
-  }
-}
+```sql
+CREATE TABLE ocr_data (
+    id              VARCHAR(255) PRIMARY KEY,
+    document_id     VARCHAR(255) NOT NULL UNIQUE,
+    status          VARCHAR(255) NOT NULL,
+    extracted_text  TEXT,
+    edited_content  TEXT,
+    content_format  VARCHAR(20),
+    edited_by       VARCHAR(255),
+    edited_at       TIMESTAMP WITH TIME ZONE,
+    error_message   VARCHAR(255),
+    ai_summary      TEXT,
+    document_type   VARCHAR(50),
+    ai_tags         VARCHAR(500),
+    created_at      TIMESTAMP WITH TIME ZONE NOT NULL,
+    updated_at      TIMESTAMP WITH TIME ZONE NOT NULL
+);
 ```
 
-**Response Headers:**
-```
-Set-Cookie: __Host-refresh_token=eyJhbGci...; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict; Max-Age=2592000
-```
-
-**Rolling Refresh Token Strategy**
-
-1. Incoming refresh token is read from the HttpOnly cookie.
-2. Token is validated (signature + JTI store + `type == "REFRESH"`).
-3. Old refresh token JTI is deleted from Redis.
-4. A new access token **and** a new refresh token are issued.
-5. The new refresh token JTI is stored in Redis.
-6. The new refresh token is set as an HttpOnly cookie.
-
-**Error Responses**
-
-| Status             | `errorCode`          | Condition                                                       |
-|--------------------|----------------------|-----------------------------------------------------------------|
-| `401 Unauthorized` | `TOKEN_MISSING`      | No refresh token cookie present                                 |
-| `401 Unauthorized` | `TOKEN_INVALID`      | Token is malformed, expired, or JTI not found in store          |
-| `401 Unauthorized` | `TOKEN_INVALID`      | Token `type` claim is not `"REFRESH"`                           |
-| `401 Unauthorized` | `ACCOUNT_NOT_VERIFIED`| User account is not active or not verified                     |
-
----
-
-### 7. Logout
-
-| Property          | Value                                       |
-|-------------------|---------------------------------------------|
-| **Method**        | `POST`                                      |
-| **Path**          | `/api/v1/auth/logout`                       |
-| **Auth Required** | Yes — `Authorization: Bearer <accessToken>` |
-| **Content-Type**  | —                                           |
-
-**Request Body:** None (token is read from the `Authorization` header)
-
-**Success Response — `204 No Content`**
-
-No response body.
-
-**Response Headers:**
-```
-Set-Cookie: __Host-refresh_token=; Path=/api/v1/auth; HttpOnly; Secure; SameSite=Strict; Max-Age=0
-```
-
-**Side Effects**
-
-- The access token JTI is added to the token blacklist for the duration of its remaining TTL.
-- **All refresh tokens** for the user are invalidated (deleted from Redis).
-- The refresh token cookie is cleared.
-- The Spring Security context is cleared.
-
-**Error Responses**
-
-| Status             | Condition                                                                                             |
-|--------------------|-------------------------------------------------------------------------------------------------------|
-| `401 Unauthorized` | No valid `Authorization` header provided (handled by the security filter chain before the controller) |
-
----
-
-### 8. Logout All Devices
-
-| Property          | Value                                       |
-|-------------------|---------------------------------------------|
-| **Method**        | `POST`                                      |
-| **Path**          | `/api/v1/auth/logout-all`                   |
-| **Auth Required** | Yes — `Authorization: Bearer <accessToken>` |
-| **Content-Type**  | —                                           |
-
-**Request Body:** None
-
-**Success Response — `204 No Content`**
-
-No response body.
-
-**Side Effects**
-
-- The current access token JTI is added to the token blacklist.
-- **All refresh tokens** for the user (across all devices) are invalidated.
-- The refresh token cookie is cleared on the responding device.
-- The Spring Security context is cleared.
-
-> ℹ️ This endpoint is functionally identical to `/logout` in the current implementation since `/logout` already invalidates all refresh tokens. It exists as a semantically distinct endpoint for client clarity.
-
-**Error Responses**
-
-| Status             | Condition                                                                                             |
-|--------------------|-------------------------------------------------------------------------------------------------------|
-| `401 Unauthorized` | No valid `Authorization` header provided (handled by the security filter chain before the controller) |
-
----
-
-## Service Layer
-
-### `AuthService` (Facade)
-**Package:** `com.extractor.unraveldocs.auth.service`
-
-A thin orchestration layer that delegates every operation to the appropriate interface implementation. Controllers depend only on `AuthService`, keeping them decoupled from implementation details.
-
-| Method                                                | Delegates To               | Description                              |
-|-------------------------------------------------------|----------------------------|------------------------------------------|
-| `registerUser(SignupRequestDto)`                      | `SignupUserService`        | User registration                        |
-| `loginUser(LoginRequestDto)` → `LoginResult`         | `LoginUserService`         | User login (returns token + raw refresh) |
-| `verifyEmail(String, String)`                         | `EmailVerificationService` | Email verification                       |
-| `resendEmailVerification(ResendEmailVerificationDto)` | `EmailVerificationService` | Resend verification email                |
-| `generatePassword(GeneratePasswordDto)`               | `GeneratePasswordService`  | Password generation                      |
-| `refreshToken(String)` → `RefreshResult`              | `RefreshTokenService`      | Token refresh (from cookie)              |
-| `logout(HttpServletRequest)`                          | `RefreshTokenService`      | Logout / token + cookie invalidation     |
-| `logoutAllDevices(HttpServletRequest)`                 | `RefreshTokenService`      | Logout all devices                       |
-
----
-
-### `SignupUserImpl`
-**Package:** `com.extractor.unraveldocs.auth.impl`  
-**Implements:** `SignupUserService`  
-**Transactional:** Yes (`@Transactional`)
-
-**Registration sequence:**
-
-```
-1. Check email uniqueness → ConflictException if duplicate
-2. Check password ≠ email → BadRequestException if same
-3. Build User entity (password BCrypt-encoded, role = USER, isActive = false, isVerified = false)
-4. Build UserVerification entity (token TTL = 3 hours, status = PENDING)
-5. Build LoginAttempts entity
-6. Assign default subscription (AssignSubscriptionService)
-7. Persist User (cascades to UserVerification, LoginAttempts, UserSubscription)
-8. After transaction commit:
-   a. Publish UserRegisteredEvent → Kafka → verification email
-   b. Index user in Elasticsearch (optional)
-   c. Send WELCOME push notification
-   d. Grant sign-up bonus credits (CreditBalanceService)
-9. Return SignupData response (HTTP 201)
-```
-
----
-
-### `LoginUserImpl`
-**Package:** `com.extractor.unraveldocs.auth.impl`  
-**Implements:** `LoginUserService`
-
-**Login sequence:**
-
-```
-1. Look up user by email (optional — used for block check)
-2. Check if user is blocked (LoginAttemptsService)
-3. Authenticate via Spring AuthenticationManager
-   ├─ BadCredentialsException → record failed attempt → BadRequestException
-   ├─ DisabledException → BadRequestException (email not verified)
-   ├─ LockedException → ForbiddenException
-   └─ Other AuthenticationException → record failed attempt → BadRequestException
-4. Reset failed login attempts
-5. Generate JWT access token + refresh token (JwtTokenProvider)
-6. Store refresh token JTI (RefreshTokenService)
-7. Restore soft-deleted account if applicable
-8. Update lastLogin = now()
-9. Assign default subscription if missing
-10. Return LoginData response (HTTP 200)
-```
-
----
-
-### `EmailVerificationImpl`
-**Package:** `com.extractor.unraveldocs.auth.impl`  
-**Implements:** `EmailVerificationService`  
-**Transactional:** Yes (`@Transactional`)
-
-Handles two operations:
-
-**`verifyEmail(String email, String token)`**
-```
-1. Find user by email → NotFoundException if not found
-2. Check if already verified → BadRequestException
-3. Validate token matches stored token → BadRequestException if mismatch
-4. Check token expiry → set status to EXPIRED and throw BadRequestException if expired
-5. Clear token, set emailVerified = true, status = VERIFIED
-6. Set user.isVerified = true, user.isActive = true
-7. Persist changes
-8. After transaction commit: publish WelcomeEvent → Kafka → welcome email
-```
-
-**`resendEmailVerification(ResendEmailVerificationDto)`**
-```
-1. Find user by email → NotFoundException if not found
-2. Check if already verified → BadRequestException
-3. If a valid (non-expired) token exists → BadRequestException with time-remaining message
-4. Generate new token with 3-hour TTL, reset status to PENDING
-5. Persist changes
-6. After transaction commit: publish UserRegisteredEvent → Kafka → verification email
-```
-
----
-
-### `GeneratePasswordImpl`
-**Package:** `com.extractor.unraveldocs.auth.impl`  
-**Implements:** `GeneratePasswordService`
-
-**Logic:**
-```
-1. Parse passwordLength (String → int)
-2. Validate length ≥ 8 → BadRequestException if not
-3. If excludedChars provided → call UserLibrary.generateStrongPassword(length, excludedCharsArray)
-4. Otherwise → call UserLibrary.generateStrongPassword(length)
-5. Return GeneratePasswordResponse (HTTP 200)
-```
-
----
-
-### `RefreshTokenImpl`
-**Package:** `com.extractor.unraveldocs.auth.impl`  
-**Implements:** `RefreshTokenService` (auth.interfaces)
-
-**`refreshToken(RefreshTokenRequest)`**
-```
-1. Extract JTI from refresh token
-2. Validate: JTI not null + token signature valid + JTI present in store → UnauthorizedException
-3. Validate token type == "REFRESH" → UnauthorizedException
-4. Resolve userId from store → load User entity
-5. Check user is verified and active → UnauthorizedException
-6. Generate new access token
-7. Invalidate old refresh JTI, generate new refresh token, store new JTI (rolling refresh)
-8. Return RefreshLoginData (HTTP 200)
-```
-
-**`logout(HttpServletRequest)`**
-```
-1. Extract Bearer token from Authorization header
-2. Validate token signature
-3. Extract JTI and expiry
-4. Blacklist JTI for remaining TTL (TokenBlacklistService)
-5. Clear Spring SecurityContext
-6. Return success (HTTP 200)
-```
-
----
-
-### `CustomUserDetailsService`
-**Package:** `com.extractor.unraveldocs.auth.service`  
-**Implements:** `UserDetailsService`, `UserEntityById`
-
-| Method                              | Description                                                                                              |
-|-------------------------------------|----------------------------------------------------------------------------------------------------------|
-| `loadUserByUsername(String email)`  | Used by Spring Security's `AuthenticationManager`; throws `UsernameNotFoundException` if email not found |
-| `loadUserEntityById(String userId)` | Loads the full `User` entity by ID; used by `RefreshTokenImpl`; throws `NotFoundException` if not found  |
-
----
-
-## Events & Async Processing
-
-The auth package publishes events to Kafka after successful database commits using `TransactionSynchronizationManager.registerSynchronization`. This guarantees that events are only emitted when the database state has been committed, preventing ghost notifications on rollback.
-
-### `UserRegisteredEvent`
-**Package:** `com.extractor.unraveldocs.auth.events`  
-**Published by:** `SignupUserImpl`, `EmailVerificationImpl` (resend flow)
-
-| Field               | Type     | Description                                   |
-|---------------------|----------|-----------------------------------------------|
-| `email`             | `String` | Recipient email                               |
-| `firstName`         | `String` | User's first name                             |
-| `lastName`          | `String` | User's last name                              |
-| `verificationToken` | `String` | Hex verification token                        |
-| `expiration`        | `String` | Human-readable TTL string (e.g., `"3 hours"`) |
-
----
-
-### `WelcomeEvent`
-**Package:** `com.extractor.unraveldocs.auth.events`  
-**Published by:** `EmailVerificationImpl` (after successful verification)
-
-| Field       | Type     | Description       |
-|-------------|----------|-------------------|
-| `email`     | `String` | Recipient email   |
-| `firstName` | `String` | User's first name |
-| `lastName`  | `String` | User's last name  |
-
----
-
-### `UserRegisteredEventHandler`
-**Package:** `com.extractor.unraveldocs.auth.components`  
-**Implements:** `EventHandler<UserRegisteredEvent>`  
-**Event Type:** `EventTypes.USER_REGISTERED`
-
-Consumes `UserRegisteredEvent` from Kafka and triggers the transactional email pipeline:
-
-1. Builds template variables: `firstName`, `lastName`, `verificationToken`, `expiration`.
-2. Calls `EmailMessageProducerService.queueEmail(...)` with template `"emailVerificationToken"`.
-3. Logs success or failure with sanitized email (via `SanitizeLogging`).
-
----
-
-## Security & Token Strategy
-
-### JWT Tokens
-
-The application uses **two JWT tokens** per session:
-
-| Token         | Type Claim | Purpose                              | Storage                                        |
-|---------------|------------|--------------------------------------|------------------------------------------------|
-| Access Token  | `ACCESS`   | Authorizes API requests; short-lived | Client-side (in-memory / Authorization header) |
-| Refresh Token | `REFRESH`  | Issues new access tokens; long-lived | Client-side + JTI stored server-side           |
-
-- Tokens are generated and validated by `JwtTokenProvider`.
-- Access token TTL is configurable; exposed via `getAccessExpirationInMs()`.
-- On logout, the access token JTI is added to `TokenBlacklistService` (backed by Redis or equivalent) for its remaining lifetime.
-
-### Rolling Refresh Tokens
-
-Each call to `/refresh-token` invalidates the submitted refresh token and issues a fresh pair. This reduces the window for refresh token theft.
-
-### Login Attempt Tracking
-
-`LoginAttemptsService` tracks failed authentication attempts per user. Once a threshold is exceeded, the account is blocked and `loginAttemptsService.checkIfUserBlocked(user)` is called before every authentication attempt.
-
-### Password Security
-
-- Passwords are encoded using **BCrypt** (`PasswordEncoder`).
-- Passwords must meet complexity requirements (uppercase + lowercase + digit + special character).
-- Passwords may not equal the user's email address.
-- Password confirmation is validated by the custom `@PasswordMatches` constraint, implemented in `PasswordMatchesValidator`.
-
----
-
-## Validation Rules
-
-| Rule                            | Applied To                            | Details                                      |
-|---------------------------------|---------------------------------------|----------------------------------------------|
-| `@NotNull` / `@NotBlank`        | Most fields                           | Standard null/empty checks                   |
-| `@Email`                        | Email fields                          | RFC-compliant email format                   |
-| `@Size`                         | Name, email, organization, profession | Character bounds                             |
-| `@Pattern`                      | Email, password                       | Regex enforcement                            |
-| `@AssertTrue`                   | `acceptTerms`                         | Must be `true`                               |
-| `@PasswordMatches`              | `SignupRequestDto`                    | Class-level; `password` == `confirmPassword` |
-| Password ≥ 8 chars + complexity | `SignupRequestDto`                    | `@Pattern.List` checks                       |
-| `passwordLength` ≥ 8            | `GeneratePasswordDto`                 | Validated in service layer                   |
-
----
-
-## Error Reference
-
-All errors follow the standard `UnravelDocsResponse` error envelope. HTTP status codes used within the auth package:
-
-| Exception Class            | HTTP Status                 | Common Trigger                                                     |
-|----------------------------|-----------------------------|--------------------------------------------------------------------|
-| `BadRequestException`      | `400 Bad Request`           | Validation failures, invalid credentials, duplicate password/email |
-| `ConflictException`        | `409 Conflict`              | Email already registered                                           |
-| `NotFoundException`        | `404 Not Found`             | User not found by email or ID                                      |
-| `ForbiddenException`       | `403 Forbidden`             | Locked account                                                     |
-| `UnauthorizedException`    | `401 Unauthorized`          | Invalid/expired tokens, unverified account                         |
-| `TokenProcessingException` | `500 Internal Server Error` | JTI generation failure during login                                |
-
----
-
-## Flow Diagrams
-
-### Registration Flow
-
-```
-Client
-  │
-  ├─ POST /api/v1/auth/signup
-  │
-  ▼
-AuthController
-  │
-  ▼
-AuthService → SignupUserImpl
-  │
-  ├─ [Duplicate email?] ──► 409 Conflict
-  ├─ [Password == email?] ─► 400 Bad Request
-  │
-  ├─ Create User + UserVerification (PENDING) + LoginAttempts
-  ├─ Assign default subscription
-  ├─ Save to DB (transaction)
-  │
-  └─ After commit:
-       ├─ Publish UserRegisteredEvent → Kafka
-       │     └─ UserRegisteredEventHandler → EmailMessageProducerService → Verification email sent
-       ├─ Index user in Elasticsearch
-       ├─ Send WELCOME push notification
-       └─ Grant sign-up bonus credits
-  │
-  ▼
-201 Created + SignupData
-```
-
----
-
-### Login Flow
-
-```
-Client
-  │
-  ├─ POST /api/v1/auth/login
-  │
-  ▼
-AuthController → AuthService → LoginUserImpl
-  │
-  ├─ Look up user by email
-  ├─ [User blocked?] ──────────────────────────► 403 Forbidden
-  │
-  ├─ AuthenticationManager.authenticate()
-  │    ├─ BadCredentials → record attempt ──────► 400 Bad Request
-  │    ├─ DisabledException ──────────────────── ► 400 Bad Request
-  │    └─ LockedException ───────────────────── ► 403 Forbidden
-  │
-  ├─ Reset login attempts
-  ├─ Generate access token + refresh token
-  ├─ Store refresh token JTI
-  ├─ Update lastLogin
-  │
-  ▼
-200 OK + LoginData (accessToken + refreshToken)
-```
-
----
-
-### Email Verification Flow
-
-```
-Client
-  │
-  ├─ POST /api/v1/auth/verify-email { email, token }
-  │
-  ▼
-AuthController → AuthService → EmailVerificationImpl
-  │
-  ├─ Find user by email ──► 404 Not Found
-  ├─ [Already verified?] ─► 400 Bad Request
-  ├─ [Invalid token?] ────► 400 Bad Request
-  ├─ [Token expired?] ────► set EXPIRED, 400 Bad Request
-  │
-  ├─ Set user active + verified, clear token, set VERIFIED
-  ├─ Save to DB (transaction)
-  │
-  └─ After commit:
-       └─ Publish WelcomeEvent → Kafka → Welcome email sent
-  │
-  ▼
-200 OK
-```
-
----
-
-### Token Refresh Flow
-
-```
-Client
-  │
-  ├─ POST /api/v1/auth/refresh-token { refreshToken }
-  │
-  ▼
-AuthController → AuthService → RefreshTokenImpl
-  │
-  ├─ Validate JTI + signature + store presence ──► 401 Unauthorized
-  ├─ Validate type == "REFRESH" ─────────────── ► 401 Unauthorized
-  ├─ Load user, check verified + active ──────── ► 401 Unauthorized
-  │
-  ├─ Issue new access token
-  ├─ Delete old refresh JTI
-  ├─ Issue new refresh token, store new JTI   ← rolling refresh
-  │
-  ▼
-200 OK + RefreshLoginData
-```
-
----
-
-### Logout Flow
-
-```
-Client
-  │
-  ├─ POST /api/v1/auth/logout
-  │   Authorization: Bearer <accessToken>
-  │
-  ▼
-AuthController → AuthService → RefreshTokenImpl.logout()
-  │
-  ├─ Extract + validate access token from header
-  ├─ Extract JTI + expiry
-  ├─ Blacklist JTI for remaining TTL
-  ├─ Clear SecurityContext
-  │
-  ▼
-200 OK
-```
-
+### Flyway Migrations (OCR-related)
+
+| Version | Description                                                                                 |
+|---------|---------------------------------------------------------------------------------------------|
+| `V11`   | Create `ocr_data` table                                                                     |
+| `V12`   | Add cascade delete on `ocr_data` foreign key                                                |
+| `V54`   | Add AI fields (`ai_summary`, `document_type`, `ai_tags`)                                    |
+| `V55`   | Add rich text editing fields (`edited_content`, `content_format`, `edited_by`, `edited_at`) |

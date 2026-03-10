@@ -517,7 +517,18 @@
   font-weight: 500; border: none; border-radius: 0.75rem; cursor: pointer;
 }
 .coupon-apply-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-.coupon-error { font-size: 0.75rem; color: #dc2626; margin-top: 0.25rem; }
+.coupon-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #991b1b;
+  font-size: 0.8125rem;
+}
 .available-coupons { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
 .available-coupons-label { font-size: 0.75rem; color: #6b7280; }
 .coupon-chip {

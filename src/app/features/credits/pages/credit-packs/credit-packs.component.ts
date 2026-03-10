@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { CreditStateService } from '../../services/credit-state.service';
 import { CouponStateService } from '../../../payments/services/coupon-state.service';
 import { PricingService } from '../../../../shared/services/pricing.service';
-import { POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
+import { SUPPORTED_PAYMENT_CURRENCIES } from '../../../../shared/models/pricing.model';
 import {
   CreditPack,
   CreditGateway,
@@ -57,7 +57,7 @@ export class CreditPacksComponent implements OnInit {
   readonly modalCurrency = signal<string>('NGN');
 
   // All currencies reference
-  readonly allCurrencies = POPULAR_CURRENCIES;
+  readonly allCurrencies = SUPPORTED_PAYMENT_CURRENCIES;
 
   // Payment gateways with supported currencies
   readonly paymentGateways: {
@@ -100,10 +100,7 @@ export class CreditPacksComponent implements OnInit {
 
   // Filtered currencies for the modal dropdown (based on selected gateway)
   readonly filteredModalCurrencies = computed(() => {
-    const gateway = this.selectedGateway();
-    const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
-    const supportedCodes = gatewayInfo?.supportedCurrencies || ['USD', 'EUR', 'GBP'];
-    return POPULAR_CURRENCIES.filter(c => supportedCodes.includes(c.code));
+    return SUPPORTED_PAYMENT_CURRENCIES;
   });
 
 
@@ -129,12 +126,11 @@ export class CreditPacksComponent implements OnInit {
 
   selectPack(pack: CreditPack): void {
     this.creditState.selectPack(pack);
-    // Reset modal currency to gateway default when opening modal
-    const gateway = this.selectedGateway();
-    const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
-    if (gatewayInfo) {
-      this.modalCurrency.set(gatewayInfo.defaultCurrency);
-    }
+    // Ensure correct gateway is set based on display currency
+    const currency = this.displayCurrency();
+    const gateway = ['USD', 'EUR', 'GBP'].includes(currency) ? 'PAYPAL' : 'PAYSTACK';
+    this.setGateway(gateway as CreditGateway);
+    this.modalCurrency.set(currency); // Sync modal currency with page currency
     this.showCheckoutModal.set(true);
   }
 
@@ -171,6 +167,11 @@ export class CreditPacksComponent implements OnInit {
     const currency = select.value;
     localStorage.setItem('credit_display_currency', currency);
     this.displayCurrency.set(currency);
+
+    // Auto-set gateway based on currency
+    const gateway = ['USD', 'EUR', 'GBP'].includes(currency) ? 'PAYPAL' : 'PAYSTACK';
+    this.setGateway(gateway as CreditGateway);
+
     // Reload packs with the new currency for server-side conversion
     this.creditState.loadPacks(currency !== 'USD' ? currency : undefined);
   }
@@ -236,13 +237,13 @@ export class CreditPacksComponent implements OnInit {
    */
   getModalCurrencySymbol(): string {
     const code = this.modalCurrency();
-    const info = POPULAR_CURRENCIES.find(c => c.code === code);
+    const info = SUPPORTED_PAYMENT_CURRENCIES.find(c => c.code === code);
     return info?.symbol || '$';
   }
 
   private loadPersistedCurrency(): string {
     const persisted = localStorage.getItem('credit_display_currency');
-    if (persisted && POPULAR_CURRENCIES.some(c => c.code === persisted)) {
+    if (persisted && SUPPORTED_PAYMENT_CURRENCIES.some(c => c.code === persisted)) {
       return persisted;
     }
     return 'USD';

@@ -25,26 +25,35 @@ export class CollectionDetailComponent implements OnInit {
 
   collectionId = signal<string>('');
   searchQuery = signal('');
+
+  // Modals state
   showDeleteModal = signal(false);
-  documentToDelete = signal<DocumentFile | null>(null);
   showOcrModal = signal(false);
-  selectedDocument = signal<DocumentFile | null>(null);
+  showRenameDocModal = signal(false);
+  showRenameCollectionModal = signal(false);
+  showMoveModal = signal(false);
+  showDownloadFormatModal = signal(false);
+
+  // Selected items state
+  documentToDelete = signal<DocumentFile | null>(null);
+  selectedDocument = signal<DocumentFile | null>(null); // For OCR
+  documentToRename = signal<DocumentFile | null>(null);
+  documentToMove = signal<DocumentFile | null>(null);
+  pendingDownloadDoc = signal<DocumentFile | null>(null);
+  pendingDownloadFormat = signal<'txt' | 'docx' | null>(null);
+
+  // OCR state
   ocrData = signal<OcrData | null>(null);
   ocrDataLoading = signal(false);
   ocrViewTab = signal<'extracted' | 'edited'>('extracted');
 
   // Rename document modal
-  showRenameDocModal = signal(false);
-  documentToRename = signal<DocumentFile | null>(null);
   newDisplayName = signal('');
 
   // Rename collection modal
-  showRenameCollectionModal = signal(false);
   newCollectionName = signal('');
 
   // Move document modal
-  showMoveModal = signal(false);
-  documentToMove = signal<DocumentFile | null>(null);
   targetCollectionId = signal('');
 
   // Document viewer
@@ -62,9 +71,8 @@ export class CollectionDetailComponent implements OnInit {
 
   // Content editing
   showEditContentModal = signal(false);
-  editDocument = signal<DocumentFile | null>(null);
+  activeEditDocumentId = signal<string | null>(null);
   editContent = signal('');
-  editFormat = signal<ContentFormat>('HTML');
 
   // AI Summary
   showSummaryModal = signal(false);
@@ -266,38 +274,34 @@ export class CollectionDetailComponent implements OnInit {
 
   // Content Editing
   openEditContentModal(document: DocumentFile): void {
-    this.editDocument.set(document);
+    this.activeEditDocumentId.set(document.documentId);
     this.editContent.set(document.extractedText || '');
-    this.editFormat.set('HTML');
     this.showEditContentModal.set(true);
   }
 
   closeEditContentModal(): void {
     this.showEditContentModal.set(false);
-    this.editDocument.set(null);
+    this.activeEditDocumentId.set(null);
     this.editContent.set('');
   }
 
-  onEditContentChange(event: Event): void {
-    this.editContent.set((event.target as HTMLTextAreaElement).value);
-  }
-
-  onEditFormatChange(event: Event): void {
-    this.editFormat.set((event.target as HTMLSelectElement).value as ContentFormat);
+  onEditContentChange(event: Event | string): void {
+    const value = typeof event === 'string' ? event : (event.target as HTMLTextAreaElement).value;
+    this.editContent.set(value);
   }
 
   saveEditedContent(): void {
-    const doc = this.editDocument();
-    if (!doc) return;
+    const documentId = this.activeEditDocumentId();
+    if (!documentId) return;
 
     const content = this.editContent().trim();
     if (!content) return;
 
     this.documentState.updateContent(
       this.collectionId(),
-      doc.documentId,
+      documentId,
       content,
-      this.editFormat()
+      'HTML'
     );
     this.closeEditContentModal();
   }
@@ -355,12 +359,59 @@ export class CollectionDetailComponent implements OnInit {
     return docType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   }
 
-  downloadAsDocx(document: DocumentFile): void {
+  initiateDownloadTxt(doc: DocumentFile): void {
+    const ocrData = this.ocrData();
+    if (ocrData?.editedContent) {
+      this.pendingDownloadDoc.set(doc);
+      this.pendingDownloadFormat.set('txt');
+      this.showDownloadFormatModal.set(true);
+    } else {
+      this.downloadAsText(doc, 'original');
+    }
+  }
+
+  initiateDownloadDocx(doc: DocumentFile): void {
+    const ocrData = this.ocrData();
+    if (ocrData?.editedContent) {
+      this.pendingDownloadDoc.set(doc);
+      this.pendingDownloadFormat.set('docx');
+      this.showDownloadFormatModal.set(true);
+    } else {
+      this.downloadAsDocx(doc, 'original');
+    }
+  }
+
+  confirmDownload(type: 'original' | 'edited'): void {
+    const doc = this.pendingDownloadDoc();
+    const format = this.pendingDownloadFormat();
+
+    if (doc) {
+      if (format === 'txt') {
+        this.downloadAsText(doc, type);
+      } else {
+        this.downloadAsDocx(doc, type);
+      }
+    }
+    this.closeDownloadFormatModal();
+  }
+
+  closeDownloadFormatModal(): void {
+    this.showDownloadFormatModal.set(false);
+    this.pendingDownloadDoc.set(null);
+    this.pendingDownloadFormat.set(null);
+  }
+
+  downloadAsDocx(document: DocumentFile, type: 'original' | 'edited' = 'original'): void {
     this.documentState.downloadAsDocx(
       this.collectionId(),
       document.documentId,
-      document.originalFileName
+      document.originalFileName,
+      type
     );
+  }
+
+  downloadAsText(document: DocumentFile, type: 'original' | 'edited' = 'original'): void {
+    this.documentState.downloadAsText(document, type);
   }
 
   // Delete Actions

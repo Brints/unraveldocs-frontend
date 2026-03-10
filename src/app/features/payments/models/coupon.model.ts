@@ -143,18 +143,18 @@ export function getCouponErrorMessage(errorCode: CouponErrorCode | null): string
   if (!errorCode) return 'Invalid coupon code';
 
   const errorMessages: Record<CouponErrorCode, string> = {
-    COUPON_NOT_FOUND: 'Coupon code not found',
-    COUPON_EXPIRED: 'This coupon has expired',
-    COUPON_NOT_YET_VALID: 'This coupon is not yet valid',
-    COUPON_INACTIVE: 'This coupon is no longer active',
-    COUPON_MAX_USAGE_REACHED: 'This coupon has reached its maximum usage limit',
-    COUPON_USER_MAX_USAGE_REACHED: 'You have already used this coupon the maximum number of times',
-    COUPON_NOT_ELIGIBLE: 'You are not eligible to use this coupon',
-    MIN_PURCHASE_NOT_MET: 'Minimum purchase amount not met for this coupon',
+    COUPON_NOT_FOUND: 'Promo code not found',
+    COUPON_EXPIRED: 'This promo code has expired',
+    COUPON_NOT_YET_VALID: 'This promo code is not yet valid',
+    COUPON_INACTIVE: 'This promo code is no longer active',
+    COUPON_MAX_USAGE_REACHED: 'This promo code has reached its maximum usage limit',
+    COUPON_USER_MAX_USAGE_REACHED: 'You have already used this promo code the maximum number of times',
+    COUPON_NOT_ELIGIBLE: 'You are not eligible to use this promo code',
+    MIN_PURCHASE_NOT_MET: 'Minimum purchase amount not met for this promo code',
     INVALID_REQUEST: 'Invalid request'
   };
 
-  return errorMessages[errorCode] || 'Invalid coupon code';
+  return errorMessages[errorCode] || 'Invalid promo code';
 }
 
 // ==================== State Types ====================

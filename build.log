@@ -1,0 +1,218 @@
+
+> unraveldocs-frontend@2.9.2 build C:\Users\afiaa\Desktop\projects\Brints\unraveldocs-frontend
+> ng build
+
+[33m❯[39m Building...
+[32m✔[39m Building...
+Application bundle generation failed. [24.227 seconds] - 2026-03-09T15:01:27.603Z
+
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8004: No pipe found with name 'safeHtml'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.html:541:81:
+[37m      541 │ ...endered" [innerHTML]="ocrData()?.editedContent | [32msafeHtml[37m"></div>
+          ╵                                                     [32m~~~~~~~~[0m
+
+  Error occurs in the template of component CollectionDetailComponent.
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./collection-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'app-document-viewer' is not a known element:
+1. If 'app-document-viewer' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-document-viewer' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.html:746:0:
+[37m      746 │ [32m<app-document-viewer [fileUrl]="documentViewerUrl()" [fileName]="[37m...
+          ╵ [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CollectionDetailComponent.
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./collection-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'fileUrl' since it isn't a known property of 'app-document-viewer'.
+1. If 'app-document-viewer' is an Angular component and it has 'fileUrl' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-document-viewer' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.html:746:21:
+[37m      746 │ ...document-viewer [32m[fileUrl]="documentViewerUrl()"[37m [fileName]="do...
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CollectionDetailComponent.
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./collection-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'fileName' since it isn't a known property of 'app-document-viewer'.
+1. If 'app-document-viewer' is an Angular component and it has 'fileName' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-document-viewer' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.html:746:53:
+[37m      746 │ ...eUrl]="documentViewerUrl()" [32m[fileName]="documentViewerFileName()"[37m
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component CollectionDetailComponent.
+
+    src/app/features/documents/components/collection-detail/collection-detail.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./collection-detail.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'app-date-picker' is not a known element:
+1. If 'app-date-picker' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:211:8:
+[37m      211 │         [32m<app-date-picker [title]="'Start Date'" [placeholder]="'S[37m...
+          ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'placeholder' since it isn't a known property of 'app-date-picker'.
+1. If 'app-date-picker' is an Angular component and it has 'placeholder' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:211:48:
+[37m      211 │ ...p-date-picker [title]="'Start Date'" [32m[placeholder]="'Start Date'"[37m
+          ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'value' since it isn't a known property of 'app-date-picker'.
+1. If 'app-date-picker' is an Angular component and it has 'value' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:212:10:
+[37m      212 │           [32m[value]="startDateFilter()?.toISOString() || ''"[37m (value...
+          ╵           [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type 'Event' is not assignable to parameter of type 'string'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:212:92:
+[37m      212 │ ...?.toISOString() || ''" (valueChange)="onStartDateFilter([32m$event[37m)">
+          ╵                                                            [32m~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'app-date-picker' is not a known element:
+1. If 'app-date-picker' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:217:8:
+[37m      217 │         [32m<app-date-picker [title]="'End Date'" [placeholder]="'End[37m...
+          ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'placeholder' since it isn't a known property of 'app-date-picker'.
+1. If 'app-date-picker' is an Angular component and it has 'placeholder' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:217:46:
+[37m      217 │ ...[title]="'End Date'" [32m[placeholder]="'End Date'"[37m [align]="'right'"
+          ╵                         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'align' since it isn't a known property of 'app-date-picker'.
+1. If 'app-date-picker' is an Angular component and it has 'align' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:217:73:
+[37m      217 │ ...[title]="'End Date'" [placeholder]="'End Date'" [32m[align]="'right'"[37m
+          ╵                                                    [32m~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'value' since it isn't a known property of 'app-date-picker'.
+1. If 'app-date-picker' is an Angular component and it has 'value' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-date-picker' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:218:10:
+[37m      218 │           [32m[value]="endDateFilter()?.toISOString() || ''"[37m (valueCh...
+          ╵           [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type 'Event' is not assignable to parameter of type 'string'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:218:88:
+[37m      218 │ ...()?.toISOString() || ''" (valueChange)="onEndDateFilter([32m$event[37m)">
+          ╵                                                            [32m~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8004: No pipe found with name 'safeHtml'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.html:668:83:
+[37m      668 │ ...endered" [innerHTML]="ocrData()?.editedContent | [32msafeHtml[37m"></div>
+          ╵                                                     [32m~~~~~~~~[0m
+
+  Error occurs in the template of component OcrProcessingComponent.
+
+    src/app/features/ocr/components/ocr-processing/ocr-processing.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./ocr-processing.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+ ELIFECYCLE  Command failed with exit code 1.

@@ -48,6 +48,11 @@ export class OcrProcessingComponent implements OnInit {
   startDateFilter = signal<Date | null>(null);
   endDateFilter = signal<Date | null>(null);
 
+  // --- Download Selection State ---
+  showDownloadFormatModal = signal(false);
+  pendingDownloadFormat = signal<'txt' | 'docx' | null>(null);
+  pendingDownloadJob = signal<OcrJob | null>(null);
+
   // Computed: whether any filters are active
   readonly hasActiveFilters = computed(() => {
     return !!this.searchQuery() || !!this.startDateFilter() || !!this.endDateFilter();
@@ -55,9 +60,9 @@ export class OcrProcessingComponent implements OnInit {
 
   // Content editing state
   showEditModal = signal(false);
-  editingContent = signal('');
-  editingFormat = signal<ContentFormat>('HTML');
   editingJob = signal<OcrJob | null>(null);
+  editingContent = signal('');
+  // editingFormat = signal<ContentFormat>('HTML'); // Removed
 
   // AI state
   showSummaryModal = signal(false);
@@ -309,16 +314,47 @@ export class OcrProcessingComponent implements OnInit {
     this.ocrState.removeJob(job.id);
   }
 
-  downloadText(job: OcrJob): void {
-    this.ocrState.downloadText(job);
+  initiateDownload(job: OcrJob, format: 'txt' | 'docx'): void {
+    if (job.editedContent) {
+      this.pendingDownloadFormat.set(format);
+      this.pendingDownloadJob.set(job);
+      this.showDownloadFormatModal.set(true);
+    } else {
+      if (format === 'txt') {
+        this.downloadText(job, 'original');
+      } else {
+        this.downloadDocx(job, 'original');
+      }
+    }
   }
 
-  downloadDocx(job: OcrJob): void {
-    this.ocrState.downloadDocx(job);
+  confirmDownload(type: 'original' | 'edited'): void {
+    const job = this.pendingDownloadJob();
+    const format = this.pendingDownloadFormat();
+
+    if (job && format) {
+      if (format === 'txt') {
+        this.downloadText(job, type);
+      } else {
+        this.downloadDocx(job, type);
+      }
+    }
+
+    this.closeDownloadFormatModal();
   }
 
-  downloadJson(job: OcrJob): void {
-    this.ocrState.downloadJson(job);
+  closeDownloadFormatModal(): void {
+    this.showDownloadFormatModal.set(false);
+    this.pendingDownloadFormat.set(null);
+    this.pendingDownloadJob.set(null);
+  }
+
+  downloadText(job: OcrJob, type: 'original' | 'edited' = 'original'): void {
+    this.ocrState.downloadText(job, type);
+  }
+
+  downloadDocx(job: OcrJob, type: 'original' | 'edited' = 'original'): void {
+    this.ocrState.downloadDocx(job, type);
   }
 
   copyText(text: string): void {
@@ -377,7 +413,7 @@ export class OcrProcessingComponent implements OnInit {
       case 'PENDING':
         return 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z';
       default:
-        return 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
+        return 'M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z';
     }
   }
 
@@ -581,7 +617,6 @@ export class OcrProcessingComponent implements OnInit {
   openEditModal(job: OcrJob): void {
     this.editingJob.set(job);
     this.editingContent.set(job.editedContent || job.extractedText || '');
-    this.editingFormat.set(job.contentFormat || 'HTML');
     this.showEditModal.set(true);
   }
 
@@ -591,12 +626,9 @@ export class OcrProcessingComponent implements OnInit {
     this.editingContent.set('');
   }
 
-  onEditingContentChange(event: Event): void {
-    this.editingContent.set((event.target as HTMLTextAreaElement).value);
-  }
-
-  onEditingFormatChange(event: Event): void {
-    this.editingFormat.set((event.target as HTMLSelectElement).value as ContentFormat);
+  onEditingContentChange(event: Event | string): void {
+    const value = typeof event === 'string' ? event : (event.target as HTMLTextAreaElement).value;
+    this.editingContent.set(value);
   }
 
   saveEditedContent(): void {
@@ -610,7 +642,7 @@ export class OcrProcessingComponent implements OnInit {
       job.collectionId,
       job.documentId,
       content,
-      this.editingFormat()
+      'HTML'
     );
     this.closeEditModal();
   }

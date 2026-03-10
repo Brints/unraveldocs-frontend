@@ -299,11 +299,32 @@ export class DocumentApiService {
    * Download OCR result as DOCX
    * GET /collections/{collectionId}/documents/{documentId}/download/docx
    */
-  downloadAsDocx(collectionId: string, documentId: string): Observable<Blob> {
+  downloadAsDocx(collectionId: string, documentId: string, type: 'original' | 'edited' = 'original'): Observable<Blob> {
+    const params = new HttpParams().set('type', type);
     return this.http.get(
       `${this.apiUrl}/collections/${collectionId}/documents/${documentId}/download/docx`,
-      { responseType: 'blob' }
+      { params, responseType: 'blob' }
     );
+  }
+
+  /**
+   * Download OCR result as plain text
+   */
+  downloadAsText(text: string, fileName: string): void {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    this.downloadBlob(blob, `${fileName}.txt`);
+  }
+
+  /**
+   * Helper to trigger a blob download in the browser
+   */
+  private downloadBlob(blob: Blob, fileName: string): void {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    window.URL.revokeObjectURL(url);
   }
 
   // ==================== Mapping Methods ====================
