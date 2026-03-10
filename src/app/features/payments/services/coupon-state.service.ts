@@ -123,13 +123,18 @@ export class CouponStateService {
 
     this.api.validateCoupon(trimmedCode).pipe(
       tap(response => {
-        if (response.valid && response.couponData) {
-          this._validatedCoupon.set(response.couponData);
+        // Handle direct error structure or wrapped structure
+        const data = response?.data || response;
+        const statusCode = response?.statusCode || response?.status;
+
+        if (data?.valid && data?.couponData && (!statusCode || statusCode < 400)) {
+          this._validatedCoupon.set(data.couponData);
           this._validationStatus.set('valid');
         } else {
           this._validatedCoupon.set(null);
           this._validationStatus.set('invalid');
-          this._error.set(getCouponErrorMessage(response.errorCode as CouponErrorCode));
+          const errorMessage = data?.message || data?.error || getCouponErrorMessage(data?.errorCode as CouponErrorCode);
+          this._error.set(errorMessage || 'Invalid coupon code');
         }
       }),
       catchError(error => {
@@ -165,23 +170,28 @@ export class CouponStateService {
 
     this.api.applyCoupon(trimmedCode, amount).pipe(
       tap(response => {
-        if (response.minPurchaseRequirementMet) {
+        // Handle direct error structure or wrapped structure
+        const data = response?.data || response;
+        const statusCode = response?.statusCode || response?.status;
+
+        if (data?.minPurchaseRequirementMet && (!statusCode || statusCode < 400)) {
           this._appliedCoupon.set({
-            code: response.couponCode,
-            discountPercentage: response.discountPercentage,
-            discountAmount: response.discountAmount,
-            originalAmount: response.originalAmount,
-            finalAmount: response.finalAmount,
-            currency: response.currency || currency,
-            minPurchaseAmount: response.minPurchaseAmount,
-            minPurchaseRequirementMet: response.minPurchaseRequirementMet,
+            code: data.couponCode,
+            discountPercentage: data.discountPercentage,
+            discountAmount: data.discountAmount,
+            originalAmount: data.originalAmount,
+            finalAmount: data.finalAmount,
+            currency: data.currency || currency,
+            minPurchaseAmount: data.minPurchaseAmount,
+            minPurchaseRequirementMet: data.minPurchaseRequirementMet,
           });
           this._validationStatus.set('applied');
         } else {
           this._validationStatus.set('invalid');
-          this._error.set(
-            `Minimum purchase amount of ${response.minPurchaseAmount} not met`
-          );
+          const errorMessage = data?.message || 
+                               (data?.minPurchaseAmount ? `Minimum purchase amount of ${data.minPurchaseAmount} not met` : null) ||
+                               'Invalid coupon code';
+          this._error.set(errorMessage);
         }
       }),
       catchError(error => {
@@ -275,13 +285,22 @@ export class CouponStateService {
    * Helper to extract error message from API response
    */
   private extractErrorMessage(error: any): string {
-    const errObj = typeof error?.error === 'object' && error?.error !== null ? error.error : {};
-    const dataObj = errObj?.data || {};
-    return errObj?.message ||
-           dataObj?.errorMessage ||
-           dataObj?.message ||
-           (errObj?.errorCode ? getCouponErrorMessage(errObj.errorCode as CouponErrorCode) : null) ||
-           (dataObj?.errorCode ? getCouponErrorMessage(dataObj.errorCode as CouponErrorCode) : null) ||
-           'Invalid coupon code. Please try again.';
+    const errorBody = error?.error || error;
+    
+    if (typeof errorBody === 'string') return errorBody;
+
+    // Direct extraction as requested
+    const message = errorBody?.message || errorBody?.errorMessage || errorBody?.error;
+    if (typeof message === 'string' && message.length > 0) {
+      return message;
+    }
+
+    // Fallback to error code translation
+    const errorCode = errorBody?.errorCode || errorBody?.data?.errorCode;
+    if (errorCode) {
+      return getCouponErrorMessage(errorCode as CouponErrorCode);
+    }
+
+    return 'Invalid coupon code. Please try again.';
   }
 }

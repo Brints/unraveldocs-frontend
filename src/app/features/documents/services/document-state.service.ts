@@ -521,8 +521,8 @@ export class DocumentStateService {
   /**
    * Download document as DOCX
    */
-  downloadAsDocx(collectionId: string, documentId: string, fileName: string): void {
-    this.api.downloadAsDocx(collectionId, documentId).pipe(
+  downloadAsDocx(collectionId: string, documentId: string, fileName: string, type: 'original' | 'edited' = 'original'): void {
+    this.api.downloadAsDocx(collectionId, documentId, type).pipe(
       tap(blob => {
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -537,6 +537,33 @@ export class DocumentStateService {
         return of(null);
       })
     ).subscribe();
+  }
+
+  /**
+   * Download OCR result as plain text
+   */
+  downloadAsText(document: DocumentFile, type: 'original' | 'edited' = 'original'): void {
+    let textToExport = document.extractedText;
+
+    if (type === 'edited' && document.extractedText) {
+      // Find the document in current collection to get its latest edited content
+      const files = this.currentCollectionDocuments();
+      const currentFile = files.find(f => f.documentId === document.documentId);
+      const editedContent = currentFile?.extractedText || document.extractedText;
+
+      // Strip HTML tags for TXT download
+      const tempDiv = window.document.createElement('div');
+      tempDiv.innerHTML = editedContent;
+      textToExport = tempDiv.textContent || tempDiv.innerText || '';
+    }
+
+    if (!textToExport) {
+      this._error.set('No text available to download');
+      return;
+    }
+
+    const fileName = (document.displayName || document.originalFileName).replace(/\.[^/.]+$/, '');
+    this.api.downloadAsText(textToExport, fileName);
   }
 
   // ==================== View & Filter Actions ====================

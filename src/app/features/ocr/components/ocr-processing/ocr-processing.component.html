@@ -198,8 +198,7 @@
           class="search-input" aria-label="Search documents" />
         @if (searchQuery()) {
         <button type="button" class="clear-search-btn" (click)="clearSearch()" aria-label="Clear search">
-          <svg class="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor"
-            viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
@@ -447,625 +446,649 @@
   }
   }
 
-<!-- Upload Modal -->
-@if (showUploadModal()) {
-<div class="modal-overlay" (click)="closeUploadModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h3 class="text-xl font-bold text-gray-900">Process Files</h3>
-      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeUploadModal()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <p class="text-gray-500 mb-4">{{ selectedFiles().length }} file(s) ready for OCR processing</p>
-      <div class="space-y-2 max-h-64 overflow-y-auto">
-        @for (file of selectedFiles(); track $index) {
-        <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-          <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(file.type)" />
+  <!-- Upload Modal -->
+  @if (showUploadModal()) {
+  <div class="modal-overlay" (click)="closeUploadModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="text-xl font-bold text-gray-900">Process Files</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeUploadModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          <div class="flex-1 min-w-0">
-            <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
-            <p class="text-sm text-gray-500">{{ formatFileSize(file.size) }}</p>
-          </div>
-          <button type="button" class="text-gray-400 hover:text-red-500" (click)="removeFile($index)">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-gray-500 mb-4">{{ selectedFiles().length }} file(s) ready for OCR processing</p>
+        <div class="space-y-2 max-h-64 overflow-y-auto">
+          @for (file of selectedFiles(); track $index) {
+          <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <svg class="w-8 h-8 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="getFileIcon(file.type)" />
             </svg>
-          </button>
-        </div>
-        }
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn-secondary" (click)="closeUploadModal()">Cancel</button>
-      <button type="button" class="btn-primary" (click)="processFiles()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span>Start Processing</span>
-      </button>
-    </div>
-  </div>
-</div>
-}
-
-<!-- Result Modal — Document Intelligence View -->
-@if (showResultModal() && selectedJob()) {
-<div class="modal-overlay" (click)="closeResultModal()">
-  <div class="ocr-detail-modal" (click)="$event.stopPropagation()">
-
-    <!-- Modal Header -->
-    <div class="ocr-detail-header">
-      <div class="ocr-detail-header-left">
-        <div class="ocr-detail-file-icon">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div class="ocr-detail-header-info">
-          <h3 class="ocr-detail-title">{{ selectedJob()?.fileName }}</h3>
-          <p class="ocr-detail-subtitle">Document Intelligence</p>
-        </div>
-      </div>
-      <button type="button" class="ocr-detail-close" (click)="closeResultModal()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Loading State -->
-    @if (ocrDataLoading()) {
-    <div class="ocr-detail-loading">
-      <div class="ocr-detail-spinner"></div>
-      <p>Loading document data...</p>
-    </div>
-    } @else {
-
-    <!-- AI Insights Section (from API data) -->
-    @if (ocrData()?.aiSummary || ocrData()?.documentType || (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0)) {
-    <div class="ai-insights-section">
-      <div class="ai-insights-label">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        AI Insights
-      </div>
-
-      <div class="ai-insights-grid">
-        <!-- Document Classification Card -->
-        @if (ocrData()?.documentType) {
-        <div class="ai-card">
-          <div class="ai-card-icon-wrap classify">
-            <span class="ai-card-emoji">{{ getDocTypeIcon(ocrData()?.documentType) }}</span>
-          </div>
-          <div class="ai-card-body">
-            <span class="ai-card-label">Document Type</span>
-            <span class="ai-card-value">{{ getDocTypeLabel(ocrData()?.documentType) }}</span>
-          </div>
-        </div>
-        }
-
-        <!-- Tags Card -->
-        @if (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0) {
-        <div class="ai-card">
-          <div class="ai-card-icon-wrap tags">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-            </svg>
-          </div>
-          <div class="ai-card-body">
-            <span class="ai-card-label">Tags</span>
-            <div class="ai-tags-list">
-              @for (tag of ocrData()!.aiTags!; track tag) {
-              <span class="ai-tag">{{ tag }}</span>
-              }
+            <div class="flex-1 min-w-0">
+              <p class="font-medium text-gray-900 truncate">{{ file.name }}</p>
+              <p class="text-sm text-gray-500">{{ formatFileSize(file.size) }}</p>
             </div>
+            <button type="button" class="text-gray-400 hover:text-red-500" (click)="removeFile($index)">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
-        </div>
-        }
-      </div>
-
-      <!-- AI Summary -->
-      @if (ocrData()?.aiSummary) {
-      <div class="ai-summary-card">
-        <div class="ai-summary-header">
-          <div class="ai-summary-icon">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-            </svg>
-          </div>
-          <span class="ai-summary-title">Summary</span>
-          <button type="button" class="ai-summary-copy" title="Copy summary"
-            (click)="copyText(ocrData()?.aiSummary || '')">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
-          </button>
-        </div>
-        <p class="ai-summary-text">{{ ocrData()?.aiSummary }}</p>
-      </div>
-      }
-    </div>
-    }
-
-    <!-- Content Tabs (always show Original Text; Edited tab only when edited content exists) -->
-    <div class="ocr-content-tabs">
-      <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'extracted'"
-        (click)="setOcrViewTab('extracted')">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-        Original Text
-      </button>
-      @if (ocrData()?.editedContent) {
-      <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'edited'"
-        (click)="setOcrViewTab('edited')">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-        Edited
-        <span class="ocr-tab-badge">{{ ocrData()?.contentFormat }}</span>
-      </button>
-      }
-    </div>
-
-    <!-- Text Content Area -->
-    <div class="ocr-detail-content">
-      @if (ocrViewTab() === 'extracted' || !ocrData()?.editedContent) {
-      <div class="ocr-content-meta">
-        <span class="ocr-meta-item">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-          </svg>
-          {{ ocrData()?.originalFileName || selectedJob()?.fileName }}
-        </span>
-        <span class="ocr-meta-item">
-          {{ (ocrData()?.extractedText || selectedJob()?.extractedText)?.length || 0 }} characters
-        </span>
-        @if (selectedJob()?.confidence) {
-        <span class="ocr-meta-item">
-          Confidence: {{ formatConfidence(selectedJob()?.confidence) }}
-        </span>
-        }
-        @if (ocrData()?.createdAt || selectedJob()?.createdAt) {
-        <span class="ocr-meta-item">
-          {{ formatDate(ocrData()?.createdAt || selectedJob()?.createdAt) }}
-        </span>
-        }
-      </div>
-      <div class="ocr-text-scroll">
-        <pre
-          class="ocr-detail-text">{{ ocrData()?.extractedText || selectedJob()?.extractedText || 'No text extracted' }}</pre>
-      </div>
-      } @else {
-      <div class="ocr-content-meta">
-        <span class="ocr-meta-item">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Edited · {{ ocrData()?.contentFormat }}
-        </span>
-        @if (ocrData()?.editedAt) {
-        <span class="ocr-meta-item">
-          Edited {{ getRelativeTime(ocrData()?.editedAt!) }}
-        </span>
-        }
-      </div>
-      <div class="ocr-text-scroll">
-        @if (ocrData()?.contentFormat === 'HTML') {
-        <div class="ocr-detail-rendered" [innerHTML]="ocrData()?.editedContent | safeHtml"></div>
-        } @else {
-        <pre class="ocr-detail-text">{{ ocrData()?.editedContent }}</pre>
-        }
-      </div>
-      }
-    </div>
-
-    }
-
-    <!-- Action Bar -->
-    <div class="ocr-detail-actions">
-      <div class="ocr-actions-left">
-        <button type="button" class="ocr-action-btn"
-          (click)="copyText(ocrData()?.editedContent || ocrData()?.extractedText || selectedJob()?.extractedText || '')">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-          </svg>
-          Copy
-        </button>
-        <button type="button" class="ocr-action-btn" (click)="downloadText(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          TXT
-        </button>
-        @if (selectedJob()?.collectionId && selectedJob()?.documentId) {
-        <button type="button" class="ocr-action-btn" (click)="downloadDocx(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          Word
-        </button>
-        <span class="ocr-actions-divider"></span>
-        <button type="button" class="ocr-action-btn ai-btn purple" (click)="openSummaryModal(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          Summarize
-        </button>
-        <button type="button" class="ocr-action-btn ai-btn teal" (click)="openClassifyModal(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-          </svg>
-          Classify
-        </button>
-        <button type="button" class="ocr-action-btn ai-btn indigo" (click)="openEditModal(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-          Edit
-        </button>
-        }
-        <button type="button" class="ocr-action-btn" (click)="downloadJson(selectedJob()!)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-          </svg>
-          JSON
-        </button>
-      </div>
-      <button type="button" class="ocr-action-btn-done" (click)="closeResultModal()">Done</button>
-    </div>
-
-  </div>
-</div>
-}
-
-<!-- AI Summarize Modal -->
-@if (showSummaryModal() && summaryJob()) {
-<div class="modal-overlay" (click)="closeSummaryModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-icon"
-        style="background: linear-gradient(135deg, #9333ea, #7c3aed); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-        </svg>
-      </div>
-      <div class="flex-1">
-        <h3 class="text-lg font-bold text-gray-900">AI Summarize</h3>
-        <p class="text-sm text-gray-500">{{ summaryJob()?.fileName }}</p>
-      </div>
-      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeSummaryModal()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
-      <div class="space-y-4">
-        <div>
-          <label class="text-sm font-medium text-gray-700 block mb-1">Summary Type</label>
-          <select
-            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            [value]="summaryType()" (change)="onSummaryTypeChange($event)">
-            <option value="SHORT">Short (1-2 sentences)</option>
-            <option value="DETAILED">Detailed (bullet points)</option>
-          </select>
-        </div>
-        <p class="text-xs text-gray-500">
-          Short summaries cost 1 credit · Detailed summaries cost 2 credits
-        </p>
-      </div>
-      }
-
-      @if (aiState.isSummarizing()) {
-      <div class="flex flex-col items-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
-        <p class="text-gray-600">Generating summary...</p>
-      </div>
-      }
-
-      @if (aiState.summaryResult()) {
-      <div class="space-y-3">
-        <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
-          <p class="text-sm text-purple-900 whitespace-pre-wrap">{{ aiState.summaryResult()?.summary }}</p>
-        </div>
-        <div class="flex items-center gap-4 text-xs text-gray-500">
-          <span>Type: {{ aiState.summaryResult()?.summaryType }}</span>
-          <span>Model: {{ aiState.summaryResult()?.modelUsed }}</span>
-          @if (aiState.summaryResult()?.creditsCharged) {
-          <span>Credits: {{ aiState.summaryResult()?.creditsCharged }}</span>
           }
-          <span class="capitalize">Billed: {{ aiState.summaryResult()?.billingSource }}</span>
         </div>
       </div>
-      }
-
-      @if (aiState.summaryError()) {
-      <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-        {{ aiState.summaryError() }}
-      </div>
-      }
-    </div>
-    <div class="modal-footer">
-      @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
-      <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Cancel</button>
-      <button type="button" class="btn-primary" style="background: linear-gradient(135deg, #9333ea, #7c3aed);"
-        (click)="summarizeDocument()">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        Generate Summary
-      </button>
-      } @else {
-      <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Close</button>
-      @if (aiState.summaryResult()) {
-      <button type="button" class="btn-secondary" (click)="copyText(aiState.summaryResult()?.summary || '')">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        Copy Summary
-      </button>
-      }
-      }
-    </div>
-  </div>
-</div>
-}
-
-<!-- AI Classify Modal -->
-@if (showClassifyModal() && classifyJob()) {
-<div class="modal-overlay" (click)="closeClassifyModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-icon"
-        style="background: linear-gradient(135deg, #0d9488, #14b8a6); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
-        </svg>
-      </div>
-      <div class="flex-1">
-        <h3 class="text-lg font-bold text-gray-900">AI Classification</h3>
-        <p class="text-sm text-gray-500">{{ classifyJob()?.fileName }}</p>
-      </div>
-      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeClassifyModal()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      @if (aiState.isClassifying()) {
-      <div class="flex flex-col items-center py-8">
-        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mb-4"></div>
-        <p class="text-gray-600">Classifying document...</p>
-      </div>
-      }
-
-      @if (aiState.classifyResult()) {
-      <div class="space-y-4">
-        <div class="p-4 bg-teal-50 rounded-lg border border-teal-200">
-          <div class="flex items-center gap-3 mb-3">
-            <span class="text-sm text-gray-600">Document Type:</span>
-            <span class="px-3 py-1 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full capitalize">
-              {{ aiState.classifyResult()?.documentType }}
-            </span>
-          </div>
-          <div class="flex items-center gap-2 mb-3">
-            <span class="text-sm text-gray-600">Confidence:</span>
-            <span class="text-sm font-semibold text-teal-800">
-              {{ (aiState.classifyResult()?.confidence || 0) * 100 | number:'1.0-0' }}%
-            </span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            <span class="text-sm text-gray-600">Tags:</span>
-            @for (tag of aiState.classifyResult()?.tags || []; track tag) {
-            <span class="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded-full">{{ tag }}</span>
-            }
-          </div>
-        </div>
-        <div class="flex items-center gap-4 text-xs text-gray-500">
-          <span>Model: {{ aiState.classifyResult()?.modelUsed }}</span>
-          @if (aiState.classifyResult()?.creditsCharged) {
-          <span>Credits: {{ aiState.classifyResult()?.creditsCharged }}</span>
-          }
-          <span class="capitalize">Billed: {{ aiState.classifyResult()?.billingSource }}</span>
-        </div>
-      </div>
-      }
-
-      @if (aiState.classifyError()) {
-      <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
-        {{ aiState.classifyError() }}
-      </div>
-      }
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn-secondary" (click)="closeClassifyModal()">Close</button>
-    </div>
-  </div>
-</div>
-}
-
-<!-- Edit Content Modal -->
-@if (showEditModal() && editingJob()) {
-<div class="modal-overlay" (click)="closeEditModal()">
-  <div class="edit-content-modal" (click)="$event.stopPropagation()">
-
-    <!-- Header -->
-    <div class="edit-modal-header">
-      <div class="edit-modal-header-left">
-        <div class="edit-modal-icon">
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeUploadModal()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="processFiles()">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-        </div>
-        <div>
-          <h3 class="edit-modal-title">Edit Content</h3>
-          <p class="edit-modal-subtitle">{{ editingJob()?.fileName }}</p>
-        </div>
+          <span>Start Processing</span>
+        </button>
       </div>
-      <div class="edit-modal-header-right">
-        <div class="edit-format-selector">
-          <label class="edit-format-label">Format</label>
-          <select class="edit-format-select" [value]="editingFormat()" (change)="onEditingFormatChange($event)">
-            <option value="HTML">HTML</option>
-            <option value="MARKDOWN">Markdown</option>
-          </select>
+    </div>
+  </div>
+  }
+
+  <!-- Result Modal — Document Intelligence View -->
+  @if (showResultModal() && selectedJob()) {
+  <div class="modal-overlay" (click)="closeResultModal()">
+    <div class="ocr-detail-modal" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="ocr-detail-header">
+        <div class="ocr-detail-header-left">
+          <div class="ocr-detail-file-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <div class="ocr-detail-header-info">
+            <h3 class="ocr-detail-title">{{ selectedJob()?.fileName }}</h3>
+            <p class="ocr-detail-subtitle">Document Intelligence</p>
+          </div>
         </div>
-        <button type="button" class="edit-modal-close" (click)="closeEditModal()">
+        <button type="button" class="ocr-detail-close" (click)="closeResultModal()">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-    </div>
 
-    <!-- Editor -->
-    <div class="edit-modal-body">
-      <app-rich-text-editor [content]="editingContent()" [format]="editingFormat()"
-        [placeholder]="'Edit your extracted text here...'" (contentChange)="editingContent.set($event)">
-      </app-rich-text-editor>
-      <p class="edit-modal-hint">
-        @if (editingFormat() === 'HTML') {
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        HTML content will be sanitized server-side for security
-        } @else {
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Markdown content will be stored as-is
-        }
-      </p>
-    </div>
-
-    <!-- Footer -->
-    <div class="edit-modal-footer">
-      <button type="button" class="edit-cancel-btn" (click)="closeEditModal()">Cancel</button>
-      <button type="button" class="edit-save-btn" [disabled]="!editingContent().trim() || ocrState.isProcessing()"
-        (click)="saveEditedContent()">
-        @if (ocrState.isProcessing()) {
-        <div class="edit-save-spinner"></div>
-        Saving...
-        } @else {
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Save Content
-        }
-      </button>
-    </div>
-
-  </div>
-</div>
-}
-
-<!-- Extract Specific Pages Modal -->
-@if (showExtractPagesModal() && extractPagesJob()) {
-<div class="modal-overlay" (click)="closeExtractPagesModal()">
-  <div class="modal-content" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <div class="modal-icon text-indigo-500 bg-indigo-50">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
-        </svg>
+      <!-- Loading State -->
+      @if (ocrDataLoading()) {
+      <div class="ocr-detail-loading">
+        <div class="ocr-detail-spinner"></div>
+        <p>Loading document data...</p>
       </div>
-      <div class="flex-1 min-w-0 pl-3">
-        <h3 class="text-lg font-bold text-gray-900">Extract Custom Pages</h3>
-        <p class="text-sm text-gray-500 truncate">{{ extractPagesJob()?.fileName }}</p>
-      </div>
-      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeExtractPagesModal()">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-    <div class="modal-body space-y-4">
-      <p class="text-sm text-gray-600 mb-2">Re-process this document targeting specific pages to save credits and time.
-      </p>
+      } @else {
 
-      <div class="flex gap-2">
-        <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-1"
-          [class]="pageSelectionMode() === 'range' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
-          (click)="setPageSelectionMode('range')">
-          Page Range
-        </button>
-        <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-1"
-          [class]="pageSelectionMode() === 'specific' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
-          (click)="setPageSelectionMode('specific')">
-          Discrete Pages
-        </button>
-      </div>
-
-      @if (pageSelectionMode() === 'range') {
-      <div class="flex items-center gap-3">
-        <div class="flex-1">
-          <label class="text-xs text-gray-600 block mb-1">Start Page</label>
-          <input type="number" min="1"
-            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            [value]="startPage() || ''" (input)="onStartPageChange($event)" placeholder="1" />
+      <!-- AI Insights Section (from API data) -->
+      @if (ocrData()?.aiSummary || ocrData()?.documentType || (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0)) {
+      <div class="ai-insights-section">
+        <div class="ai-insights-label">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          AI Insights
         </div>
-        <span class="text-gray-400 mt-5">–</span>
-        <div class="flex-1">
-          <label class="text-xs text-gray-600 block mb-1">End Page</label>
-          <input type="number" min="1"
-            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            [value]="endPage() || ''" (input)="onEndPageChange($event)" placeholder="10" />
+
+        <div class="ai-insights-grid">
+          <!-- Document Classification Card -->
+          @if (ocrData()?.documentType) {
+          <div class="ai-card">
+            <div class="ai-card-icon-wrap classify">
+              <span class="ai-card-emoji">{{ getDocTypeIcon(ocrData()?.documentType) }}</span>
+            </div>
+            <div class="ai-card-body">
+              <span class="ai-card-label">Document Type</span>
+              <span class="ai-card-value">{{ getDocTypeLabel(ocrData()?.documentType) }}</span>
+            </div>
+          </div>
+          }
+
+          <!-- Tags Card -->
+          @if (ocrData()?.aiTags && ocrData()!.aiTags!.length > 0) {
+          <div class="ai-card">
+            <div class="ai-card-icon-wrap tags">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            </div>
+            <div class="ai-card-body">
+              <span class="ai-card-label">Tags</span>
+              <div class="ai-tags-list">
+                @for (tag of ocrData()!.aiTags!; track tag) {
+                <span class="ai-tag">{{ tag }}</span>
+                }
+              </div>
+            </div>
+          </div>
+          }
         </div>
+
+        <!-- AI Summary -->
+        @if (ocrData()?.aiSummary) {
+        <div class="ai-summary-card">
+          <div class="ai-summary-header">
+            <div class="ai-summary-icon">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+            </div>
+            <span class="ai-summary-title">Summary</span>
+            <button type="button" class="ai-summary-copy" title="Copy summary"
+              (click)="copyText(ocrData()?.aiSummary || '')">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+            </button>
+          </div>
+          <p class="ai-summary-text">{{ ocrData()?.aiSummary }}</p>
+        </div>
+        }
       </div>
       }
 
-      @if (pageSelectionMode() === 'specific') {
-      <div>
-        <label class="text-xs text-gray-600 block mb-1">Target Pages (comma-separated)</label>
-        <input type="text"
-          class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-          [value]="specificPages()" (input)="onSpecificPagesChange($event)" placeholder="e.g., 3, 8, 16" />
-        <p class="text-xs text-gray-500 mt-1">Enter exact page numbers separated by commas.</p>
+      <!-- Content Tabs (always show Original Text; Edited tab only when edited content exists) -->
+      <div class="ocr-content-tabs">
+        <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'extracted'"
+          (click)="setOcrViewTab('extracted')">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Original Text
+        </button>
+        @if (ocrData()?.editedContent) {
+        <button type="button" class="ocr-content-tab" [class.active]="ocrViewTab() === 'edited'"
+          (click)="setOcrViewTab('edited')">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edited
+          <span class="ocr-tab-badge">{{ ocrData()?.contentFormat }}</span>
+        </button>
+        }
       </div>
+
+      <!-- Text Content Area -->
+      <div class="ocr-detail-content">
+        @if (ocrViewTab() === 'extracted' || !ocrData()?.editedContent) {
+        <div class="ocr-content-meta">
+          <span class="ocr-meta-item">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            {{ ocrData()?.originalFileName || selectedJob()?.fileName }}
+          </span>
+          <span class="ocr-meta-item">
+            {{ (ocrData()?.extractedText || selectedJob()?.extractedText)?.length || 0 }} characters
+          </span>
+          @if (selectedJob()?.confidence) {
+          <span class="ocr-meta-item">
+            Confidence: {{ formatConfidence(selectedJob()?.confidence) }}
+          </span>
+          }
+          @if (ocrData()?.createdAt || selectedJob()?.createdAt) {
+          <span class="ocr-meta-item">
+            {{ formatDate(ocrData()?.createdAt || selectedJob()?.createdAt) }}
+          </span>
+          }
+        </div>
+        <div class="ocr-text-scroll">
+          <pre
+            class="ocr-detail-text">{{ ocrData()?.extractedText || selectedJob()?.extractedText || 'No text extracted' }}</pre>
+        </div>
+        } @else {
+        <div class="ocr-content-meta">
+          <span class="ocr-meta-item">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edited · {{ ocrData()?.contentFormat }}
+          </span>
+          @if (ocrData()?.editedAt) {
+          <span class="ocr-meta-item">
+            Edited {{ getRelativeTime(ocrData()?.editedAt!) }}
+          </span>
+          }
+        </div>
+        <div class="ocr-text-scroll">
+          @if (ocrData()?.contentFormat === 'HTML') {
+          <div class="ocr-detail-rendered" [innerHTML]="ocrData()?.editedContent | safeHtml"></div>
+          } @else {
+          <pre class="ocr-detail-text">{{ ocrData()?.editedContent }}</pre>
+          }
+        </div>
+        }
+      </div>
+
       }
 
-    </div>
-    <div class="modal-footer">
-      <button type="button" class="btn-secondary" (click)="closeExtractPagesModal()">Cancel</button>
-      <button type="button" class="btn-primary" (click)="submitExtractPages()" [disabled]="ocrState.isProcessing()">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span>Extract Now</span>
-      </button>
+      <!-- Action Bar -->
+      <div class="ocr-detail-actions">
+        <div class="ocr-actions-left">
+          <button type="button" class="ocr-action-btn"
+            (click)="copyText(ocrData()?.editedContent || ocrData()?.extractedText || selectedJob()?.extractedText || '')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            Copy
+          </button>
+          <button type="button" class="ocr-action-btn" (click)="initiateDownload(selectedJob()!, 'txt')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            TXT
+          </button>
+          @if (selectedJob()?.collectionId && selectedJob()?.documentId) {
+          <button type="button" class="ocr-action-btn" (click)="initiateDownload(selectedJob()!, 'docx')">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Word
+          </button>
+          <span class="ocr-actions-divider"></span>
+          <button type="button" class="ocr-action-btn ai-btn purple" (click)="openSummaryModal(selectedJob()!)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+            </svg>
+            Summarize
+          </button>
+          <button type="button" class="ocr-action-btn ai-btn teal" (click)="openClassifyModal(selectedJob()!)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+            </svg>
+            Classify
+          </button>
+          <button type="button" class="ocr-action-btn ai-btn indigo" (click)="openEditModal(selectedJob()!)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </button>
+          }
+        </div>
+        <button type="button" class="ocr-action-btn-done" (click)="closeResultModal()">Done</button>
+      </div>
+
     </div>
   </div>
-</div>
-}
+  }
 
+  <!-- AI Summarize Modal -->
+  @if (showSummaryModal() && summaryJob()) {
+  <div class="modal-overlay" (click)="closeSummaryModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon"
+          style="background: linear-gradient(135deg, #9333ea, #7c3aed); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-gray-900">AI Summarize</h3>
+          <p class="text-sm text-gray-500">{{ summaryJob()?.fileName }}</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeSummaryModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-medium text-gray-700 block mb-1">Summary Type</label>
+            <select
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+              [value]="summaryType()" (change)="onSummaryTypeChange($event)">
+              <option value="SHORT">Short (1-2 sentences)</option>
+              <option value="DETAILED">Detailed (bullet points)</option>
+            </select>
+          </div>
+          <p class="text-xs text-gray-500">
+            Short summaries cost 1 credit · Detailed summaries cost 2 credits
+          </p>
+        </div>
+        }
+
+        @if (aiState.isSummarizing()) {
+        <div class="flex flex-col items-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-purple-600 mb-4"></div>
+          <p class="text-gray-600">Generating summary...</p>
+        </div>
+        }
+
+        @if (aiState.summaryResult()) {
+        <div class="space-y-3">
+          <div class="p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <p class="text-sm text-purple-900 whitespace-pre-wrap">{{ aiState.summaryResult()?.summary }}</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <span>Type: {{ aiState.summaryResult()?.summaryType }}</span>
+            <span>Model: {{ aiState.summaryResult()?.modelUsed }}</span>
+            @if (aiState.summaryResult()?.creditsCharged) {
+            <span>Credits: {{ aiState.summaryResult()?.creditsCharged }}</span>
+            }
+            <span class="capitalize">Billed: {{ aiState.summaryResult()?.billingSource }}</span>
+          </div>
+        </div>
+        }
+
+        @if (aiState.summaryError()) {
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+          {{ aiState.summaryError() }}
+        </div>
+        }
+      </div>
+      <div class="modal-footer">
+        @if (!aiState.summaryResult() && !aiState.isSummarizing()) {
+        <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Cancel</button>
+        <button type="button" class="btn-primary" style="background: linear-gradient(135deg, #9333ea, #7c3aed);"
+          (click)="summarizeDocument()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Generate Summary
+        </button>
+        } @else {
+        <button type="button" class="btn-secondary" (click)="closeSummaryModal()">Close</button>
+        @if (aiState.summaryResult()) {
+        <button type="button" class="btn-secondary" (click)="copyText(aiState.summaryResult()?.summary || '')">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Copy Summary
+        </button>
+        }
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Download Format Selection Modal -->
+  @if (showDownloadFormatModal() && pendingDownloadJob()) {
+  <div class="modal-overlay" (click)="closeDownloadFormatModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon text-indigo-600 bg-indigo-50">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-gray-900">Download Options</h3>
+          <p class="text-sm text-gray-500">Choose which version of the document to download.</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeDownloadFormatModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body space-y-4">
+        <button type="button"
+          class="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-indigo-300 transition-colors flex items-center justify-between"
+          (click)="confirmDownload('original')">
+          <div>
+            <span class="block font-medium text-gray-900">Original Extracted Text</span>
+            <span class="block text-sm text-gray-500">The raw text output from OCR.</span>
+          </div>
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+
+        <button type="button"
+          class="w-full text-left px-4 py-3 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-between"
+          (click)="confirmDownload('edited')">
+          <div>
+            <span class="block font-medium text-indigo-900">Edited Text</span>
+            <span class="block text-sm text-indigo-600">The version with your manual corrections.</span>
+          </div>
+          <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeDownloadFormatModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- AI Classify Modal -->
+  @if (showClassifyModal() && classifyJob()) {
+  <div class="modal-overlay" (click)="closeClassifyModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon"
+          style="background: linear-gradient(135deg, #0d9488, #14b8a6); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z" />
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h3 class="text-lg font-bold text-gray-900">AI Classification</h3>
+          <p class="text-sm text-gray-500">{{ classifyJob()?.fileName }}</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeClassifyModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        @if (aiState.isClassifying()) {
+        <div class="flex flex-col items-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mb-4"></div>
+          <p class="text-gray-600">Classifying document...</p>
+        </div>
+        }
+
+        @if (aiState.classifyResult()) {
+        <div class="space-y-4">
+          <div class="p-4 bg-teal-50 rounded-lg border border-teal-200">
+            <div class="flex items-center gap-3 mb-3">
+              <span class="text-sm text-gray-600">Document Type:</span>
+              <span class="px-3 py-1 bg-teal-100 text-teal-800 text-sm font-semibold rounded-full capitalize">
+                {{ aiState.classifyResult()?.documentType }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-sm text-gray-600">Confidence:</span>
+              <span class="text-sm font-semibold text-teal-800">
+                {{ (aiState.classifyResult()?.confidence || 0) * 100 | number:'1.0-0' }}%
+              </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <span class="text-sm text-gray-600">Tags:</span>
+              @for (tag of aiState.classifyResult()?.tags || []; track tag) {
+              <span class="px-2 py-0.5 text-xs font-medium bg-teal-100 text-teal-700 rounded-full">{{ tag }}</span>
+              }
+            </div>
+          </div>
+          <div class="flex items-center gap-4 text-xs text-gray-500">
+            <span>Model: {{ aiState.classifyResult()?.modelUsed }}</span>
+            @if (aiState.classifyResult()?.creditsCharged) {
+            <span>Credits: {{ aiState.classifyResult()?.creditsCharged }}</span>
+            }
+            <span class="capitalize">Billed: {{ aiState.classifyResult()?.billingSource }}</span>
+          </div>
+        </div>
+        }
+
+        @if (aiState.classifyError()) {
+        <div class="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
+          {{ aiState.classifyError() }}
+        </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeClassifyModal()">Close</button>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Edit Content Modal -->
+  @if (showEditModal() && editingJob()) {
+  <div class="modal-overlay" (click)="closeEditModal()">
+    <div class="edit-content-modal" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="edit-modal-header">
+        <div class="edit-modal-header-left">
+          <div class="edit-modal-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="edit-modal-title">Edit Extracted Content</h3>
+            <p class="edit-modal-subtitle">{{ editingJob()?.fileName }}</p>
+          </div>
+        </div>
+        <div class="edit-modal-header-right">
+          <button type="button" class="edit-modal-close" (click)="closeEditModal()">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="edit-modal-body">
+        <app-rich-text-editor [content]="editingContent()" [placeholder]="'Edit your extracted text here...'"
+          (contentChange)="onEditingContentChange($event)">
+        </app-rich-text-editor>
+      </div>
+
+      <!-- Footer -->
+      <div class="edit-modal-footer">
+        <button type="button" class="edit-cancel-btn" (click)="closeEditModal()">Cancel</button>
+        <button type="button" class="edit-save-btn" [disabled]="!editingContent().trim() || ocrState.isProcessing()"
+          (click)="saveEditedContent()">
+          @if (ocrState.isProcessing()) {
+          <div class="edit-save-spinner"></div>
+          Saving...
+          } @else {
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Save Content
+          }
+        </button>
+      </div>
+
+    </div>
+  </div>
+  }
+
+  <!-- Extract Specific Pages Modal -->
+  @if (showExtractPagesModal() && extractPagesJob()) {
+  <div class="modal-overlay" (click)="closeExtractPagesModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon text-indigo-500 bg-indigo-50">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2" />
+          </svg>
+        </div>
+        <div class="flex-1 min-w-0 pl-3">
+          <h3 class="text-lg font-bold text-gray-900">Extract Custom Pages</h3>
+          <p class="text-sm text-gray-500 truncate">{{ extractPagesJob()?.fileName }}</p>
+        </div>
+        <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeExtractPagesModal()">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body space-y-4">
+        <p class="text-sm text-gray-600 mb-2">Re-process this document targeting specific pages to save credits and
+          time.
+        </p>
+
+        <div class="flex gap-2">
+          <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-1"
+            [class]="pageSelectionMode() === 'range' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+            (click)="setPageSelectionMode('range')">
+            Page Range
+          </button>
+          <button type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex-1"
+            [class]="pageSelectionMode() === 'specific' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'"
+            (click)="setPageSelectionMode('specific')">
+            Discrete Pages
+          </button>
+        </div>
+
+        @if (pageSelectionMode() === 'range') {
+        <div class="flex items-center gap-3">
+          <div class="flex-1">
+            <label class="text-xs text-gray-600 block mb-1">Start Page</label>
+            <input type="number" min="1"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              [value]="startPage() || ''" (input)="onStartPageChange($event)" placeholder="1" />
+          </div>
+          <span class="text-gray-400 mt-5">–</span>
+          <div class="flex-1">
+            <label class="text-xs text-gray-600 block mb-1">End Page</label>
+            <input type="number" min="1"
+              class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              [value]="endPage() || ''" (input)="onEndPageChange($event)" placeholder="10" />
+          </div>
+        </div>
+        }
+
+        @if (pageSelectionMode() === 'specific') {
+        <div>
+          <label class="text-xs text-gray-600 block mb-1">Target Pages (comma-separated)</label>
+          <input type="text"
+            class="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            [value]="specificPages()" (input)="onSpecificPagesChange($event)" placeholder="e.g., 3, 8, 16" />
+          <p class="text-xs text-gray-500 mt-1">Enter exact page numbers separated by commas.</p>
+        </div>
+        }
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeExtractPagesModal()">Cancel</button>
+        <button type="button" class="btn-primary" (click)="submitExtractPages()" [disabled]="ocrState.isProcessing()">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          <span>Extract Now</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  }

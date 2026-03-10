@@ -147,3 +147,16 @@ export const POPULAR_CURRENCIES: Currency[] = [
   { code: 'KZT', symbol: '₸', name: 'Kazakhstani Tenge' },
 ];
 
+/**
+ * Narrowed list of supported currencies for payment
+ */
+export const SUPPORTED_PAYMENT_CURRENCIES: Currency[] = [
+  { code: 'USD', symbol: '$', name: 'United States Dollar' },
+  { code: 'GBP', symbol: '£', name: 'British Pound Sterling' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+  { code: 'GHS', symbol: 'GH₵', name: 'Ghanaian Cedi' },
+  { code: 'KES', symbol: 'KSh', name: 'Kenyan Shilling' },
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+];
+

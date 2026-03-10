@@ -59,7 +59,7 @@
   color: #1f2937;
 }
 
-.rte-btn:active {
+.rte-btn.active {
   background: #e5e7ff;
   color: #4f46e5;
 }
@@ -122,125 +122,21 @@
   flex-shrink: 0;
 }
 
-/* Toolbar right section */
-.rte-toolbar-right {
-  margin-left: auto;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.rte-format-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.125rem 0.5rem;
-  font-size: 0.625rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  border-radius: 5px;
-  user-select: none;
-}
-
-.rte-format-badge.html {
-  background: linear-gradient(135deg, #fef3c7, #fde68a);
-  color: #92400e;
-}
-
-.rte-format-badge.markdown {
-  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
-  color: #3730a3;
-}
-
-/* Tab toggle (Source / Preview) */
-.rte-tab-toggle {
-  display: flex;
-  align-items: center;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 7px;
-  overflow: hidden;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.rte-tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 26px;
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: all 0.12s ease;
-}
-
-.rte-tab-btn:hover {
-  color: #64748b;
-  background: #f9fafb;
-}
-
-.rte-tab-btn.active {
-  background: #4f46e5;
-  color: white;
-}
-
-.rte-tab-btn + .rte-tab-btn {
-  border-left: 1px solid #f3f4f6;
-}
-
-.rte-tab-btn.active + .rte-tab-btn {
-  border-left-color: transparent;
-}
-
-.rte-tab-icon {
-  width: 13px;
-  height: 13px;
-}
-
-.rte-preview-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-/* ==================== Textarea ==================== */
-.rte-textarea {
+/* ==================== TipTap Editor Area ==================== */
+.rte-tiptap-container {
   width: 100%;
   min-height: 280px;
   max-height: 500px;
-  padding: 1rem 1.25rem;
-  font-size: 0.875rem;
-  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace;
-  line-height: 1.7;
-  color: #1e293b;
   background: #ffffff;
-  border: none;
-  outline: none;
-  resize: vertical;
-  tab-size: 2;
-}
-
-.rte-textarea::placeholder {
-  color: #cbd5e1;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-style: italic;
-}
-
-/* ==================== Preview Pane ==================== */
-.rte-preview {
-  width: 100%;
-  min-height: 280px;
-  max-height: 500px;
-  padding: 1.25rem 1.5rem;
   overflow-y: auto;
-  background: #ffffff;
+  padding: 1.25rem 1.5rem;
+  cursor: text;
 }
 
-.rte-preview-content {
+/* Make the contenteditable area take full height so clicking anywhere focuses it */
+::ng-deep .rte-tiptap-editor {
+  min-height: 240px;
+  outline: none;
   font-size: 0.9375rem;
   color: #334155;
   line-height: 1.75;
@@ -248,7 +144,8 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.rte-preview-content h1 {
+/* TipTap Editor Content Styles */
+::ng-deep .rte-tiptap-editor h1 {
   font-size: 1.625rem;
   font-weight: 700;
   color: #1e293b;
@@ -258,7 +155,7 @@
   padding-bottom: 0.5rem;
 }
 
-.rte-preview-content h2 {
+::ng-deep .rte-tiptap-editor h2 {
   font-size: 1.375rem;
   font-weight: 650;
   color: #1e293b;
@@ -266,7 +163,7 @@
   line-height: 1.35;
 }
 
-.rte-preview-content h3 {
+::ng-deep .rte-tiptap-editor h3 {
   font-size: 1.125rem;
   font-weight: 600;
   color: #1e293b;
@@ -274,53 +171,74 @@
   line-height: 1.4;
 }
 
-.rte-preview-content p {
+::ng-deep .rte-tiptap-editor p {
   margin: 0 0 0.75rem;
 }
 
-.rte-preview-content strong,
-.rte-preview-content b {
+::ng-deep .rte-tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #cbd5e1;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-style: italic;
+  pointer-events: none;
+  height: 0;
+}
+
+::ng-deep .rte-tiptap-editor strong {
   font-weight: 700;
   color: #1e293b;
 }
 
-.rte-preview-content em,
-.rte-preview-content i {
+::ng-deep .rte-tiptap-editor em {
   font-style: italic;
 }
 
-.rte-preview-content u {
+::ng-deep .rte-tiptap-editor u {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
-.rte-preview-content del,
-.rte-preview-content s {
+::ng-deep .rte-tiptap-editor s {
   text-decoration: line-through;
   color: #94a3b8;
 }
 
-.rte-preview-content a {
+::ng-deep .rte-tiptap-editor a {
   color: #4f46e5;
   text-decoration: underline;
   text-underline-offset: 2px;
+  cursor: pointer;
 }
 
-.rte-preview-content a:hover {
+::ng-deep .rte-tiptap-editor a:hover {
   color: #4338ca;
 }
 
-.rte-preview-content ul,
-.rte-preview-content ol {
+::ng-deep .rte-tiptap-editor ul,
+::ng-deep .rte-tiptap-editor ol {
   margin: 0 0 0.75rem;
   padding-left: 1.5rem;
 }
 
-.rte-preview-content li {
+::ng-deep .rte-tiptap-editor ul {
+  list-style-type: disc;
+}
+
+::ng-deep .rte-tiptap-editor ol {
+  list-style-type: decimal;
+}
+
+::ng-deep .rte-tiptap-editor li {
   margin-bottom: 0.25rem;
 }
 
-.rte-preview-content code {
+::ng-deep .rte-tiptap-editor li > p {
+  margin: 0;
+  display: inline;
+}
+
+::ng-deep .rte-tiptap-editor code {
   font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
   font-size: 0.8125rem;
   background: #f1f5f9;
@@ -329,7 +247,7 @@
   border-radius: 4px;
 }
 
-.rte-preview-content pre {
+::ng-deep .rte-tiptap-editor pre {
   margin: 0 0 0.75rem;
   padding: 0.875rem 1rem;
   background: #f8fafc;
@@ -338,13 +256,14 @@
   overflow-x: auto;
 }
 
-.rte-preview-content pre code {
+::ng-deep .rte-tiptap-editor pre code {
   background: transparent;
   color: #334155;
   padding: 0;
+  font-size: 0.875rem;
 }
 
-.rte-preview-content blockquote {
+::ng-deep .rte-tiptap-editor blockquote {
   margin: 0 0 0.75rem;
   padding: 0.625rem 1rem;
   border-left: 3px solid #8b5cf6;
@@ -353,29 +272,14 @@
   border-radius: 0 6px 6px 0;
 }
 
-.rte-preview-content hr {
+::ng-deep .rte-tiptap-editor blockquote p {
+  margin: 0;
+}
+
+::ng-deep .rte-tiptap-editor hr {
   border: none;
   border-top: 1px solid #e2e8f0;
-  margin: 1rem 0;
-}
-
-.rte-preview-markdown {
-  font-size: 0.875rem;
-  color: #334155;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  margin: 0;
-  font-family: 'SF Mono', 'Fira Code', monospace;
-  line-height: 1.7;
-}
-
-.rte-preview-empty {
-  color: #cbd5e1;
-  font-size: 0.875rem;
-  font-style: italic;
-  text-align: center;
-  padding: 3rem 1rem;
-  margin: 0;
+  margin: 1.5rem 0;
 }
 
 /* ==================== Status Bar ==================== */
@@ -435,18 +339,12 @@
     height: 13px;
   }
 
-  .rte-textarea {
+  .rte-tiptap-container {
     min-height: 200px;
     padding: 0.75rem;
-    font-size: 0.8125rem;
   }
 
   .rte-status-right {
     display: none;
   }
-
-  .rte-format-badge {
-    font-size: 0.5625rem;
-  }
 }
-

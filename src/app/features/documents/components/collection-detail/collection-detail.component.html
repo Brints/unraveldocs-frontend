@@ -568,7 +568,14 @@
           </svg>
           Copy
         </button>
-        <button type="button" class="ocr-action-btn" (click)="downloadAsDocx(selectedDocument()!)">
+        <button type="button" class="ocr-action-btn" (click)="initiateDownloadTxt(selectedDocument()!)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          TXT
+        </button>
+        <button type="button" class="ocr-action-btn" (click)="initiateDownloadDocx(selectedDocument()!)">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -604,6 +611,59 @@
       <button type="button" class="ocr-action-btn-done" (click)="closeOcrModal()">Done</button>
     </div>
 
+  </div>
+</div>
+}
+
+<!-- Download Format Selection Modal -->
+@if (showDownloadFormatModal() && pendingDownloadDoc()) {
+<div class="modal-overlay" (click)="closeDownloadFormatModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon text-indigo-600 bg-indigo-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h3 class="text-lg font-bold text-gray-900">Download Options</h3>
+        <p class="text-sm text-gray-500">Choose which version of the document to download.</p>
+      </div>
+      <button type="button" class="text-gray-400 hover:text-gray-600" (click)="closeDownloadFormatModal()">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body space-y-4">
+      <button type="button"
+        class="w-full text-left px-4 py-3 border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-indigo-300 transition-colors flex items-center justify-between"
+        (click)="confirmDownload('original')">
+        <div>
+          <span class="block font-medium text-gray-900">Original Extracted Text</span>
+          <span class="block text-sm text-gray-500">The raw text output from OCR.</span>
+        </div>
+        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+
+      <button type="button"
+        class="w-full text-left px-4 py-3 border border-indigo-200 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors flex items-center justify-between"
+        (click)="confirmDownload('edited')">
+        <div>
+          <span class="block font-medium text-indigo-900">Edited Text</span>
+          <span class="block text-sm text-indigo-600">The version with your manual corrections.</span>
+        </div>
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="closeDownloadFormatModal()">Cancel</button>
+    </div>
   </div>
 </div>
 }
@@ -989,11 +1049,9 @@
 }
 
 <!-- Edit Content Modal -->
-@if (showEditContentModal() && editDocument()) {
+@if (showEditContentModal() && activeEditDocumentId()) {
 <div class="modal-overlay" (click)="closeEditContentModal()">
   <div class="edit-content-modal" (click)="$event.stopPropagation()">
-
-    <!-- Header -->
     <div class="edit-modal-header">
       <div class="edit-modal-header-left">
         <div class="edit-modal-icon">
@@ -1003,18 +1061,10 @@
           </svg>
         </div>
         <div>
-          <h3 class="edit-modal-title">Edit Content</h3>
-          <p class="edit-modal-subtitle">{{ editDocument()?.originalFileName }}</p>
+          <h3 class="edit-modal-title">Edit Extracted Content</h3>
         </div>
       </div>
       <div class="edit-modal-header-right">
-        <div class="edit-format-selector">
-          <label class="edit-format-label">Format</label>
-          <select class="edit-format-select" [value]="editFormat()" (change)="onEditFormatChange($event)">
-            <option value="HTML">HTML</option>
-            <option value="MARKDOWN">Markdown</option>
-          </select>
-        </div>
         <button type="button" class="edit-modal-close" (click)="closeEditContentModal()">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -1022,30 +1072,11 @@
         </button>
       </div>
     </div>
-
-    <!-- Editor -->
     <div class="edit-modal-body">
-      <app-rich-text-editor [content]="editContent()" [format]="editFormat()"
-        [placeholder]="'Edit your extracted text here...'" (contentChange)="editContent.set($event)">
+      <app-rich-text-editor [content]="editContent()" [placeholder]="'Edit your extracted text here...'"
+        (contentChange)="onEditContentChange($event)">
       </app-rich-text-editor>
-      <p class="edit-modal-hint">
-        @if (editFormat() === 'HTML') {
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        HTML content will be sanitized server-side for security
-        } @else {
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        Markdown content will be stored as-is
-        }
-      </p>
     </div>
-
-    <!-- Footer -->
     <div class="edit-modal-footer">
       <button type="button" class="edit-cancel-btn" (click)="closeEditContentModal()">Cancel</button>
       <button type="button" class="edit-save-btn" [disabled]="!editContent().trim() || isProcessingOcr()"
@@ -1061,7 +1092,6 @@
         }
       </button>
     </div>
-
   </div>
 </div>
 }

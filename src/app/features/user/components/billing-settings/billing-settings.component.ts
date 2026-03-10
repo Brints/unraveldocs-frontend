@@ -15,7 +15,7 @@ import { SubscriptionApiService } from '../../../subscription/services/subscript
 import { CreditStateService } from '../../../credits/services/credit-state.service';
 import { UserSubscriptionDetails } from '../../../subscription/models/subscription.model';
 import { PaymentMethod, Invoice } from '../../models/user.model';
-import { IndividualPlan, TeamPlan, POPULAR_CURRENCIES } from '../../../../shared/models/pricing.model';
+import { IndividualPlan, TeamPlan, SUPPORTED_PAYMENT_CURRENCIES } from '../../../../shared/models/pricing.model';
 
 @Component({
   selector: 'app-billing-settings',
@@ -167,16 +167,13 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   selectedGateway = signal<'paystack' | 'stripe' | 'paypal'>(this.loadPersistedGateway());
 
-  // Available currencies - filtered based on selected gateway
+  // Available currencies - regardless of gateway
   readonly filteredCurrencies = computed(() => {
-    const gateway = this.selectedGateway();
-    const gatewayInfo = this.paymentGateways.find(g => g.type === gateway);
-    const supportedCodes = gatewayInfo?.supportedCurrencies || ['USD', 'EUR', 'GBP'];
-    return POPULAR_CURRENCIES.filter(c => supportedCodes.includes(c.code));
+    return SUPPORTED_PAYMENT_CURRENCIES;
   });
 
   // Keep full list for reference (used internally)
-  readonly currencies = POPULAR_CURRENCIES;
+  readonly currencies = SUPPORTED_PAYMENT_CURRENCIES;
 
   // Display plans based on tab and interval
   readonly displayPlans = computed(() => {
@@ -310,13 +307,16 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
 
   // ==================== Currency & Interval ====================
 
-  setCurrency(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const currency = select.value;
+  setCurrency(currency: string): void {
     // Persist currency to localStorage
     localStorage.setItem('billing_currency', currency);
     // Update local signal for dropdown
     this.displayCurrency.set(currency);
+
+    // Auto-set gateway based on currency
+    const gateway = ['USD', 'EUR', 'GBP'].includes(currency) ? 'paypal' : 'paystack';
+    this.selectedGateway.set(gateway);
+
     // Update paystack state to reload plans
     this.paystackState.setCurrency(currency);
     // Clear coupon since the amounts are tied to the old currency
@@ -324,6 +324,11 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
     this.couponInput.set('');
     this.paystackState.clearCoupon();
     this.paypalState.clearCoupon();
+  }
+
+  onCurrencyChange(event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    this.setCurrency(select.value);
   }
 
   setBillingInterval(interval: 'monthly' | 'yearly'): void {
@@ -521,7 +526,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   getCurrencySymbol(): string {
     const currency = this.selectedCurrency();
     // Find symbol from the full currency list
-    const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
+    const currencyInfo = SUPPORTED_PAYMENT_CURRENCIES.find(c => c.code === currency);
     return currencyInfo?.symbol || '$';
   }
 
@@ -635,7 +640,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
         currency: currency,
       }).format(mainAmount);
     } catch {
-      const currencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency);
+      const currencyInfo = SUPPORTED_PAYMENT_CURRENCIES.find(c => c.code === currency);
       const symbol = currencyInfo?.symbol || currency;
       return `${symbol}${mainAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`;
     }
@@ -720,7 +725,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
    */
   private getPersistedCurrencySync(): string {
     const persisted = localStorage.getItem('billing_currency');
-    if (persisted && POPULAR_CURRENCIES.some(c => c.code === persisted)) {
+    if (persisted && SUPPORTED_PAYMENT_CURRENCIES.some(c => c.code === persisted)) {
       return persisted;
     }
     return 'USD';
@@ -729,7 +734,7 @@ export class BillingSettingsComponent implements OnInit, OnDestroy {
   private loadPersistedCurrency(): string {
     const persisted = localStorage.getItem('billing_currency');
     // Validate persisted currency is in the supported currency list
-    if (persisted && POPULAR_CURRENCIES.some(c => c.code === persisted)) {
+    if (persisted && SUPPORTED_PAYMENT_CURRENCIES.some(c => c.code === persisted)) {
       return persisted;
     }
     return 'USD'; // Default to USD
