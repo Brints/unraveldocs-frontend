@@ -1,0 +1,39 @@
+<div class="callback-page">
+  <div class="callback-card">
+    @if (isLoading()) {
+      <div class="callback-loading">
+        <div class="spinner-lg"></div>
+        <h2 class="callback-title">Processing your purchase...</h2>
+        <p class="callback-subtitle">Please wait while we verify your payment.</p>
+      </div>
+    } @else if (isSuccess()) {
+      <div class="callback-success">
+        <div class="success-icon">
+          <svg style="width:3rem;height:3rem;color:white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="callback-title" style="color:#166534">Purchase Successful!</h2>
+        <p class="callback-subtitle">{{ packName() }} — {{ credits() }} credits have been added to your account.</p>
+        <div class="callback-actions">
+          <a routerLink="/credits/packs" class="btn-primary">View Credits</a>
+          <a routerLink="/user/dashboard" class="btn-secondary">Go to Dashboard</a>
+        </div>
+      </div>
+    } @else {
+      <div class="callback-info">
+        <div class="info-icon">
+          <svg style="width:3rem;height:3rem;color:white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h2 class="callback-title">Payment Received</h2>
+        <p class="callback-subtitle">Your payment is being processed. Credits will be added shortly.</p>
+        <div class="callback-actions">
+          <a routerLink="/credits/packs" class="btn-primary">View Credit Packs</a>
+          <a routerLink="/credits/transactions" class="btn-secondary">View Transactions</a>
+        </div>
+      </div>
+    }
+  </div>
+</div>

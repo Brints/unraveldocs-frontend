@@ -137,25 +137,6 @@ export interface CreditApiResponse<T> {
   data: T;
 }
 
-// ==================== View State ====================
-
-export interface CreditViewState {
-  packs: CreditPack[];
-  balance: CreditBalance | null;
-  transactions: CreditTransaction[];
-  selectedPack: CreditPack | null;
-  isLoading: boolean;
-  isProcessing: boolean;
-  error: string | null;
-  successMessage: string | null;
-  pagination: {
-    page: number;
-    size: number;
-    totalElements: number;
-    totalPages: number;
-  };
-}
-
 // ==================== Helpers ====================
 
 export const TRANSACTION_TYPE_LABELS: Record<CreditTransactionType, string> = {
