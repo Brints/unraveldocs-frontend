@@ -1,3 +1,10 @@
+## [2.10.1](https://github.com/Brints/unraveldocs-frontend/compare/v2.10.0...v2.10.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* Payment redirection on currency selection ([3c0a7ad](https://github.com/Brints/unraveldocs-frontend/commit/3c0a7ad87d0e5393c91d824102c3173b05273d96))
+
 # [2.10.0](https://github.com/Brints/unraveldocs-frontend/compare/v2.9.2...v2.10.0) (2026-03-10)
 
 
