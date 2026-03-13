@@ -21,7 +21,6 @@ export class CouponStateService {
   private readonly api = inject(CouponApiService);
 
   // ==================== Private State Signals ====================
-
   private readonly _couponInput = signal<string>('');
   private readonly _validationStatus = signal<CouponValidationStatus>('idle');
   private readonly _validatedCoupon = signal<CouponData | null>(null);
@@ -31,10 +30,7 @@ export class CouponStateService {
   private readonly _isLoading = signal(false);
 
   // ==================== Public Readonly Signals ====================
-
-  readonly couponInput = this._couponInput.asReadonly();
   readonly validationStatus = this._validationStatus.asReadonly();
-  readonly validatedCoupon = this._validatedCoupon.asReadonly();
   readonly appliedCoupon = this._appliedCoupon.asReadonly();
   readonly availableCoupons = this._availableCoupons.asReadonly();
   readonly error = this._error.asReadonly();
@@ -53,19 +49,9 @@ export class CouponStateService {
   readonly isApplying = computed(() => this._validationStatus() === 'applying');
 
   /**
-   * Check if a coupon has been validated successfully
-   */
-  readonly hasValidCoupon = computed(() => this._validationStatus() === 'valid');
-
-  /**
    * Check if a coupon has been applied successfully
    */
   readonly hasCouponApplied = computed(() => this._appliedCoupon() !== null);
-
-  /**
-   * Get the applied coupon code
-   */
-  readonly appliedCouponCode = computed(() => this._appliedCoupon()?.code || null);
 
   /**
    * Get the discount percentage
@@ -93,62 +79,6 @@ export class CouponStateService {
   readonly hasAvailableCoupons = computed(() => this._availableCoupons().length > 0);
 
   // ==================== Actions ====================
-
-  /**
-   * Set coupon input value
-   */
-  setCouponInput(value: string): void {
-    this._couponInput.set(value.toUpperCase().trim());
-    // Reset validation when input changes
-    if (this._validationStatus() !== 'applied') {
-      this._validationStatus.set('idle');
-      this._validatedCoupon.set(null);
-      this._error.set(null);
-    }
-  }
-
-  /**
-   * Validate a coupon code
-   */
-  validateCoupon(code: string): void {
-    if (!code || code.trim().length === 0) {
-      this._error.set('Please enter a coupon code');
-      return;
-    }
-
-    const trimmedCode = code.trim().toUpperCase();
-    this._couponInput.set(trimmedCode);
-    this._validationStatus.set('validating');
-    this._error.set(null);
-
-    this.api.validateCoupon(trimmedCode).pipe(
-      tap(response => {
-        // Handle direct error structure or wrapped structure
-        const data = response?.data || response;
-        const statusCode = response?.statusCode || response?.status;
-
-        if (data?.valid && data?.couponData && (!statusCode || statusCode < 400)) {
-          this._validatedCoupon.set(data.couponData);
-          this._validationStatus.set('valid');
-        } else {
-          this._validatedCoupon.set(null);
-          this._validationStatus.set('invalid');
-          const errorMessage = data?.message || data?.error || getCouponErrorMessage(data?.errorCode as CouponErrorCode);
-          this._error.set(errorMessage || 'Invalid coupon code');
-        }
-      }),
-      catchError(error => {
-        console.error('Failed to validate coupon:', error);
-        this._validatedCoupon.set(null);
-        this._validationStatus.set('error');
-        // Extract error message from various possible response structures
-        const errorMessage = this.extractErrorMessage(error);
-        this._error.set(errorMessage);
-        return of(null);
-      })
-    ).subscribe();
-  }
-
   /**
    * Apply a coupon to an amount
    */
@@ -188,9 +118,9 @@ export class CouponStateService {
           this._validationStatus.set('applied');
         } else {
           this._validationStatus.set('invalid');
-          const errorMessage = data?.message || 
+          const errorMessage = data?.message ||
                                (data?.minPurchaseAmount ? `Minimum purchase amount of ${data.minPurchaseAmount} not met` : null) ||
-                               'Invalid coupon code';
+                               'Invalid promo code';
           this._error.set(errorMessage);
         }
       }),
@@ -236,14 +166,6 @@ export class CouponStateService {
   }
 
   /**
-   * Select an available coupon and apply it
-   */
-  selectAvailableCoupon(coupon: AvailableCoupon, amount: number, currency: string = 'USD'): void {
-    this._couponInput.set(coupon.code);
-    this.applyCoupon(coupon.code, amount, currency);
-  }
-
-  /**
    * Clear any error message
    */
   clearError(): void {
@@ -251,42 +173,11 @@ export class CouponStateService {
   }
 
   /**
-   * Reset all coupon state
-   */
-  reset(): void {
-    this._couponInput.set('');
-    this._validationStatus.set('idle');
-    this._validatedCoupon.set(null);
-    this._appliedCoupon.set(null);
-    this._availableCoupons.set([]);
-    this._error.set(null);
-    this._isLoading.set(false);
-  }
-
-  /**
-   * Get formatted discount display string
-   */
-  getFormattedDiscount(): string {
-    const appliedCoupon = this._appliedCoupon();
-    if (!appliedCoupon) return '';
-    return `${appliedCoupon.discountPercentage}% off`;
-  }
-
-  /**
-   * Get formatted savings display string
-   */
-  getFormattedSavings(currencySymbol: string = '$'): string {
-    const appliedCoupon = this._appliedCoupon();
-    if (!appliedCoupon) return '';
-    return `${currencySymbol}${appliedCoupon.discountAmount.toFixed(2)}`;
-  }
-
-  /**
    * Helper to extract error message from API response
    */
   private extractErrorMessage(error: any): string {
     const errorBody = error?.error || error;
-    
+
     if (typeof errorBody === 'string') return errorBody;
 
     // Direct extraction as requested

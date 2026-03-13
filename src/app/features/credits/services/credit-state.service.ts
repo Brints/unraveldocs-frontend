@@ -7,8 +7,7 @@ import {
   CreditBalance,
   CreditTransaction,
   CreditTransferResponse,
-  CreditGateway,
-  formatCentsToPrice,
+  CreditGateway
 } from '../models/credit.model';
 
 /**
@@ -62,18 +61,9 @@ export class CreditStateService {
   readonly totalPurchased = computed(() => this._balance()?.totalPurchased ?? 0);
 
   readonly totalUsed = computed(() => this._balance()?.totalUsed ?? 0);
-
-  readonly hasCredits = computed(() => this.creditBalance() > 0);
-
   readonly isLowBalance = computed(() => {
     const balance = this.creditBalance();
     return balance > 0 && balance <= 5;
-  });
-
-  readonly selectedPackPrice = computed(() => {
-    const pack = this._selectedPack();
-    if (!pack) return '';
-    return formatCentsToPrice(pack.priceInCents, pack.currency);
   });
 
   readonly selectedPackWithDiscount = computed(() => {

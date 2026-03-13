@@ -101,9 +101,5 @@ export class CreditTransferComponent {
   clearError(): void {
     this.creditState.clearError();
   }
-
-  clearSuccess(): void {
-    this.creditState.clearSuccessMessage();
-  }
 }
 

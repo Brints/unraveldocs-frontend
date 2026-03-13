@@ -32,8 +32,6 @@ export class SubscriptionPlansComponent implements OnInit {
 
   // From state service
   readonly plans = this.subState.plans;
-  readonly displayPlans = this.subState.displayPlans;
-  readonly currentSubscription = this.subState.currentSubscription;
   readonly currentTier = this.subState.currentTier;
   readonly billingInterval = this.subState.billingInterval;
   readonly isLoading = this.subState.isLoading;
@@ -79,13 +77,6 @@ export class SubscriptionPlansComponent implements OnInit {
     const currentIndex = tierOrder.indexOf(this.currentTier());
     const planIndex = tierOrder.indexOf(plan.tier);
     return planIndex > currentIndex;
-  }
-
-  isDowngrade(plan: SubscriptionPlan): boolean {
-    const tierOrder: PlanTier[] = ['free', 'starter', 'pro', 'enterprise'];
-    const currentIndex = tierOrder.indexOf(this.currentTier());
-    const planIndex = tierOrder.indexOf(plan.tier);
-    return planIndex < currentIndex;
   }
 
   getButtonText(plan: SubscriptionPlan): string {
@@ -194,18 +185,6 @@ export class SubscriptionPlansComponent implements OnInit {
     this.couponCode.set('');
     this.couponSuccess.set(null);
     this.couponError.set(null);
-  }
-
-  getFinalPrice(): number {
-    const coupon = this.appliedCoupon();
-    if (coupon) {
-      return coupon.finalAmount;
-    }
-    const plan = this.selectedPlanForCheckout();
-    if (!plan) return 0;
-    return this.billingInterval() === 'yearly'
-      ? this.getYearlyPrice(plan) / 12
-      : plan.price;
   }
 }
 

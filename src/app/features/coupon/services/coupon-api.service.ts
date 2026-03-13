@@ -12,8 +12,8 @@ interface ApiResponse<T> {
 }
 
 /**
- * Coupon API Service
- * Handles coupon/promo code validation and application
+ * Promo Code API Service
+ * Handles promo code validation and application
  */
 @Injectable({
   providedIn: 'root'
@@ -33,13 +33,5 @@ export class CouponApiService {
     ).pipe(
       map(response => response.data)
     );
-  }
-
-  /**
-   * Apply a coupon to a subscription checkout
-   * POST /coupons/apply
-   */
-  applyCoupon(code: string, planId: string, currency: string = 'USD'): Observable<CouponValidationResponse> {
-    return this.validateCoupon({ code, planId, currency });
   }
 }
