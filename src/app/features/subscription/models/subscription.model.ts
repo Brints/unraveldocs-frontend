@@ -271,7 +271,7 @@ export const DEFAULT_PLANS: Partial<SubscriptionPlan>[] = [
     price: 0,
     currency: 'USD',
     interval: 'monthly',
-    description: 'Perfect for trying out ReDraft',
+    description: 'Perfect for trying out UnravelDocs',
     isPopular: false,
     features: [
       { id: 'f1', name: '50 Documents/month', included: true },

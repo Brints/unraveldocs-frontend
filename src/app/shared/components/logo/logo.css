@@ -9,6 +9,19 @@
   object-fit: contain;
 }
 
+.logo-image {
+  display: block;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+.logo-image-icon {
+  object-fit: cover;
+  object-position: left center;
+  border-radius: 0.5rem;
+}
+
 .logo-text-container {
   display: flex;
   flex-direction: column;
@@ -28,6 +41,10 @@
 /* Dark theme */
 .logo-dark .logo-text {
   color: #ffffff;
+}
+
+.logo-dark .logo-image {
+  filter: brightness(0) invert(1);
 }
 
 .logo-dark .logo-tagline {

@@ -7,7 +7,7 @@
 
 export type SubscriptionType = 'TEAM_PREMIUM' | 'TEAM_ENTERPRISE';
 export type BillingCycle = 'MONTHLY' | 'YEARLY';
-export type SubscriptionStatus = 'TRIALING' | 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE';
+export type SubscriptionStatus = 'TRIAL' | 'TRIALING' | 'ACTIVE' | 'CANCELLED' | 'EXPIRED' | 'PAST_DUE';
 export type TeamMemberRole = 'OWNER' | 'ADMIN' | 'MEMBER';
 export type PaymentGateway = 'stripe' | 'paystack';
 

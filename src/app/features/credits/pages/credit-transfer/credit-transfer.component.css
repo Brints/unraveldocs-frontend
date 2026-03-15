@@ -214,3 +214,143 @@
   animation: spin 1s linear infinite; display: inline-block;
 }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive refinements */
+@media (max-width: 1024px) {
+  .transfer-page {
+    max-width: 100%;
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .transfer-layout {
+    gap: 1rem;
+  }
+
+  .info-card {
+    position: static;
+    top: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .transfer-page {
+    padding: 1rem 0.875rem 1.75rem;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .form-card,
+  .info-card {
+    padding: 1.125rem;
+  }
+
+  .balance-display {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .balance-value {
+    font-size: 1.375rem;
+  }
+
+  .success-card {
+    padding: 2rem 1.25rem;
+  }
+
+  .modal-content {
+    max-width: 100%;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .transfer-page {
+    padding: 0.875rem 0.75rem 1.5rem;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .form-card,
+  .info-card {
+    border-radius: 0.875rem;
+    padding: 1rem;
+  }
+
+  .form-card-header {
+    align-items: flex-start;
+  }
+
+  .form-title {
+    font-size: 1.125rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-cancel,
+  .btn-confirm {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .confirm-row {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transfer-page {
+    padding: 0.75rem 0.625rem 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .form-card,
+  .info-card,
+  .success-card {
+    padding: 0.875rem;
+  }
+
+  .success-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .success-title {
+    font-size: 1.25rem;
+  }
+
+  .form-input,
+  .btn-transfer,
+  .btn-cancel,
+  .btn-confirm,
+  .btn-primary {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+}
+

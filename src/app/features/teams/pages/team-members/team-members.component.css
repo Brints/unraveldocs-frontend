@@ -43,6 +43,24 @@
   margin: 0;
 }
 
+.subscription-chip {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.status-active { background: #dcfce7; color: #166534; }
+.status-trial,
+.status-trialing { background: #fef3c7; color: #92400e; }
+.status-cancelled { background: #f3f4f6; color: #6b7280; }
+.status-past_due,
+.status-past-due { background: #fee2e2; color: #dc2626; }
+.status-expired { background: #fee2e2; color: #991b1b; }
+
 /* ==================== Buttons ==================== */
 .btn-primary {
   display: inline-flex;
@@ -107,6 +125,18 @@
 .alert-error { background: #fee2e2; color: #991b1b; }
 .alert-success { background: #dcfce7; color: #166534; }
 .alert-close { margin-left: auto; background: none; border: none; font-size: 1.25rem; cursor: pointer; }
+
+.lifecycle-banner {
+  padding: 0.875rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+.banner-trial { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+.banner-past-due { background: #fff1f2; color: #9f1239; border-color: #fecdd3; }
+.banner-cancelled { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.lifecycle-banner a { color: inherit; font-weight: 700; }
 
 /* ==================== Toolbar ==================== */
 .toolbar {
@@ -412,4 +442,99 @@
 .h-6 { height: 1.5rem; }
 .w-12 { width: 3rem; }
 .h-12 { height: 3rem; }
+
+@media (max-width: 1024px) {
+  .team-members-page {
+    max-width: 100%;
+    padding: 1.25rem 1rem 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .team-members-page {
+    padding: 1rem 0.875rem 1.75rem;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .member-row {
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+  }
+
+  .joined-date {
+    display: none;
+  }
+
+  .upgrade-banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-upgrade {
+    width: 100%;
+    text-align: center;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-members-page {
+    padding: 0.875rem 0.75rem 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .member-row {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .member-actions {
+    margin-left: auto;
+  }
+
+  .alert,
+  .lifecycle-banner {
+    align-items: flex-start;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-members-page {
+    padding: 0.75rem 0.625rem 1.25rem;
+  }
+
+  .members-list,
+  .upgrade-banner,
+  .modal-content,
+  .empty-state {
+    border-radius: 0.875rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .btn-upgrade,
+  .search-input,
+  .form-input,
+  .action-btn {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+}
 

@@ -977,3 +977,146 @@
   .bottom-cta { padding: 2rem 1.25rem; }
   .cta-title { font-size: 1.25rem; }
 }
+
+@media (max-width: 1024px) {
+  .plans-comparison-page {
+    max-width: 100%;
+    padding: 0 1rem 2rem;
+  }
+
+  .hero-section {
+    margin-bottom: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .plans-comparison-page {
+    padding: 0 0.875rem 1.75rem;
+  }
+
+  .hero-section {
+    padding: 2.5rem 1.25rem 3rem;
+    margin: 0 -0.875rem 1.75rem;
+  }
+
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .billing-toggle {
+    width: 100%;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .plans-grid {
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .plan-card {
+    padding: 1.5rem 1.125rem;
+  }
+
+  .cta-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cta-btn-primary,
+  .cta-btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-footer .btn-secondary,
+  .modal-footer .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .plans-comparison-page {
+    padding: 0 0.75rem 1.5rem;
+  }
+
+  .breadcrumb-nav {
+    padding: 0.75rem 0;
+  }
+
+  .hero-section {
+    margin: 0 -0.75rem 1.5rem;
+    border-radius: 0 0 1.25rem 1.25rem;
+  }
+
+  .coupon-input-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .coupon-apply-btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .plans-comparison-page {
+    padding: 0 0.625rem 1.25rem;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+  }
+
+  .hero-subtitle,
+  .section-subtitle,
+  .cta-text {
+    font-size: 0.875rem;
+  }
+
+  .plan-name {
+    font-size: 1.125rem;
+  }
+
+  .price-amount {
+    font-size: 1.875rem;
+  }
+
+  .toggle-btn,
+  .btn-primary,
+  .btn-outline,
+  .btn-current,
+  .btn-secondary,
+  .cta-btn-primary,
+  .cta-btn-secondary,
+  .coupon-input,
+  .coupon-apply-btn {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+
+  .modal-content {
+    border-radius: 1rem;
+  }
+}
+

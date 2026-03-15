@@ -152,7 +152,7 @@
 /* Hero Section */
 .hero-section {
   min-height: 100vh;
-  height: 100vh;
+  height: auto;
   display: flex;
   align-items: center;
   background: #4f46e5;
@@ -422,12 +422,30 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  .section {
+    padding: 3.5rem 0;
+  }
+
+  .features-section,
+  .pricing-section,
+  .cta-section {
+    padding: 4.5rem 0 !important;
+  }
+
+  .back-to-top {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .section {
     padding: 3rem 0;
   }
 
   .hero-section {
+    height: auto;
     min-height: 80vh;
   }
 
@@ -461,9 +479,36 @@
   }
 }
 
+@media (max-width: 640px) {
+  .section {
+    padding: 2.5rem 0;
+  }
+
+  .features-section,
+  .pricing-section,
+  .cta-section {
+    padding: 3.5rem 0 !important;
+  }
+
+  .hero-section {
+    min-height: 72vh;
+  }
+
+  .back-to-top {
+    width: 2.25rem;
+    height: 2.25rem;
+    bottom: 0.875rem;
+    right: 0.875rem;
+  }
+}
+
 @media (max-width: 480px) {
   .section {
     padding: 2rem 0;
+  }
+
+  .hero-section {
+    min-height: 68vh;
   }
 
   .scroll-progress {

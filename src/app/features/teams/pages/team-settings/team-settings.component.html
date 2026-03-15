@@ -23,6 +23,27 @@
   }
 
   @if (team()) {
+    @if (isTrialing()) {
+      <div class="lifecycle-banner banner-trial">
+        <strong>Trial active.</strong>
+        Your team trial ends on {{ formatDate(team()!.trialEndsAt) }}.
+      </div>
+    }
+
+    @if (isPastDue()) {
+      <div class="lifecycle-banner banner-past-due">
+        <strong>Payment overdue.</strong>
+        Update billing details to avoid service interruption.
+      </div>
+    }
+
+    @if (isCancelled()) {
+      <div class="lifecycle-banner banner-cancelled">
+        <strong>Subscription cancelled.</strong>
+        Access remains until {{ formatDate(team()!.subscriptionEndsAt) }}.
+      </div>
+    }
+
     <!-- Team Details Section -->
     <div class="settings-section">
       <h2>Team Details</h2>
@@ -77,17 +98,17 @@
               {{ getCurrentTier()?.name }}
             </span>
             <span class="plan-price">
-              {{ formatCurrency(team()!.subscriptionPrice) }}/{{ team()!.billingCycle === 'MONTHLY' ? 'month' : 'year' }}
+              {{ formatCurrency(team()!.subscriptionPrice, team()!.currency) }}/{{ team()!.billingCycle === 'MONTHLY' ? 'month' : 'year' }}
             </span>
           </div>
-          <div class="subscription-status" [class]="'status-' + team()!.subscriptionStatus.toLowerCase()">
-            {{ team()!.subscriptionStatus }}
+          <div class="subscription-status" [class]="getStatusClass(team()!.subscriptionStatus)">
+            {{ getStatusLabel(team()!.subscriptionStatus) }}
           </div>
         </div>
         <div class="subscription-details">
           <div class="detail-row">
-            <span>Next Billing Date</span>
-            <span>{{ formatDate(team()!.nextBillingDate) }}</span>
+            <span>{{ getPrimaryBillingDateLabel() }}</span>
+            <span>{{ getPrimaryBillingDateValue() }}</span>
           </div>
           <div class="detail-row">
             <span>Auto-Renewal</span>

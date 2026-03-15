@@ -27,7 +27,11 @@ export class TeamInvitationsComponent implements OnInit {
   readonly isProcessing = this.teamState.isProcessing;
   readonly error = this.teamState.error;
   readonly successMessage = this.teamState.successMessage;
+  readonly isOwner = this.teamState.currentTeamIsOwner;
   readonly isEnterprise = this.teamState.currentTeamIsEnterprise;
+  readonly isTrialing = this.teamState.isTrialing;
+  readonly isCancelled = this.teamState.isCancelled;
+  readonly trialDaysRemaining = this.teamState.trialDaysRemaining;
 
   // Track sent invitations locally (during this session)
   sentInvitations = signal<SentInvitation[]>([]);
@@ -80,6 +84,29 @@ export class TeamInvitationsComponent implements OnInit {
       month: 'short',
       day: 'numeric'
     });
+  }
+
+  isPastDue(): boolean {
+    return this.team()?.subscriptionStatus?.toUpperCase() === 'PAST_DUE';
+  }
+
+  getStatusLabel(status: string): string {
+    const normalized = status.toUpperCase();
+    switch (normalized) {
+      case 'ACTIVE':
+        return 'Active';
+      case 'TRIAL':
+      case 'TRIALING':
+        return 'Trial';
+      case 'CANCELLED':
+        return 'Cancelled';
+      case 'PAST_DUE':
+        return 'Past Due';
+      case 'EXPIRED':
+        return 'Expired';
+      default:
+        return status;
+    }
   }
 }
 

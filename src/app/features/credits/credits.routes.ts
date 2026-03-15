@@ -15,25 +15,25 @@ export const creditRoutes: Routes = [
         path: 'packs',
         loadComponent: () => import('./pages/credit-packs/credit-packs.component')
           .then(m => m.CreditPacksComponent),
-        title: 'Credit Packs - ReDraft'
+        title: 'Credit Packs - UnravelDocs'
       },
       {
         path: 'transactions',
         loadComponent: () => import('./pages/credit-transactions/credit-transactions.component')
           .then(m => m.CreditTransactionsComponent),
-        title: 'Credit Transactions - ReDraft'
+        title: 'Credit Transactions - UnravelDocs'
       },
       {
         path: 'transfer',
         loadComponent: () => import('./pages/credit-transfer/credit-transfer.component')
           .then(m => m.CreditTransferComponent),
-        title: 'Transfer Credits - ReDraft'
+        title: 'Transfer Credits - UnravelDocs'
       },
       {
         path: 'purchase/callback',
         loadComponent: () => import('./pages/credit-purchase-callback/credit-purchase-callback.component')
           .then(m => m.CreditPurchaseCallbackComponent),
-        title: 'Purchase Complete - ReDraft'
+        title: 'Purchase Complete - UnravelDocs'
       }
     ]
   }

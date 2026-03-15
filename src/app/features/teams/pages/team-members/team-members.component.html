@@ -13,6 +13,11 @@
       <p class="page-subtitle">
         {{ members().length }} members · {{ remainingSlots() }} slots remaining
       </p>
+      @if (team()) {
+        <span class="subscription-chip" [class]="'status-' + team()!.subscriptionStatus.toLowerCase()">
+          {{ getStatusLabel(team()!.subscriptionStatus) }}
+        </span>
+      }
     </div>
     @if (isOwner() && canAddMembers()) {
       <button type="button" class="btn-primary" (click)="openAddModal()">
@@ -41,6 +46,33 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
       <span>{{ successMessage() }}</span>
+    </div>
+  }
+
+  @if (isTrialing() && trialDaysRemaining() !== null) {
+    <div class="lifecycle-banner banner-trial">
+      <strong>{{ trialDaysRemaining() }} days left in trial.</strong>
+      @if (isOwner()) {
+        <a [routerLink]="['/teams', team()?.id, 'settings']">Upgrade plan</a> to keep team access.
+      }
+    </div>
+  }
+
+  @if (isPastDue()) {
+    <div class="lifecycle-banner banner-past-due">
+      <strong>Payment overdue.</strong>
+      @if (isOwner()) {
+        <a [routerLink]="['/teams', team()?.id, 'settings']">Update billing</a> to avoid interruption.
+      } @else {
+        Ask your team owner to update billing details.
+      }
+    </div>
+  }
+
+  @if (isCancelled()) {
+    <div class="lifecycle-banner banner-cancelled">
+      <strong>Subscription cancelled.</strong>
+      Access remains until {{ formatDate(team()?.subscriptionEndsAt || null) }}.
     </div>
   }
 

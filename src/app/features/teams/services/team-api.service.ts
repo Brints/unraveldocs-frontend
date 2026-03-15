@@ -62,8 +62,8 @@ function normalizeBillingCycle(cycle: string): string {
 
 function normalizeSubscriptionStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    'trial': 'TRIALING',
-    'trialing': 'TRIALING',
+    'trial': 'TRIAL',
+    'trialing': 'TRIAL',
     'active': 'ACTIVE',
     'cancelled': 'CANCELLED',
     'canceled': 'CANCELLED',

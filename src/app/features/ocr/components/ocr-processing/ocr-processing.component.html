@@ -1,12 +1,12 @@
 <!-- OCR Processing Page -->
 <div class="ocr-page">
   <!-- Page Header -->
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+  <div class="ocr-page-header flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
     <div>
       <h1 class="text-2xl font-bold text-gray-900">OCR Processing</h1>
       <p class="text-gray-500 mt-1">Extract text from documents and images</p>
     </div>
-    <div class="flex gap-3">
+    <div class="ocr-page-header-actions flex gap-3">
       <label class="btn-primary cursor-pointer">
         <input type="file" class="hidden" multiple accept=".pdf,.jpg,.jpeg,.png,.gif,.webp,.tiff,.doc,.docx"
           (change)="onFileSelect($event)" />
@@ -151,7 +151,7 @@
   </div>
 
   <!-- Tabs -->
-  <div class="flex items-center gap-1 border-b border-gray-200 mb-0">
+  <div class="ocr-tabs-toolbar flex items-center gap-1 border-b border-gray-200 mb-0">
     <button type="button" class="tab-btn" [class.active]="activeTab() === 'all'" (click)="setActiveTab('all')">
       All
       <span class="tab-badge">{{ jobs().length }}</span>
@@ -172,7 +172,7 @@
     </button>
 
     <!-- Clear completed/failed inline -->
-    <div class="ml-auto flex items-center gap-2">
+    <div class="ocr-tabs-actions ml-auto flex items-center gap-2">
       @if (completedJobs().length > 0 && activeTab() === 'completed') {
       <button type="button" class="text-sm text-gray-500 hover:text-gray-700" (click)="clearCompleted()">
         Clear completed
@@ -268,13 +268,13 @@
 
       <!-- Job Info -->
       <div class="job-info">
-        <div class="flex items-center gap-2">
+        <div class="job-title-row flex items-center gap-2">
           <h3 class="font-semibold text-gray-900 truncate">{{ job.fileName }}</h3>
           <span class="status-badge" [class]="getStatusColor(job.status)">
             {{ getStatusLabel(job.status) }}
           </span>
         </div>
-        <div class="flex items-center gap-3 text-sm text-gray-500 mt-1">
+        <div class="job-meta-row flex items-center gap-3 text-sm text-gray-500 mt-1">
           <span>{{ formatFileSize(job.fileSize) }}</span>
           <span>·</span>
           <span>{{ getRelativeTime(job.createdAt) }}</span>
@@ -1092,3 +1092,5 @@
     </div>
   </div>
   }
+
+</div>

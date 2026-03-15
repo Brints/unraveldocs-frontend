@@ -6,6 +6,10 @@
   padding: 1.5rem;
 }
 
+.ocr-page-header-actions {
+  flex-wrap: wrap;
+}
+
 /* ==================== Buttons ==================== */
 .btn-primary {
   display: inline-flex;
@@ -139,6 +143,8 @@
   border-right: none;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .tab-btn:hover {
@@ -178,6 +184,15 @@
 .tab-badge.failed {
   background: #fee2e2;
   color: #dc2626;
+}
+
+.ocr-tabs-toolbar {
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.ocr-tabs-actions {
+  flex-shrink: 0;
 }
 
 /* ==================== Filter Bar ==================== */
@@ -330,6 +345,11 @@
 .job-info {
   flex: 1;
   min-width: 0;
+}
+
+.job-title-row,
+.job-meta-row {
+  flex-wrap: wrap;
 }
 
 .job-actions {
@@ -1397,6 +1417,120 @@
   animation: detailSpin 0.7s linear infinite;
 }
 
+@media (max-width: 1024px) {
+  .ocr-page {
+    padding: 1.25rem;
+  }
+
+  .filter-bar-left {
+    max-width: none;
+  }
+
+  .filter-bar-right {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .ocr-page {
+    padding: 1rem;
+  }
+
+  .ocr-page-header-actions {
+    width: 100%;
+  }
+
+  .ocr-page-header-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stat-card {
+    gap: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  .drop-zone {
+    padding: 1.5rem 1rem;
+  }
+
+  .drop-zone-icon {
+    width: 4rem;
+    height: 4rem;
+  }
+
+  .ocr-tabs-toolbar {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .ocr-tabs-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+  }
+
+  .job-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .job-actions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.875rem;
+  }
+
+  .pagination-controls {
+    justify-content: center;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer,
+  .edit-modal-footer {
+    padding: 1rem;
+  }
+
+  .modal-footer,
+  .edit-modal-footer {
+    flex-wrap: wrap;
+  }
+
+  .modal-footer .btn-primary,
+  .modal-footer .btn-secondary,
+  .edit-modal-footer .edit-cancel-btn,
+  .edit-modal-footer .edit-save-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .ocr-content-tabs,
+  .ocr-content-meta,
+  .ocr-text-scroll,
+  .ocr-detail-actions,
+  .ai-insights-section {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .ocr-detail-title {
+    max-width: 280px;
+  }
+}
+
 @media (max-width: 640px) {
   .ocr-detail-modal {
     max-height: 100vh;
@@ -1458,6 +1592,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .filter-bar-left {
@@ -1478,3 +1613,60 @@
     width: 100%;
   }
 }
+
+@media (max-width: 480px) {
+  .ocr-page {
+    padding: 0.75rem;
+  }
+
+  .tab-btn {
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .tab-badge {
+    padding: 0.125rem 0.375rem;
+  }
+
+  .job-card {
+    padding: 0.875rem;
+  }
+
+  .job-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .action-btn {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .pagination {
+    padding: 0.75rem;
+  }
+
+  .pagination-btn,
+  .pagination-ellipsis {
+    min-width: 2rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+  }
+
+  .modal-footer .btn-primary,
+  .modal-footer .btn-secondary,
+  .edit-modal-footer .edit-cancel-btn,
+  .edit-modal-footer .edit-save-btn {
+    flex-basis: 100%;
+  }
+
+  .ocr-detail-title {
+    max-width: 180px;
+  }
+
+  .ocr-detail-actions {
+    position: static;
+  }
+}
+

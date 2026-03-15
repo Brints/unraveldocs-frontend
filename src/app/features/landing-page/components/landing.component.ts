@@ -269,7 +269,7 @@ export class LandingComponent implements OnInit, OnDestroy {
     const structuredData = {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      'name': 'ReDraft',
+      'name': 'UnravelDocs',
       'description': 'Unlock Your Text. Edit Anything. AI-powered document processing platform.',
       'url': 'https://unraveldocs.xyz',
       'applicationCategory': 'BusinessApplication',
