@@ -1,6 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2816 1536" width="2816" height="1536">
-<rect width="2816" height="1536" fill="white"/>
-<g id="swoosh" transform="translate(0,1536) scale(0.1,-0.1)" fill="#1E3A8A" stroke="none">
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+ width="2816.000000pt" height="1536.000000pt" viewBox="0 0 2816.000000 1536.000000"
+ preserveAspectRatio="xMidYMid meet">
+
+<g id="swoosh" transform="translate(0.000000,1536.000000) scale(0.100000,-0.100000)"
+fill="#2196f3" stroke="none">
 <path d="M12493 12920 c-128 -26 -195 -123 -226 -327 l-12 -77 -78 -41 c-87
 -44 -181 -123 -227 -190 -36 -52 -91 -186 -113 -275 -9 -36 -24 -128 -32 -205
 -10 -85 -21 -145 -30 -155 -10 -11 -11 -20 -3 -34 7 -13 8 -21 2 -23 -9 -3
