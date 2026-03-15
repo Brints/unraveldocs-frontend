@@ -1,3 +1,11 @@
+## [2.10.2](https://github.com/Brints/unraveldocs-frontend/compare/v2.10.1...v2.10.2) (2026-03-15)
+
+
+### Bug Fixes
+
+* **branding:** unify logo assets and improve tagline readability ([b03eeb6](https://github.com/Brints/unraveldocs-frontend/commit/b03eeb6463795e18c5c3f5462a918e0891f7ef09))
+* **branding:** Unify logo assets and improve tagline readability ([3a14583](https://github.com/Brints/unraveldocs-frontend/commit/3a145833841c0e736432cbdf03cc46bd13e07fda))
+
 ## [2.10.1](https://github.com/Brints/unraveldocs-frontend/compare/v2.10.0...v2.10.1) (2026-03-13)
 
 
