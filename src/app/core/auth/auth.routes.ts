@@ -14,32 +14,32 @@ export const authRoutes: Routes = [
     path: 'login',
     component: LoginComponent,
     canActivate: [redirectIfAuthenticatedGuard],
-    title: 'Sign In - ReDraft'
+    title: 'Sign In - UnravelDocs'
   },
   {
     path: 'signup',
     component: SignupComponent,
     canActivate: [redirectIfAuthenticatedGuard],
-    title: 'Create Account - ReDraft'
+    title: 'Create Account - UnravelDocs'
   },
   {
     path: 'google/callback',
     component: GoogleCallbackComponent,
-    title: 'Completing Signup - ReDraft'
+    title: 'Completing Signup - UnravelDocs'
   },
   {
     path: 'verify-email',
     loadComponent: () => import('./components/verify-email/verify-email.component').then(m => m.VerifyEmailComponent),
-    title: 'Verify Email - ReDraft'
+    title: 'Verify Email - UnravelDocs'
   },
   {
     path: 'forgot-password',
     loadComponent: () => import('./components/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
-    title: 'Reset Password - ReDraft'
+    title: 'Reset Password - UnravelDocs'
   },
   {
     path: 'reset-password',
     loadComponent: () => import('./components/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
-    title: 'Set New Password - ReDraft'
+    title: 'Set New Password - UnravelDocs'
   }
 ];

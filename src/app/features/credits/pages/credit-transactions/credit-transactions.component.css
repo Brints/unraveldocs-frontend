@@ -154,3 +154,132 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .animate-spin { animation: spin 1s linear infinite; }
+
+/* Responsive refinements */
+@media (max-width: 1024px) {
+  .transactions-page {
+    max-width: 100%;
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .transaction-item {
+    padding: 0.9375rem 1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .transactions-page {
+    padding: 1rem 0.875rem 1.75rem;
+  }
+
+  .page-header {
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.8125rem;
+  }
+
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+  }
+
+  .balance-chip,
+  .btn-refresh {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .transaction-item {
+    gap: 0.75rem;
+  }
+
+  .transaction-top {
+    flex-wrap: wrap;
+  }
+
+  .transaction-amount span:first-child {
+    font-size: 1rem;
+  }
+
+  .alert {
+    align-items: flex-start;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .transactions-page {
+    padding: 0.875rem 0.75rem 1.5rem;
+  }
+
+  .transaction-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .transaction-description {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .transaction-amount {
+    text-align: left;
+    display: flex;
+    align-items: baseline;
+    gap: 0.375rem;
+  }
+
+  .transaction-amount span:first-child {
+    display: inline;
+  }
+
+  .load-more {
+    padding: 0.875rem;
+  }
+
+  .btn-load-more {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .empty-state {
+    padding: 3rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .transactions-page {
+    padding: 0.75rem 0.625rem 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .transaction-item {
+    padding: 0.8125rem 0.875rem;
+  }
+
+  .transaction-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .btn-refresh,
+  .btn-load-more,
+  .btn-primary {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+}
+

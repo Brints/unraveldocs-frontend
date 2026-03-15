@@ -8,7 +8,37 @@
     </a>
     <h1 class="page-title">Email Invitations</h1>
     <p class="page-subtitle">Invite new users to join your team</p>
+    @if (team()) {
+      <span class="subscription-chip" [class]="'status-' + team()!.subscriptionStatus.toLowerCase()">
+        {{ getStatusLabel(team()!.subscriptionStatus) }}
+      </span>
+    }
   </div>
+
+  @if (isTrialing() && trialDaysRemaining() !== null) {
+    <div class="lifecycle-banner banner-trial">
+      <strong>{{ trialDaysRemaining() }} days left in trial.</strong>
+      Invitations remain available while trial access is active.
+    </div>
+  }
+
+  @if (isPastDue()) {
+    <div class="lifecycle-banner banner-past-due">
+      <strong>Payment overdue.</strong>
+      @if (isOwner()) {
+        <a [routerLink]="['/teams', team()?.id, 'settings']">Update billing</a> to keep invitations enabled.
+      } @else {
+        Ask your team owner to update billing details.
+      }
+    </div>
+  }
+
+  @if (isCancelled()) {
+    <div class="lifecycle-banner banner-cancelled">
+      <strong>Subscription cancelled.</strong>
+      Access remains until {{ team()?.subscriptionEndsAt ? (team()?.subscriptionEndsAt | date:'MMM d, y') : 'the end of billing' }}.
+    </div>
+  }
 
   @if (!isEnterprise()) {
     <div class="upgrade-card">

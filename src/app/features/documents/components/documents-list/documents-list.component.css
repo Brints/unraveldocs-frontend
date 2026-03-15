@@ -693,17 +693,17 @@
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .toolbar {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
   }
-  
+
   .toolbar-left, .toolbar-right {
     width: 100%;
   }
-  
+
   .search-box {
     max-width: 100%;
   }
@@ -715,18 +715,18 @@
   .collection-card.list-view {
     flex-direction: column;
   }
-  
+
   .collection-card.list-view .card-link {
     flex-direction: column;
     align-items: center;
     text-align: center;
     padding: 1.5rem;
   }
-  
+
   .collection-card.list-view .card-content {
     text-align: center;
   }
-  
+
   .collection-card.list-view .card-meta {
     justify-content: center;
   }
@@ -738,3 +738,144 @@
     padding-right: 0;
   }
 }
+
+@media (max-width: 1024px) {
+  .documents-page {
+    max-width: 100%;
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .toolbar {
+    padding: 0.875rem 1rem;
+  }
+
+  .card-link {
+    padding: 1.5rem 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .documents-page {
+    padding: 1rem 0.875rem 1.75rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .btn-primary,
+  .header-actions .btn-secondary,
+  .header-actions .btn-danger {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .collections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.875rem;
+  }
+
+  .card-actions {
+    opacity: 1;
+  }
+
+  .modal-header,
+  .modal-body,
+  .modal-footer {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .documents-page {
+    padding: 0.875rem 0.75rem 1.5rem;
+  }
+
+  .toolbar {
+    padding: 0.75rem 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .toolbar-right {
+    justify-content: flex-start;
+  }
+
+  .collections-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card-link {
+    padding: 1.25rem 1rem;
+  }
+
+  .card-title {
+    font-size: 0.9375rem;
+  }
+
+  .card-id,
+  .card-meta {
+    font-size: 0.75rem;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .modal-footer .btn-secondary,
+  .modal-footer .btn-danger,
+  .modal-footer .btn-primary {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .documents-page {
+    padding: 0.75rem 0.625rem 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+  }
+
+  .alert {
+    align-items: flex-start;
+    gap: 0.625rem;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+
+  .action-btn {
+    min-width: 42px;
+    min-height: 42px;
+  }
+
+  .input-field {
+    min-height: 42px;
+  }
+
+  .empty-state {
+    padding: 3rem 1rem;
+  }
+
+  .modal-content {
+    border-radius: 1rem;
+  }
+}
+

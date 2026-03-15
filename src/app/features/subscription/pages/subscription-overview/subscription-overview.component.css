@@ -552,15 +552,93 @@
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ==================== Responsive ==================== */
-@media (max-width: 639px) {
-  .page-header { flex-direction: column; }
+@media (max-width: 1024px) {
+  .subscription-page { max-width: 100%; padding: 1.25rem 1rem 2rem; }
+  .action-card { padding: 0.875rem 1rem; }
+}
+
+@media (max-width: 768px) {
+  .subscription-page { padding: 1rem 0.875rem 1.75rem; }
+  .page-title { font-size: 1.5rem; }
+  .page-subtitle { font-size: 0.8125rem; }
   .header-actions { width: 100%; }
   .header-actions .btn-primary,
-  .header-actions .btn-outline { flex: 1; justify-content: center; }
+  .header-actions .btn-outline {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+  .plan-card-inner { padding: 1.125rem; }
+  .plan-status-bar { margin: 0 -1.125rem; }
+  .actions-grid { grid-template-columns: 1fr; }
+  .modal-content { max-width: 100%; }
+}
+
+@media (max-width: 640px) {
+  .subscription-page { padding: 0.875rem 0.75rem 1.5rem; }
+  .breadcrumb-nav { padding: 0.625rem 0.75rem; }
+  .breadcrumb-quick-links { display: none; }
+  .page-header { flex-direction: column; margin-bottom: 1.25rem; }
+  .header-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .header-actions .btn-primary,
+  .header-actions .btn-outline,
+  .plan-actions .btn-primary,
+  .plan-actions .btn-outline,
+  .plan-actions .btn-danger-text {
+    width: 100%;
+    justify-content: center;
+  }
   .plan-top { flex-direction: column; text-align: center; }
-  .plan-name-row { justify-content: center; }
-  .plan-price-row { justify-content: center; }
-  .plan-status-bar { text-align: center; }
+  .plan-name-row,
+  .plan-price-row,
   .status-item { justify-content: center; }
-  .plan-actions { justify-content: center; flex-wrap: wrap; }
+  .plan-status-bar { text-align: center; }
+  .plan-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+  }
+  .alert { align-items: flex-start; }
+  .alert span { min-width: 0; }
+  .usage-card,
+  .action-card { padding: 1rem; }
+  .action-arrow { display: none; }
+  .modal-header,
+  .modal-body,
+  .modal-footer { padding-inline: 1rem; }
+  .modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+  .modal-footer .btn-secondary,
+  .modal-footer .btn-danger { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .subscription-page { padding: 0.75rem 0.625rem 1.25rem; }
+  .page-title { font-size: 1.375rem; }
+  .plan-name,
+  .plan-price,
+  .usage-value { font-size: 1.25rem; }
+  .plan-icon { width: 3rem; height: 3rem; }
+  .btn-primary,
+  .btn-outline,
+  .btn-secondary,
+  .btn-danger {
+    min-height: 42px;
+    padding: 0.625rem 1rem;
+    font-size: 0.8125rem;
+  }
+  .btn-danger-text {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+  .checkbox-row {
+    align-items: flex-start;
+    line-height: 1.4;
+  }
 }

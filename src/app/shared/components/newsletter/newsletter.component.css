@@ -117,14 +117,74 @@
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+@media (max-width: 1024px) {
+  .newsletter-section {
+    padding: 3.5rem 0;
+  }
+
+  .newsletter-header h2 {
+    font-size: 2.125rem;
+  }
+}
+
 @media (max-width: 768px) {
+  .newsletter-section {
+    padding: 3rem 0;
+  }
+
+  .newsletter-header h2 {
+    font-size: 1.875rem;
+  }
+
+  .newsletter-header p {
+    font-size: 1rem;
+  }
+
   .form-group {
     flex-direction: column;
   }
+
   .email-input {
     min-width: unset;
   }
+
+  .subscribe-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
   .newsletter-benefits {
     text-align: left;
   }
 }
+
+@media (max-width: 480px) {
+  .newsletter-section {
+    padding: 2.5rem 0;
+  }
+
+  .newsletter-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .newsletter-header p {
+    font-size: 0.9375rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .email-input,
+  .subscribe-btn {
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .benefit {
+    justify-content: flex-start;
+  }
+
+  .privacy-note {
+    font-size: 0.8125rem;
+  }
+}
+

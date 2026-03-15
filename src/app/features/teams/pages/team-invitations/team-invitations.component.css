@@ -5,6 +5,36 @@
 .page-title { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0 0 0.25rem; }
 .page-subtitle { font-size: 0.875rem; color: #6b7280; margin: 0; }
 
+.subscription-chip {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.status-active { background: #dcfce7; color: #166534; }
+.status-trial,
+.status-trialing { background: #fef3c7; color: #92400e; }
+.status-cancelled { background: #f3f4f6; color: #6b7280; }
+.status-past_due,
+.status-past-due { background: #fee2e2; color: #dc2626; }
+.status-expired { background: #fee2e2; color: #991b1b; }
+
+.lifecycle-banner {
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  border: 1px solid transparent;
+}
+.banner-trial { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+.banner-past-due { background: #fff1f2; color: #9f1239; border-color: #fecdd3; }
+.banner-cancelled { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+.lifecycle-banner a { color: inherit; font-weight: 700; }
+
 .upgrade-card { text-align: center; padding: 3rem; background: white; border: 1px solid #e5e7eb; border-radius: 1rem; }
 .upgrade-card svg { color: #a855f7; margin-bottom: 1rem; }
 .upgrade-card h3 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0 0 0.75rem; }
@@ -57,3 +87,42 @@
 .w-5 { width: 1.25rem; } .h-5 { height: 1.25rem; }
 .w-10 { width: 2.5rem; } .h-10 { height: 2.5rem; }
 .w-12 { width: 3rem; } .h-12 { height: 3rem; }
+
+@media (max-width: 1024px) {
+  .invitations-page { max-width: 100%; padding: 1.25rem 1rem 2rem; }
+}
+
+@media (max-width: 768px) {
+  .invitations-page { padding: 1rem 0.875rem 1.75rem; }
+  .invite-form { flex-direction: column; }
+  .btn-primary,
+  .btn-upgrade { width: 100%; text-align: center; justify-content: center; }
+  .invitation-card { align-items: flex-start; }
+  .inv-status { margin-left: auto; }
+}
+
+@media (max-width: 640px) {
+  .invitations-page { padding: 0.875rem 0.75rem 1.5rem; }
+  .page-title { font-size: 1.375rem; }
+  .page-subtitle { font-size: 0.8125rem; }
+  .alert,
+  .lifecycle-banner { align-items: flex-start; font-size: 0.8125rem; }
+  .upgrade-card,
+  .invite-form-card,
+  .invitations-list,
+  .empty-state,
+  .info-card { padding: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .invitations-page { padding: 0.75rem 0.625rem 1.25rem; }
+  .upgrade-card,
+  .invite-form-card,
+  .invitations-list,
+  .empty-state,
+  .info-card { border-radius: 0.875rem; }
+  .invite-input,
+  .btn-primary,
+  .btn-upgrade { min-height: 42px; font-size: 0.8125rem; }
+}
+

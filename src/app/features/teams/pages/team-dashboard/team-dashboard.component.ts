@@ -43,8 +43,10 @@ export class TeamDashboardComponent implements OnInit, OnDestroy {
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
+    const normalizedStatus = status.toUpperCase();
+    switch (normalizedStatus) {
       case 'ACTIVE': return 'status-active';
+      case 'TRIAL':
       case 'TRIALING': return 'status-trial';
       case 'CANCELLED': return 'status-cancelled';
       case 'EXPIRED': return 'status-expired';
@@ -54,8 +56,10 @@ export class TeamDashboardComponent implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    switch (status) {
+    const normalizedStatus = status.toUpperCase();
+    switch (normalizedStatus) {
       case 'ACTIVE': return 'Active';
+      case 'TRIAL':
       case 'TRIALING': return 'Trial';
       case 'CANCELLED': return 'Cancelled';
       case 'EXPIRED': return 'Expired';
@@ -87,6 +91,88 @@ export class TeamDashboardComponent implements OnInit, OnDestroy {
       currency: currency,
       minimumFractionDigits: 0
     }).format(amount);
+  }
+
+  isPastDue(): boolean {
+    return this.team()?.subscriptionStatus?.toUpperCase() === 'PAST_DUE';
+  }
+
+  isTrialUrgent(): boolean {
+    const remaining = this.trialDaysRemaining();
+    return remaining !== null && remaining <= 3;
+  }
+
+  getRenewalLabel(): string {
+    if (this.isCancelled()) {
+      return 'Access Until';
+    }
+    if (this.isPastDue()) {
+      return 'Payment Due';
+    }
+    if (this.isTrialing()) {
+      return 'Trial Ends';
+    }
+    return 'Next Billing';
+  }
+
+  getRenewalValue(): string {
+    const currentTeam = this.team();
+    if (!currentTeam) {
+      return '—';
+    }
+
+    if (this.isCancelled()) {
+      return this.formatDate(currentTeam.subscriptionEndsAt);
+    }
+
+    if (this.isPastDue()) {
+      return this.formatDate(currentTeam.nextBillingDate);
+    }
+
+    if (this.isTrialing()) {
+      return this.formatDate(currentTeam.trialEndsAt);
+    }
+
+    return this.formatDate(currentTeam.nextBillingDate);
+  }
+
+  getOwnerActionTitle(): string {
+    if (this.isPastDue()) {
+      return 'Fix Billing';
+    }
+    if (this.isCancelled()) {
+      return 'Reactivate Team';
+    }
+    if (this.isTrialing()) {
+      return 'Upgrade Plan';
+    }
+    return 'Team Settings';
+  }
+
+  getOwnerActionDescription(): string {
+    if (this.isPastDue()) {
+      return 'Update payment details to restore full access';
+    }
+    if (this.isCancelled()) {
+      return 'Reactivate subscription before access ends';
+    }
+    if (this.isTrialing()) {
+      return 'Choose a paid plan before your trial expires';
+    }
+    return 'Manage subscription, billing, and team details';
+  }
+
+  getOwnerActionBadge(): string | null {
+    if (this.isPastDue()) {
+      return 'Action Required';
+    }
+    if (this.isCancelled()) {
+      return 'Cancelled';
+    }
+    if (this.isTrialing()) {
+      return 'Trial';
+    }
+    return null;
   }
 }
 

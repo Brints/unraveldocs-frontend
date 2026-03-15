@@ -729,3 +729,161 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .upload-page {
+    max-width: 100%;
+    padding: 1.25rem 1rem 2rem;
+  }
+
+  .dropzone,
+  .dropzone-content,
+  .upload-progress-container {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 768px) {
+  .upload-page {
+    padding: 1rem 0.875rem 1.75rem;
+  }
+
+  .page-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .alert {
+    align-items: flex-start;
+  }
+
+  .dropzone-content,
+  .upload-progress-container {
+    padding: 2rem 1.25rem;
+  }
+
+  .dropzone-icon {
+    width: 80px;
+    height: 80px;
+  }
+
+  .selected-files-container,
+  .upload-options,
+  .upload-actions,
+  .formats-info,
+  .pdf-ocr-options {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .files-actions {
+    width: 100%;
+  }
+
+  .btn-secondary-sm,
+  .btn-text-danger {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .btn-primary-lg {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 640px) {
+  .upload-page {
+    padding: 0.875rem 0.75rem 1.5rem;
+  }
+
+  .files-header {
+    align-items: stretch;
+  }
+
+  .files-actions {
+    flex-direction: column;
+    gap: 0.625rem;
+  }
+
+  .file-item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .remove-btn {
+    margin-left: auto;
+  }
+
+  .file-name {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .formats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-range-inputs {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .range-separator {
+    display: none;
+  }
+
+  .input-col {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .upload-page {
+    padding: 0.75rem 0.625rem 1.25rem;
+  }
+
+  .page-title {
+    font-size: 1.375rem;
+  }
+
+  .dropzone,
+  .dropzone-content,
+  .upload-progress-container {
+    min-height: 240px;
+  }
+
+  .dropzone-title {
+    font-size: 1.125rem;
+  }
+
+  .dropzone-subtitle,
+  .dropzone-limit,
+  .checkbox-description,
+  .option-description {
+    font-size: 0.75rem;
+  }
+
+  .option-input,
+  .btn-secondary-sm,
+  .btn-text-danger,
+  .btn-primary-lg,
+  .remove-btn,
+  .segment-btn {
+    min-height: 42px;
+    font-size: 0.8125rem;
+  }
+
+  .option-checkbox {
+    min-height: 42px;
+  }
+}
+

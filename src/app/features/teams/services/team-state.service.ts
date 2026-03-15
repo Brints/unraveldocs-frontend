@@ -139,7 +139,7 @@ export class TeamStateService {
   });
 
   readonly isTrialing = computed(() =>
-    this._currentTeam()?.subscriptionStatus === 'TRIALING'
+    this._currentTeam()?.subscriptionStatus === 'TRIAL' || this._currentTeam()?.subscriptionStatus === 'TRIALING'
   );
 
   readonly isCancelled = computed(() =>

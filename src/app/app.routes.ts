@@ -12,7 +12,7 @@ export const routes: Routes = [
   //   path: 'pricing',
   //   loadComponent: () => import(
   //     './pages/pricing/pricing-page.component').then(m => m.PricingPageComponent),
-  //   title: 'Pricing - ReDraft'
+  //   title: 'Pricing - UnravelDocs'
   // },
   {
     path: 'auth',
@@ -60,7 +60,7 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./shared/components/search/search.component')
           .then(m => m.SearchComponent),
-        title: 'Search - ReDraft'
+        title: 'Search - UnravelDocs'
       }
     ]
   },

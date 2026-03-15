@@ -4,6 +4,8 @@ import { authGuard } from '../../core/auth/guards/auth.guard';
 export const teamRoutes: Routes = [
   {
     path: 'teams',
+    loadComponent: () => import('../user/components/dashboard-layout/dashboard-layout.component')
+      .then(m => m.DashboardLayoutComponent),
     canActivate: [authGuard],
     children: [
       {

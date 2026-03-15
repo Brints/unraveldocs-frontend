@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="UnravelDocs favicon">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)"/>
+  <path d="M20 20 V39 Q20 47 26 47 Q32 47 32 39 V20" fill="none" stroke="white" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 50 C24 56, 40 56, 48 50" fill="none" stroke="#c4b5fd" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M40 12 L52 24 H46 Q40 24 40 18 Z" fill="rgba(255,255,255,0.35)"/>
+</svg>
+

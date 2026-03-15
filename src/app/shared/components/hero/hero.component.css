@@ -31,3 +31,24 @@
 .process-step.active .step-icon {
   box-shadow: 0 8px 25px rgba(255, 255, 255, 0.3);
 }
+
+.hero-content-wrap {
+  padding-top: 5.5rem;
+}
+
+@media (max-width: 1024px) {
+  .hero-content-wrap {
+    padding-top: 5.5rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-content-wrap {
+    padding-top: 6rem;
+    padding-bottom: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+

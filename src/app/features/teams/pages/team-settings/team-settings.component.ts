@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, effect, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -35,6 +35,17 @@ export class TeamSettingsComponent implements OnInit {
 
   private teamId = '';
 
+  constructor() {
+    // Keep form fields in sync when team data arrives asynchronously.
+    effect(() => {
+      const currentTeam = this.team();
+      if (currentTeam) {
+        this.teamName = currentTeam.name;
+        this.teamDescription = currentTeam.description || '';
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.teamId = this.route.snapshot.paramMap.get('teamId') || '';
     if (this.teamId) {
@@ -43,12 +54,6 @@ export class TeamSettingsComponent implements OnInit {
       }
     }
 
-    // Initialize form values when team loads
-    const team = this.team();
-    if (team) {
-      this.teamName = team.name;
-      this.teamDescription = team.description || '';
-    }
   }
 
   updateTeamDetails(): void {
@@ -82,12 +87,87 @@ export class TeamSettingsComponent implements OnInit {
     });
   }
 
-  formatCurrency(amount: number): string {
+  formatCurrency(amount: number, currency: string = 'USD'): string {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency,
       minimumFractionDigits: 0
     }).format(amount);
+  }
+
+  getStatusClass(status: string): string {
+    const normalized = status.toUpperCase();
+    switch (normalized) {
+      case 'ACTIVE':
+        return 'status-active';
+      case 'TRIAL':
+      case 'TRIALING':
+        return 'status-trial';
+      case 'CANCELLED':
+        return 'status-cancelled';
+      case 'PAST_DUE':
+        return 'status-past-due';
+      case 'EXPIRED':
+        return 'status-expired';
+      default:
+        return 'status-default';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    const normalized = status.toUpperCase();
+    switch (normalized) {
+      case 'ACTIVE':
+        return 'Active';
+      case 'TRIAL':
+      case 'TRIALING':
+        return 'Trial';
+      case 'CANCELLED':
+        return 'Cancelled';
+      case 'PAST_DUE':
+        return 'Past Due';
+      case 'EXPIRED':
+        return 'Expired';
+      default:
+        return status;
+    }
+  }
+
+  isTrialing(): boolean {
+    const status = this.team()?.subscriptionStatus?.toUpperCase();
+    return status === 'TRIAL' || status === 'TRIALING';
+  }
+
+  isPastDue(): boolean {
+    return this.team()?.subscriptionStatus?.toUpperCase() === 'PAST_DUE';
+  }
+
+  getPrimaryBillingDateLabel(): string {
+    if (this.isTrialing()) {
+      return 'Trial Ends';
+    }
+    if (this.isCancelled()) {
+      return 'Access Until';
+    }
+    if (this.isPastDue()) {
+      return 'Payment Due';
+    }
+    return 'Next Billing Date';
+  }
+
+  getPrimaryBillingDateValue(): string {
+    const currentTeam = this.team();
+    if (!currentTeam) {
+      return '—';
+    }
+
+    if (this.isTrialing()) {
+      return this.formatDate(currentTeam.trialEndsAt);
+    }
+    if (this.isCancelled()) {
+      return this.formatDate(currentTeam.subscriptionEndsAt);
+    }
+    return this.formatDate(currentTeam.nextBillingDate);
   }
 
   getCurrentTier() {

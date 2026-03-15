@@ -33,6 +33,74 @@
     </a>
   </div>
 
+  <!-- Teams Overview -->
+  @if (!isLoading() && hasTeams()) {
+    <section class="overview-grid">
+      <article class="overview-card">
+        <p class="overview-label">Total Teams</p>
+        <p class="overview-value">{{ totalTeamsCount() }}</p>
+        <p class="overview-hint">Across owned and joined workspaces</p>
+      </article>
+      <article class="overview-card">
+        <p class="overview-label">Owned</p>
+        <p class="overview-value">{{ ownedTeamsCount() }}</p>
+        <p class="overview-hint">Teams where you can manage subscription</p>
+      </article>
+      <article class="overview-card">
+        <p class="overview-label">Team Seats Used</p>
+        <p class="overview-value">{{ totalSeatsUsed() }} / {{ totalSeatsAvailable() }}</p>
+        <p class="overview-hint">Total members across your teams</p>
+      </article>
+      <article class="overview-card">
+        <p class="overview-label">Active Trials</p>
+        <p class="overview-value">{{ activeTrialCount() }}</p>
+        <p class="overview-hint">Teams currently in trial period</p>
+      </article>
+    </section>
+
+    <section class="teams-controls">
+      <div class="search-box">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="Search by team name, code, plan, or status"
+          [value]="searchQuery()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </div>
+
+      <div class="filter-tabs" role="tablist" aria-label="Team filters">
+        <button
+          type="button"
+          class="filter-tab"
+          [class.active]="teamView() === 'all'"
+          (click)="setTeamView('all')"
+        >
+          All
+        </button>
+        <button
+          type="button"
+          class="filter-tab"
+          [class.active]="teamView() === 'owned'"
+          (click)="setTeamView('owned')"
+        >
+          Owned
+        </button>
+        <button
+          type="button"
+          class="filter-tab"
+          [class.active]="teamView() === 'member'"
+          (click)="setTeamView('member')"
+        >
+          Joined
+        </button>
+      </div>
+    </section>
+  }
+
   <!-- Error Alert -->
   @if (error()) {
     <div class="alert alert-error">
@@ -74,7 +142,7 @@
     </div>
   } @else {
     <!-- Owned Teams Section -->
-    @if (ownedTeams().length > 0) {
+    @if (filteredOwnedTeams().length > 0) {
       <div class="teams-section">
         <h2 class="section-title">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +151,7 @@
           Teams You Own
         </h2>
         <div class="teams-grid">
-          @for (team of ownedTeams(); track team.id) {
+          @for (team of filteredOwnedTeams(); track team.id) {
             <a [routerLink]="['/teams', team.id]" class="team-card owned">
               <div class="card-header">
                 <div class="team-avatar">
@@ -103,6 +171,17 @@
                     </svg>
                     <span>{{ team.currentMemberCount }}/{{ team.maxMembers }} members</span>
                   </div>
+                  <div class="member-progress" aria-hidden="true">
+                    <div class="member-progress-fill" [style.width.%]="getMemberUtilization(team)"></div>
+                  </div>
+                  <div class="stat">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V7m2 12H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>{{ getDocumentLimitLabel(team) }}</span>
+                  </div>
+                  <p class="team-billing">{{ getBillingLabel(team) }}</p>
+                  <p class="team-renewal">{{ getRenewalLabel(team) }}</p>
                 </div>
               </div>
               <div class="card-footer">
@@ -120,7 +199,7 @@
     }
 
     <!-- Member Teams Section -->
-    @if (memberTeams().length > 0) {
+    @if (filteredMemberTeams().length > 0) {
       <div class="teams-section">
         <h2 class="section-title">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,7 +208,7 @@
           Teams You've Joined
         </h2>
         <div class="teams-grid">
-          @for (team of memberTeams(); track team.id) {
+          @for (team of filteredMemberTeams(); track team.id) {
             <a [routerLink]="['/teams', team.id]" class="team-card member">
               <div class="card-header">
                 <div class="team-avatar">
@@ -149,6 +228,17 @@
                     </svg>
                     <span>{{ team.currentMemberCount }} members</span>
                   </div>
+                  <div class="member-progress" aria-hidden="true">
+                    <div class="member-progress-fill" [style.width.%]="getMemberUtilization(team)"></div>
+                  </div>
+                  <div class="stat">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4V7m2 12H7a2 2 0 01-2-2V5a2 2 0 012-2h10a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>{{ getDocumentLimitLabel(team) }}</span>
+                  </div>
+                  <p class="team-billing">{{ getBillingLabel(team) }}</p>
+                  <p class="team-renewal">{{ getRenewalLabel(team) }}</p>
                 </div>
               </div>
               <div class="card-footer">
@@ -162,6 +252,18 @@
             </a>
           }
         </div>
+      </div>
+    }
+
+    @if (filteredTeamsCount() === 0) {
+      <div class="empty-state compact">
+        <div class="empty-icon">
+          <svg class="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+        <h3>No teams match your filters</h3>
+        <p>Try a different search term or switch between All, Owned, and Joined.</p>
       </div>
     }
   }

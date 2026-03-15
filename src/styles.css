@@ -1,9 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
-/* Custom styles for ReDraft */
+/* Custom styles for UnravelDocs */
 
 @layer base {
+  :root {
+    --tagline-font-size: clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem);
+    --tagline-line-height: 1.55;
+  }
+
   html {
     scroll-behavior: smooth;
   }
@@ -56,6 +61,15 @@
     list-style: none;
     margin: 0;
     padding: 0;
+  }
+
+  body .page-subtitle,
+  body .section-subtitle,
+  body .welcome-subtitle,
+  body .logo-tagline,
+  body .price-tagline {
+    font-size: var(--tagline-font-size);
+    line-height: var(--tagline-line-height);
   }
 }
 

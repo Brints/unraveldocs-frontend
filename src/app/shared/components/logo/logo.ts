@@ -30,6 +30,16 @@ export class Logo {
     return sizes[this.size];
   }
 
+  get fullLogoSize(): { width: number; height: number } {
+    const sizes = {
+      sm: { width: 120, height: 24 },
+      md: { width: 160, height: 32 },
+      lg: { width: 220, height: 44 },
+      xl: { width: 280, height: 56 },
+    };
+    return sizes[this.size];
+  }
+
   get textClass(): string {
     const sizeClasses = {
       sm: 'text-lg',

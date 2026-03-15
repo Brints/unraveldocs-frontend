@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
   styleUrl: 'app.component.css',
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title = 'ReDraft - Unlock Your Text. Edit Anything.';
+  title = 'UnravelDocs - Unlock Your Text. Edit Anything.';
 
   private readonly tokenRefreshService = inject(TokenRefreshService);
   private readonly authService = inject(AuthService);
