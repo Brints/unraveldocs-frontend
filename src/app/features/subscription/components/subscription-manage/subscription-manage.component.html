@@ -133,9 +133,9 @@
               </svg>
             </div>
             <div class="stat-content">
-              <span class="stat-label">Documents</span>
+              <span class="stat-label">Documents Uploaded</span>
               <span class="stat-value">
-                {{ usage()?.documentsUsed || 0 }} / {{ formatLimit(usage()?.documentsLimit || 0) }}
+                {{ usage()?.documentsUsed || 0 }}
               </span>
             </div>
           </div>
@@ -196,25 +196,11 @@
             <!-- Documents -->
             <div class="usage-item">
               <div class="usage-header">
-                <span class="usage-label">Documents Processed</span>
+                <span class="usage-label">Documents Uploaded</span>
                 <span class="usage-values">
                   <strong>{{ usage()?.documentsUsed || 0 }}</strong>
-                  @if ((usage()?.documentsLimit || 0) > 0) {
-                    / {{ usage()?.documentsLimit }}
-                  } @else {
-                    <span class="unlimited">Unlimited</span>
-                  }
                 </span>
               </div>
-              @if ((usage()?.documentsLimit || 0) > 0) {
-                <div class="usage-bar">
-                  <div
-                    class="usage-fill"
-                    [class]="getUsageBarClass(documentsUsagePercent())"
-                    [style.width.%]="documentsUsagePercent()">
-                  </div>
-                </div>
-              }
             </div>
 
             <!-- OCR Pages -->

@@ -33,7 +33,6 @@ export class SubscriptionOverviewComponent implements OnInit {
   readonly isCanceled = this.subState.isCanceled;
   readonly trialDaysRemaining = this.subState.trialDaysRemaining;
   readonly daysUntilRenewal = this.subState.daysUntilRenewal;
-  readonly documentsUsagePercent = this.subState.documentsUsagePercent;
   readonly ocrUsagePercent = this.subState.ocrUsagePercent;
   readonly storageUsagePercent = this.subState.storageUsagePercent;
 

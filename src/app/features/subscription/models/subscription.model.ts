@@ -202,10 +202,11 @@ export interface StorageInfo {
   ocrPagesUsed: number;
   ocrPagesRemaining: number;
   ocrUnlimited: boolean;
-  documentUploadLimit: number;
   documentsUploaded: number;
-  documentsRemaining: number;
-  documentsUnlimited: boolean;
+  // Legacy document quota fields (deprecated by storage-based limits)
+  documentUploadLimit?: number;
+  documentsRemaining?: number;
+  documentsUnlimited?: boolean;
   subscriptionPlan: string;
   billingInterval: string;
   quotaResetDate: string | null;

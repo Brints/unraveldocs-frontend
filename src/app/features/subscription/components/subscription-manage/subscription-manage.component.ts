@@ -36,7 +36,6 @@ export class SubscriptionManageComponent implements OnInit {
   readonly trialDaysRemaining = this.subState.trialDaysRemaining;
   readonly daysUntilRenewal = this.subState.daysUntilRenewal;
   readonly defaultPaymentMethod = this.subState.defaultPaymentMethod;
-  readonly documentsUsagePercent = this.subState.documentsUsagePercent;
   readonly ocrUsagePercent = this.subState.ocrUsagePercent;
   readonly storageUsagePercent = this.subState.storageUsagePercent;
 

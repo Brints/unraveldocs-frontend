@@ -26,11 +26,6 @@ export class StorageUsageComponent implements OnInit {
     return Math.min(info.percentageUsed, 100);
   });
 
-  readonly documentsPercentage = computed(() => {
-    const info = this.storageInfo();
-    if (!info || info.documentUploadLimit === 0 || info.documentsUnlimited) return 0;
-    return Math.min(Math.round((info.documentsUploaded / info.documentUploadLimit) * 100), 100);
-  });
 
   readonly ocrPercentage = computed(() => {
     const info = this.storageInfo();

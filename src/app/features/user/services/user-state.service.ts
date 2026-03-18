@@ -111,10 +111,8 @@ export class UserStateService {
         title: 'Documents',
         value: `${storage.documentsUploaded}`,
         icon: 'document',
-        color: storage.documentQuotaExceeded ? 'red' : 'blue',
-        subtitle: storage.documentsUnlimited
-          ? 'Unlimited'
-          : `${storage.documentsRemaining} remaining of ${storage.documentUploadLimit}`,
+        color: 'blue',
+        subtitle: 'Uploaded documents',
         link: '/documents'
       },
       {

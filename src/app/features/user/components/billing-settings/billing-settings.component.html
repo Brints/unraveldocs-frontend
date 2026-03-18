@@ -163,9 +163,8 @@
       @if (storageInfo()) {
       <div class="usage-info">
         <div class="usage-item">
-          <span class="usage-label">Documents</span>
-          <span class="usage-value">{{ storageInfo()!.documentsUploaded }} / {{ storageInfo()!.documentsUnlimited ?
-            'Unlimited' : storageInfo()!.documentUploadLimit }}</span>
+          <span class="usage-label">Documents Uploaded</span>
+          <span class="usage-value">{{ storageInfo()!.documentsUploaded }}</span>
         </div>
         <div class="usage-item">
           <span class="usage-label">OCR Pages</span>

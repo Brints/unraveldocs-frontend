@@ -125,8 +125,8 @@ export class SubscriptionStateService {
   // Usage computations
   readonly documentsUsagePercent = computed(() => {
     const storage = this._storageInfo();
-    if (!storage || storage.documentsUnlimited || storage.documentUploadLimit <= 0) return 0;
-    return Math.min(100, Math.round((storage.documentsUploaded / storage.documentUploadLimit) * 100));
+    if (!storage || storage.unlimited || storage.storageLimit <= 0) return 0;
+    return Math.min(100, Math.round(storage.percentageUsed));
   });
 
   readonly ocrUsagePercent = computed(() => {
@@ -191,7 +191,7 @@ export class SubscriptionStateService {
             this._usage.update(u => u ? {
               ...u,
               documentsUsed: storage.documentsUploaded,
-              documentsLimit: storage.documentsUnlimited ? -1 : storage.documentUploadLimit,
+              documentsLimit: -1,
               ocrPagesUsed: storage.ocrPagesUsed,
               ocrPagesLimit: storage.ocrUnlimited ? -1 : storage.ocrPageLimit,
               storageUsedBytes: storage.storageUsed,
