@@ -170,61 +170,16 @@
             </svg>
           </div>
           <div class="card-title-group">
-            <h3 class="card-title">Document Uploads</h3>
-            <span class="card-subtitle">Monthly upload quota</span>
+            <h3 class="card-title">Documents Uploaded</h3>
+            <span class="card-subtitle">Total documents uploaded</span>
           </div>
         </div>
 
         <div class="usage-stats">
           <div class="usage-main">
-            @if (info.documentsUnlimited) {
-              <span class="usage-value">{{ info.documentsUploaded }}</span>
-              <span class="usage-unlimited">Unlimited</span>
-            } @else {
-              <span class="usage-value">{{ info.documentsUploaded }}</span>
-              <span class="usage-separator">/</span>
-              <span class="usage-limit">{{ info.documentUploadLimit }}</span>
-            }
+            <span class="usage-value">{{ info.documentsUploaded }}</span>
           </div>
-          @if (!info.documentsUnlimited) {
-            <div class="usage-percentage" [class.exceeded]="info.documentQuotaExceeded">
-              {{ documentsPercentage() }}%
-            </div>
-          }
         </div>
-
-        @if (!info.documentsUnlimited) {
-          <div class="progress-container">
-            <div class="progress-bar">
-              <div
-                class="progress-fill"
-                [class]="getProgressBarClass(documentsPercentage(), info.documentQuotaExceeded)"
-                [style.width.%]="documentsPercentage()">
-              </div>
-            </div>
-          </div>
-          <div class="usage-details">
-            <span class="detail-item">
-              <span class="detail-label">Remaining:</span>
-              <span class="detail-value">{{ info.documentsRemaining }} documents</span>
-            </span>
-          </div>
-          @if (info.documentQuotaExceeded) {
-            <div class="quota-warning">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-              </svg>
-              <span>You've exceeded your monthly document upload limit</span>
-            </div>
-          }
-        } @else {
-          <div class="unlimited-badge">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-            </svg>
-            <span>Unlimited Uploads</span>
-          </div>
-        }
       </div>
 
       <!-- OCR Pages Card -->

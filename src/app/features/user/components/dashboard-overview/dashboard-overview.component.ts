@@ -185,16 +185,6 @@ export class DashboardOverviewComponent implements OnInit {
     return plan.split('_')[0].replace(/([A-Z])/g, ' $1').trim();
   }
 
-  /**
-   * Calculate document usage percentage
-   */
-  getDocumentUsagePercentage(): number {
-    const storage = this.storageInfo();
-    if (!storage || storage.documentsUnlimited || storage.documentUploadLimit === 0) {
-      return 0;
-    }
-    return Math.round((storage.documentsUploaded / storage.documentUploadLimit) * 100);
-  }
 
   /**
    * Format bytes to human-readable string

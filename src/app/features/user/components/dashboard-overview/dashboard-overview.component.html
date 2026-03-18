@@ -328,29 +328,9 @@
             <!-- Documents Usage -->
             <div class="usage-item">
               <div class="usage-header">
-                <span class="usage-label">Documents</span>
-                @if (storageInfo()?.documentsUnlimited) {
-                  <span class="usage-value">{{ storageInfo()?.documentsUploaded || 0 }} uploaded</span>
-                } @else {
-                  <span class="usage-value">{{ storageInfo()?.documentsUploaded || 0 }} / {{ storageInfo()?.documentUploadLimit || 0 }}</span>
-                }
+                <span class="usage-label">Documents Uploaded</span>
+                <span class="usage-value">{{ storageInfo()?.documentsUploaded || 0 }}</span>
               </div>
-              @if (!storageInfo()?.documentsUnlimited) {
-                <div class="progress-bar">
-                  <div
-                    class="progress-fill documents"
-                    [class.critical]="storageInfo()?.documentQuotaExceeded"
-                    [style.width.%]="getDocumentUsagePercentage()">
-                  </div>
-                </div>
-              } @else {
-                <div class="unlimited-badge">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
-                  </svg>
-                  <span>Unlimited</span>
-                </div>
-              }
             </div>
 
             <!-- OCR Pages Usage -->
