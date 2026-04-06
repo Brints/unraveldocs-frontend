@@ -43,7 +43,7 @@
     "@tiptap/extension-link": "^3.20.1",
     "@tiptap/extension-placeholder": "^3.20.1",
     "@tiptap/extension-underline": "^3.20.1",
-    "@tiptap/pm": "^3.20.1",
+    "@tiptap/pm": "^3.22.2",
     "@tiptap/starter-kit": "^3.20.1",
     "chart.js": "^4.5.0",
     "google-auth-library": "^10.5.0",
