@@ -37,7 +37,7 @@
     "@angular/router": "^21.1.1",
     "@google-cloud/local-auth": "^3.0.1",
     "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/postcss": "^4.1.17",
+    "@tailwindcss/postcss": "^4.2.2",
     "@tailwindcss/typography": "^0.5.19",
     "@tiptap/core": "^3.20.1",
     "@tiptap/extension-link": "^3.20.1",
