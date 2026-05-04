@@ -44,7 +44,7 @@
     "@tiptap/extension-placeholder": "^3.20.1",
     "@tiptap/extension-underline": "^3.20.1",
     "@tiptap/pm": "^3.20.1",
-    "@tiptap/starter-kit": "^3.20.1",
+    "@tiptap/starter-kit": "^3.22.5",
     "chart.js": "^4.5.0",
     "google-auth-library": "^10.5.0",
     "ng2-charts": "^8.0.0",
